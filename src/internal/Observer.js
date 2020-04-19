@@ -66,38 +66,40 @@ export default class extends Fireable {
 				// Call listener...
 				var data = [];
 				var _data = [];
-				fields.forEach(field => {
-					// --------------------------
-					// The NEW/OLD values of the change of field which could be a path
-					var fieldData = evt.originatingFields.reduce((fieldData, originatingField) => {
-						// So field is the exact originatingField path?
-						var value = evt.originatingData[originatingField];
-						var _value = evt._originatingData[originatingField];
-						if (!fieldData && field === originatingField) {
-							return [value, _value];
+				if (this.params.data !== false) {
+					fields.forEach(field => {
+						// --------------------------
+						// The NEW/OLD values of the change of field which could be a path
+						var fieldData = evt.originatingFields.reduce((fieldData, originatingField) => {
+							// So field is the exact originatingField path?
+							var value = evt.originatingData[originatingField];
+							var _value = evt._originatingData[originatingField];
+							if (!fieldData && field === originatingField) {
+								return [value, _value];
+							}
+							// Field matches, but is deeper than, originatingField path?
+							if (!fieldData && (field + '.').startsWith((originatingField + '.'))) {
+								var fieldQuery = _strAfter(field, originatingField + '.');
+								return [
+									// Notice we're using _commonsGet to dig the path
+									// but with reflexGet as trap for "reactive getting"
+									_commonsGet(value, fieldQuery.split('.'), {get:reflexGet}),
+									_commonsGet(_value, fieldQuery.split('.'), {get:reflexGet})
+								];
+							}
+							return fieldData;
+						}, null);
+						// --------------------------
+						if (fieldData) {
+							data.push(fieldData.shift());
+							_data.push(fieldData.shift());
+						} else {
+							var currentValue = _commonsGet(evt.target, _isString(field) ? field.split('.') : field, {get:reflexGet});
+							data.push(currentValue);
+							_data.push(currentValue);
 						}
-						// Field matches, but is deeper than, originatingField path?
-						if (!fieldData && (field + '.').startsWith((originatingField + '.'))) {
-							var fieldQuery = _strAfter(field, originatingField + '.');
-							return [
-								// Notice we're using _commonsGet to dig the path
-								// but with reflexGet as trap for "reactive getting"
-								_commonsGet(value, fieldQuery.split('.'), {get:reflexGet}),
-								_commonsGet(_value, fieldQuery.split('.'), {get:reflexGet})
-							];
-						}
-						return fieldData;
-					}, null);
-					// --------------------------
-					if (fieldData) {
-						data.push(fieldData.shift());
-						_data.push(fieldData.shift());
-					} else {
-						var currentValue = _commonsGet(evt.target, _isString(field) ? field.split('.') : field, {get:reflexGet});
-						data.push(currentValue);
-						_data.push(currentValue);
-					}
-				});
+					});
+				}
 				return _isArray(this.fields) // NOTE:we're asking the original format!
 					? evt.response(this.handler(data, _data, evt))
 					: evt.response(this.handler(data[0], _data[0], evt));
@@ -136,14 +138,16 @@ export default class extends Fireable {
 					? observedField.replace(/`/g, '')
 					: observedField;
 				dynamicFieldOutcomes[i] = [];
+				// one observedField can turn out to be two if dynamic
+				// and evt.originatingFields is multiple
 				return evt.originatingFields.filter(inputOriginatingField => {
 					var inputOriginatingFieldSplit = inputOriginatingField.split('.');
 					var observedDynamicFieldOutcome = this.isDynamicField 
 						? observedField.split('.').map((seg, k) => seg || inputOriginatingFieldSplit[k] || '').join('.')
 						: observedField;
 					_pushUnique(dynamicFieldOutcomes[i], observedDynamicFieldOutcome);
-					return (observedDynamicFieldOutcome === inputOriginatingField
-						|| (this.params.observeUp !== false && !evt.srcEvt/*siblings bubbling to root shouldnt trigger this*/ && (observedDynamicFieldOutcome + '.').startsWith(inputOriginatingField + '.'))
+					return (observedDynamicFieldOutcome === inputOriginatingField && !evt.srcEvt
+						|| (this.params.observeUp !== false && (observedDynamicFieldOutcome + '.').startsWith(inputOriginatingField + '.'))
 						|| (this.params.observeDown && (inputOriginatingField + '.').startsWith(observedDynamicFieldOutcome + '.'))
 					) && (!this.isDynamicField || !observedDynamicFieldOutcome.split('.').filter(seg => !seg).length);
 				}).length;
@@ -151,7 +155,7 @@ export default class extends Fireable {
 			if (matches) {
 				_crossJoin(dynamicFieldOutcomes).forEach(callback);
 			}
-		} else if (evt.fields === evt.originatingFields || this.params.observeDown) {
+		} else if (!evt.srcEvt || this.params.observeDown) {
 			callback();
 		}
 	}

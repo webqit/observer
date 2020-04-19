@@ -14,5 +14,5 @@ import unobserve from './unobserve.js';
  * @return void
  */
 export default function(target, field, object) {
-	unobserve(object, null, {tags:['#e-bubbling', target]});
+	unobserve(object, null, {tags:['#e-bubbling', field, target]});
 }

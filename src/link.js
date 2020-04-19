@@ -23,5 +23,5 @@ export default function(target, field, object) {
 			var base = _objFrom(field, object);
 			return firebase.fire(new MutationEvent(target, {type:e.type, bubbling:true, data:base, _data:base, srcEvt:e}));
 		}
-	}, {observeDown:true, tags:['#e-bubbling', target]});
+	}, {observeDown:true, tags:['#e-bubbling', field, target]});
 }
