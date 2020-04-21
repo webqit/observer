@@ -1,8 +1,10 @@
 # Reflex
-The Reflex API is a simple set of functions for detecting and responding to changes made to any JavaScript object or array. It draws its inspiration from biological [reflex actions](https://en.wikipedia.org/wiki/Reflex) and JavaScript’s set of reflection APIs like `Object.observe()` and `Reflect.set()`. To put it best, Reflex is a reflection API that is supercharged with reactivity in the form of reflex actions.
+The Reflex API is a simple set of functions for detecting and responding to changes made to any JavaScript object or array. It draws its inspiration from biological [reflex actions](https://en.wikipedia.org/wiki/Reflex) and JavaScript’s set of reflection APIs like `Object.observe()` and `Reflect.set()`. Say Hi to general-purpose "reactivity"; bye to "Observables" and other object wrappers!.
+
+Visit the [project homepage](https://docs.web-native.dev/reflex/) to learn more!
 
 ## Documentation
-[docs.web-native.dev/reflex/](https://docs.web-native.dev/reflex/)
+Visit the official documentation at [docs.web-native.dev/reflex/](https://docs.web-native.dev/reflex/)
 
 ## Issues
 To report bugs or request features, please submit an issue to this repository.
