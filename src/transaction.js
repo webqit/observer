@@ -47,7 +47,7 @@ export default function(targets, callback, keys = [], returnEvent = false) {
 		var currentKeys = Object.keys(cntxt.target);
 		var changedKeys = _unique(initialKeys.concat(currentKeys)).filter(key => {
 			if ((keys.length && !keys.includes(key)) 
-			|| (_isArray(cntxt.target) && (key === 'length' || key === '< r e f l e x >'))) {
+			|| (_isArray(cntxt.target) && (key === 'length' || key === '.reflex'))) {
 				return;
 			}
 			if (!currentKeys.includes(key)) {

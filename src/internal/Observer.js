@@ -155,7 +155,8 @@ export default class extends Fireable {
 			if (matches) {
 				_crossJoin(dynamicFieldOutcomes).forEach(callback);
 			}
-		} else if (!evt.srcEvt || this.params.observeDown) {
+		} else if (!this.fields/** if this.fieldsArray is empty because this.fields is null */
+			&& (!evt.srcEvt || this.params.observeDown)) {
 			callback();
 		}
 	}

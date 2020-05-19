@@ -5,6 +5,7 @@
 import _objFrom from '@web-native-js/commons/obj/from.js';
 import _isArray from '@web-native-js/commons/js/isArray.js';
 import _isNumeric from '@web-native-js/commons/js/isNumeric.js';
+import _isClass from '@web-native-js/commons/js/isClass.js';
 import _isFunction from '@web-native-js/commons/js/isFunction.js';
 import _isTypeObject from '@web-native-js/commons/js/isTypeObject.js';
 import QueryEvent from './internal/QueryEvent.js';
@@ -36,7 +37,7 @@ export default function(target, keys) {
 	}
 	// ---------------------------------
 	// Execute array methods in "mutation" mode
-	if (_isArray(target) && !_isNumeric(keys) && _isFunction(value)) {
+	if (_isArray(target) && !_isNumeric(keys) && _isFunction(value) && !_isClass(value)) {
 		return function reflexArrayMethodWrapper(...args) {
 			return transaction([target], () => {
 				return value.apply(target, args);

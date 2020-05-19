@@ -60,10 +60,16 @@ export default class {
 	 */
 	findFireables(query) {
 		return this.fireables.filter(observer => {
-			return (!query.handler || observer.handler === query.handler) && (!query.params || (
-				(!query.params.type || observer.params.type === query.params.type)
-				&& (!query.params.tags || _intersect(observer.params.tags || [], query.params.tags).length === query.params.tags.length)
-			));
+			var observerParams = observer.params || {};
+			var observerTags = observerParams.tags || [];
+			var queryParams = query.params || {};
+			var queryTags = queryParams.tags || [];
+			return (!query.handler || observer.handler === query.handler)
+				&& (!queryParams.type || observerParams.type === queryParams.type)
+				&& (
+					(!queryTags.length && !observerTags.length) 
+					|| _intersect(observerTags, queryTags).length === observerTags.length
+				);
 		});
 	}
 	
@@ -114,4 +120,4 @@ export default class {
 /**
  * @var string
  */
-const firebaseKey = '< r e f l e x >';
+const firebaseKey = '.reflex';
