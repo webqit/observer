@@ -1,15 +1,19 @@
-# Reflex
-> A general-purpose reflection API for observing objects and arrays in JavaScript.
+> Observability and Interceptability, Objects and Arrays.
 
-The Reflex API is a simple set of functions for detecting and responding to changes made to any JavaScript object or array. It draws its inspiration from biological [reflex actions](https://en.wikipedia.org/wiki/Reflex) and JavaScript’s set of reflection APIs like `Object.observe()` and `Reflect.set()`. Say Hi to general-purpose "reactivity"; bye to "Observables" and other object wrappers!.
+# Observer
 
-Visit the [project homepage](https://docs.web-native.dev/reflex/) to learn more!
+Observer is a simple set of functions for intercepting and observing JavaScript objects and arrays. It is designed for general-purpose event-based architectures (from UI data-binding to debugging, and everything in between). It draws its inspiration from [Object.observe](https://arv.github.io/ecmascript-object-observe) and JavaScript's other reflection APIs like [`Reflect`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect), and features better object interceptability than what's possible with property [setters](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/set) and [getters](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/get).
 
 ## Documentation
-Visit the official documentation at [docs.web-native.dev/reflex/](https://docs.web-native.dev/reflex/)
+
++ [Installation](https://docs.web-native.dev/observer/v1/installation.md)
++ [Examples](https://docs.web-native.dev/observer/v1/examples.md)
++ [API](https://docs.web-native.dev/observer/v1/api)
 
 ## Issues
-To report bugs or request features, please submit an issue to this repository.
+
+To report bugs or request features, please submit an [issue](https://github.com/web-native/observer/issues).
 
 ## License
+
 MIT.

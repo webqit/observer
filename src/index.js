@@ -2,61 +2,54 @@
 /**
  * @imports
  */
-import build from './build.js';
-import observe from './observe.js';
-import unobserve from './unobserve.js';
-import trap from './trap.js';
-import untrap from './untrap.js';
-import def from './def.js';
-import set from './set.js';
-import del from './del.js';
-import link from './link.js';
-import unlink from './unlink.js';
-import transaction from './transaction.js';
-import get from './get.js';
-import has from './has.js';
-import init from './init.js';
-import keys from './keys.js';
-import ownKeys from './ownKeys.js';
-import on from './on.js';
-import off from './off.js';
-import trigger from './trigger.js';
-import MutationEvent from './internal/MutationEvent.js';
-import QueryEvent from './internal/QueryEvent.js';
-import Event from './internal/Event.js';
+// Interceptor
+import set from './interceptor/set.js';
+import get from './interceptor/get.js';
+import has from './interceptor/has.js';
+import deleteProperty from './interceptor/deleteProperty.js';
+import defineProperty from './interceptor/defineProperty.js';
+import keys from './interceptor/keys.js';
+import ownKeys from './interceptor/ownKeys.js';
+import intercept from './interceptor/intercept.js';
+import unintercept from './interceptor/unintercept.js';
+import proxy from './interceptor/proxy.js';
+// Observer
+import observe from './observer/observe.js';
+import unobserve from './observer/unobserve.js';
+import closure from './observer/closure.js';
+import init from './observer/init.js';
+import build from './observer/build.js';
+import link from './observer/link.js';
+import unlink from './observer/unlink.js';
 
 // Now we'll mimick standard Trap properties
 // so that can be used as standard Trap out of the box.
-const deleteProperty = del;
-const defineProperty = def;
+const del = deleteProperty;
+const def = defineProperty;
 
 /**
  * @exports
  */
 export default {
-	build,
-	observe,
-	unobserve,
-	trap,
-	untrap,
-	def,
-	defineProperty,
+	// Interceptor
 	set,
-	del,
-	deleteProperty,
-	link,
-	unlink,
-	transaction,
 	get,
 	has,
-	init,
+	deleteProperty,
+	del,
+	defineProperty,
+	def,
 	keys,
 	ownKeys,
-	on,
-	off,
-	trigger,
-	// Events
-	MutationEvent,
-	QueryEvent,
-	Event,
+	intercept,
+	unintercept,
+	proxy,
+	// Observer
+	observe,
+	unobserve,
+	closure,
+	init,
+	build,
+	link,
+	unlink,
 };
