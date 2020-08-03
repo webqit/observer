@@ -6,9 +6,9 @@ Observer is a simple set of functions for intercepting and observing JavaScript 
 
 ## Documentation
 
-+ [Installation](https://docs.web-native.dev/observer/v1/installation.md)
-+ [Examples](https://docs.web-native.dev/observer/v1/examples.md)
-+ [API](https://docs.web-native.dev/observer/v1/api)
++ [Installation](https://docs.web-native.dev/observer/installation)
++ [Examples](https://docs.web-native.dev/observer/examples)
++ [API](https://docs.web-native.dev/observer/api)
 
 ## Issues
 
