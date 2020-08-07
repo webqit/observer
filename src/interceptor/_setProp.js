@@ -41,6 +41,9 @@ export default function(define, subject, keysOrPayload, value = null, detail = n
 		observers = getObservers(subject, false);
 	// ----------
 	const handleSet = (key, value, related, detail) => {
+		if (key.indexOf('.') !== -1) {
+			throw new Error('Property names with a dot are not supported!');
+		}
 		var type = 'set', descriptor;
 		if (define) {
 			type = 'def';

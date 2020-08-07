@@ -26,6 +26,9 @@ export default function(subject, keys, detail = null) {
 	}
 	var keys = _arrFrom(keys);
 	var events = keys.map(key => {
+		if (key.indexOf('.') !== -1) {
+			throw new Error('Property names with a dot are not supported!');
+		}
 		// ---------------------------------
 		// The event object
 		var e = {

@@ -32,15 +32,16 @@ export default function build(subject, paths = null, subtree = false) {
 	observers.build = true;
 	// ---------------------------------
 	paths = _arrFrom(paths);
-	var keys = paths.length && !paths.filter(path => path.startsWith('.')).length 
-		? paths.map(path => _before(path, '.')) 
-		: _keys(subject).filter(k => !k.startsWith('.'));
+	// If any path starts with a dot, (a wild card path), all keys at this level is implied
+	var keys = !paths.length || paths.filter(path => path.startsWith('.')).length
+		? _keys(subject).filter(k => k.indexOf('.') === -1) 
+		: paths.map(path => _before(path, '.'));
 	var subkeys = paths.length ? paths.map(path => _after(path, '.')) : null;
 	keys.forEach(key => {
 		var value = _get(subject, key);
 		if (_isTypeObject(value)) {
 			link(subject, key, value);
-			if (subkeys || subtree) {
+			if ((subkeys || subtree)) {
 				build(value, subkeys, subtree);
 			}
 		}
