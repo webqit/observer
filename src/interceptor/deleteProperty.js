@@ -3,6 +3,7 @@
  * @imports
  */
 import _arrFrom from '@web-native-js/commons/arr/from.js';
+import _isString from '@web-native-js/commons/js/isString.js';
 import _isTypeObject from '@web-native-js/commons/js/isTypeObject.js';
 import getObservers from '../observer/getObservers.js';
 import unlink from '../observer/unlink.js';
@@ -26,7 +27,7 @@ export default function(subject, keys, detail = null) {
 	}
 	var keys = _arrFrom(keys);
 	var events = keys.map(key => {
-		if (key.indexOf('.') !== -1) {
+		if (_isString(key) && key.indexOf('.') !== -1) {
 			throw new Error('Property names with a dot are not supported!');
 		}
 		// ---------------------------------
