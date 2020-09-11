@@ -2,8 +2,8 @@
 /**
  * @imports
  */
-import _arrFrom from '@web-native-js/commons/arr/from.js';
-import _intersect from '@web-native-js/commons/arr/intersect.js';
+import _arrFrom from '@onephrase/util/arr/from.js';
+import _intersect from '@onephrase/util/arr/intersect.js';
 
 /**
  * ---------------------------

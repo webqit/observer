@@ -2,10 +2,10 @@
 /**
  * @imports
  */
-import _isTypeObject from '@web-native-js/commons/js/isTypeObject.js';
-import _arrFrom from '@web-native-js/commons/arr/from.js';
-import _before from '@web-native-js/commons/str/before.js';
-import _after from '@web-native-js/commons/str/after.js';
+import _isTypeObject from '@onephrase/util/js/isTypeObject.js';
+import _arrFrom from '@onephrase/util/arr/from.js';
+import _before from '@onephrase/util/str/before.js';
+import _after from '@onephrase/util/str/after.js';
 import _keys from '../interceptor/keys.js';
 import _get from '../interceptor/get.js';
 import getObservers from './getObservers.js';

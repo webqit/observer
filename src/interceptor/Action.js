@@ -2,7 +2,7 @@
 /**
  * @imports
  */
-import _each from '@web-native-js/commons/obj/each.js';
+import _each from '@onephrase/util/obj/each.js';
 
 /**
  * ---------------------------

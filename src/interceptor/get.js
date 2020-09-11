@@ -2,12 +2,12 @@
 /**
  * @imports
  */
-import _objFrom from '@web-native-js/commons/obj/from.js';
-import _isArray from '@web-native-js/commons/js/isArray.js';
-import _isNumeric from '@web-native-js/commons/js/isNumeric.js';
-import _isClass from '@web-native-js/commons/js/isClass.js';
-import _isFunction from '@web-native-js/commons/js/isFunction.js';
-import _isTypeObject from '@web-native-js/commons/js/isTypeObject.js';
+import _objFrom from '@onephrase/util/obj/from.js';
+import _isArray from '@onephrase/util/js/isArray.js';
+import _isNumeric from '@onephrase/util/js/isNumeric.js';
+import _isClass from '@onephrase/util/js/isClass.js';
+import _isFunction from '@onephrase/util/js/isFunction.js';
+import _isTypeObject from '@onephrase/util/js/isTypeObject.js';
 import closure from '../observer/closure.js';
 import getInterceptors from './getInterceptors.js';
 

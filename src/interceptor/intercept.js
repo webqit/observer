@@ -2,9 +2,9 @@
 /**
  * @imports
  */
-import _isFunction from '@web-native-js/commons/js/isFunction.js';
-import _isTypeObject from '@web-native-js/commons/js/isTypeObject.js';
-import _getType from '@web-native-js/commons/js/getType.js';
+import _isFunction from '@onephrase/util/js/isFunction.js';
+import _isTypeObject from '@onephrase/util/js/isTypeObject.js';
+import _getType from '@onephrase/util/js/getType.js';
 import getInterceptors from './getInterceptors.js';
 
 /**

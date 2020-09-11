@@ -2,12 +2,12 @@
 /**
  * @imports
  */
-import _arrFrom from '@web-native-js/commons/arr/from.js';
-import _isString from '@web-native-js/commons/js/isString.js';
-import _isArray from '@web-native-js/commons/js/isArray.js';
-import _isNumber from '@web-native-js/commons/js/isNumber.js';
-import _isObject from '@web-native-js/commons/js/isObject.js';
-import _isTypeObject from '@web-native-js/commons/js/isTypeObject.js';
+import _arrFrom from '@onephrase/util/arr/from.js';
+import _isString from '@onephrase/util/js/isString.js';
+import _isArray from '@onephrase/util/js/isArray.js';
+import _isNumber from '@onephrase/util/js/isNumber.js';
+import _isObject from '@onephrase/util/js/isObject.js';
+import _isTypeObject from '@onephrase/util/js/isTypeObject.js';
 import getObservers from '../observer/getObservers.js';
 import build from '../observer/build.js';
 import unlink from '../observer/unlink.js';

@@ -2,14 +2,14 @@
 /**
  * @imports
  */
-import _crossJoin from '@web-native-js/commons/arr/crossJoin.js';
-import _pushUnique from '@web-native-js/commons/arr/pushUnique.js';
-import _any from '@web-native-js/commons/arr/any.js';
-import _arrFrom from '@web-native-js/commons/arr/from.js';
-import _strAfter from '@web-native-js/commons/str/after.js';
-import _isString from '@web-native-js/commons/js/isString.js';
-import _isArray from '@web-native-js/commons/js/isArray.js';
-import _commonsGet from '@web-native-js/commons/obj/get.js';
+import _crossJoin from '@onephrase/util/arr/crossJoin.js';
+import _pushUnique from '@onephrase/util/arr/pushUnique.js';
+import _any from '@onephrase/util/arr/any.js';
+import _arrFrom from '@onephrase/util/arr/from.js';
+import _strAfter from '@onephrase/util/str/after.js';
+import _isString from '@onephrase/util/js/isString.js';
+import _isArray from '@onephrase/util/js/isArray.js';
+import _commonsGet from '@onephrase/util/obj/get.js';
 import _get from '../interceptor/get.js';
 import Fireable from '../Fireable.js';
 import Delta from './Delta.js';

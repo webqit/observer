@@ -2,10 +2,10 @@
 /**
  * @imports
  */
-import _isClass from '@web-native-js/commons/js/isClass.js';
-import _isFunction from '@web-native-js/commons/js/isFunction.js';
-import _isTypeObject from '@web-native-js/commons/js/isTypeObject.js';
-import _getType from '@web-native-js/commons/js/getType.js';
+import _isClass from '@onephrase/util/js/isClass.js';
+import _isFunction from '@onephrase/util/js/isFunction.js';
+import _isTypeObject from '@onephrase/util/js/isTypeObject.js';
+import _getType from '@onephrase/util/js/getType.js';
 import _get from './get.js';
 import _set from './set.js';
 import _has from './has.js';

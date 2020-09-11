@@ -2,9 +2,9 @@
 /**
  * @imports
  */
-import _arrFrom from '@web-native-js/commons/arr/from.js';
-import _isString from '@web-native-js/commons/js/isString.js';
-import _isTypeObject from '@web-native-js/commons/js/isTypeObject.js';
+import _arrFrom from '@onephrase/util/arr/from.js';
+import _isString from '@onephrase/util/js/isString.js';
+import _isTypeObject from '@onephrase/util/js/isTypeObject.js';
 import getObservers from '../observer/getObservers.js';
 import unlink from '../observer/unlink.js';
 import getInterceptors from './getInterceptors.js';

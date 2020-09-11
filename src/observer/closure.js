@@ -2,10 +2,10 @@
 /**
  * @imports
  */
-import _copy from '@web-native-js/commons/obj/copy.js';
-import _unique from '@web-native-js/commons/arr/unique.js';
-import _isTypeObject from '@web-native-js/commons/js/isTypeObject.js';
-import _isArray from '@web-native-js/commons/js/isArray.js';
+import _copy from '@onephrase/util/obj/copy.js';
+import _unique from '@onephrase/util/arr/unique.js';
+import _isTypeObject from '@onephrase/util/js/isTypeObject.js';
+import _isArray from '@onephrase/util/js/isArray.js';
 import getObservers from './getObservers.js';
 import unlink from './unlink.js';
 import link from './link.js';

@@ -2,8 +2,8 @@
 /**
  * @imports
  */
-import _arrFrom from '@web-native-js/commons/arr/from.js';
-import _remove from '@web-native-js/commons/arr/remove.js';
+import _arrFrom from '@onephrase/util/arr/from.js';
+import _remove from '@onephrase/util/arr/remove.js';
 import Firebase from '../Firebase.js';
 import Observer from './Observer.js';
 import Delta from './Delta.js';
