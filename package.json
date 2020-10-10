@@ -12,7 +12,7 @@
     "array.observe"
   ],
   "homepage": "https://web-native.dev/package/observer",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -30,7 +30,7 @@
     "build": "webpack --config ./webpack.config.cjs"
   },
   "dependencies": {
-    "@onephrase/util": "^0.5.5"
+    "@onephrase/util": "^0.6.2"
   },
   "devDependencies": {
     "webpack": "^4.44.1",
