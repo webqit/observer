@@ -26,7 +26,7 @@ export default function build(subject, paths = null, subtree = false) {
 		throw new Error('Target must be of type object!');
 	}
 	var observers = getObservers(subject);
-	if (observers.build) {
+	if (!observers || observers.build) {
 		return;
 	}
 	observers.build = true;
