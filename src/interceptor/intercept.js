@@ -2,9 +2,9 @@
 /**
  * @imports
  */
-import _isFunction from '@onephrase/util/js/isFunction.js';
-import _isTypeObject from '@onephrase/util/js/isTypeObject.js';
-import _getType from '@onephrase/util/js/getType.js';
+import _isFunction from '@webqit/util/js/isFunction.js';
+import _isTypeObject from '@webqit/util/js/isTypeObject.js';
+import _getType from '@webqit/util/js/getType.js';
 import getInterceptors from './getInterceptors.js';
 
 /**
@@ -31,8 +31,11 @@ export default function(subject, filter, handler, params = {}) {
 	}
 	var interceptors = getInterceptors(subject);
 	var dfn = {filter, handler, params,}, existing;
-	if (dfn.params.unique && (existing = interceptors.filter(dfn)).length) {
-		return existing[0];
+	if (dfn.params.unique && (existing = interceptors.match(dfn)).length) {
+		if (dfn.params.unique !== 'replace') {
+			return existing[0];
+		}
+		interceptors.remove(existing[0]);
 	}
 	return interceptors.add(dfn);
 }

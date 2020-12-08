@@ -2,11 +2,12 @@
 /**
  * @imports
  */
-import _arrFrom from '@onephrase/util/arr/from.js';
-import _remove from '@onephrase/util/arr/remove.js';
+import _arrFrom from '@webqit/util/arr/from.js';
+import _remove from '@webqit/util/arr/remove.js';
 import Firebase from '../Firebase.js';
 import Observer from './Observer.js';
 import Delta from './Delta.js';
+import Event from './Event.js';
 
 /**
  * ---------------------------
@@ -28,22 +29,23 @@ export default class extends Firebase {
 	 *
 	 * @param array|Delta		changes
 	 *
-	 * @return bool
+	 * @return Event
 	 */
 	fire(changes) {
+		var evt = new Event(this.subject);
 		// We accept multiple changes
 		changes = _arrFrom(changes, false).map(delta => !(delta instanceof Delta) ? new Delta(this.subject, delta) : delta);
 		if (this.currentlyFiring.filter(d => changes.filter(delta => d.type === delta.type && d.name === delta.name).length).length) {
-			return false;
+			//return false;
 		}
 		this.currentlyFiring.push(...changes);
 		this.fireables.forEach(observer => {
-			if (changes.propagationStopped) {
-				return false;
+			if (evt.propagationStopped) {
+				return evt;
 			}
-			observer.fire(changes);
+			evt.respond(observer.fire(changes));
 		});
 		changes.forEach(delta => _remove(this.currentlyFiring, delta));
-		return true;
+		return evt;
 	}
 };

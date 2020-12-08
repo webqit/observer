@@ -12,9 +12,10 @@ import _setProp from './_setProp.js';
  * @param string|array	keysOrPayload
  * @param mixed			value
  * @param any			detail
+ * @param object		params
  *
  * @return bool
  */
-export default function(subject, keysOrPayload, value = null, detail = null) {
+export default function(subject, keysOrPayload, value = null, detail = null, params = {}) {
 	return _setProp(false/*define*/, ...arguments);
 }

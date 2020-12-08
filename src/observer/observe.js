@@ -2,9 +2,9 @@
 /**
  * @imports
  */
-import _isFunction from '@onephrase/util/js/isFunction.js';
-import _isTypeObject from '@onephrase/util/js/isTypeObject.js';
-import _getType from '@onephrase/util/js/getType.js';
+import _isFunction from '@webqit/util/js/isFunction.js';
+import _isTypeObject from '@webqit/util/js/isTypeObject.js';
+import _getType from '@webqit/util/js/getType.js';
 import getObservers from './getObservers.js';
 import build from './build.js';
 
@@ -20,7 +20,7 @@ import build from './build.js';
  */
 export default function(subject, filter, handler = null, params = {}) {
 	if (!subject || !_isTypeObject(subject)) {
-		throw new Error('Object must be of type subject; "' + _getType(handler) + '" given!');
+		throw new Error('Observable subjects must be of type object; "' + _getType(subject) + '" given!');
 	}
 	if (_isFunction(filter)) {
 		params = arguments.length > 2 ? handler : {};
@@ -28,16 +28,18 @@ export default function(subject, filter, handler = null, params = {}) {
 		filter = null;
 	}
 	if (!_isFunction(handler)) {
-		throw new Error('Callback must be a function; "' + _getType(handler) + '" given!');
+		throw new Error('Handler must be a function; "' + _getType(handler) + '" given!');
 	}
+	var existing, observers = getObservers(subject);
 	var dfn = {filter, handler, params,};
 	if (dfn.filter || dfn.params.subtree) {
 		build(subject, dfn.filter, dfn.params.subtree);
 	}
-	var observers = getObservers(subject);
-	var existing;
-	if (dfn.params.unique && (existing = observers.filter({filter, params})).length) {
-		return existing[0];
+	if (dfn.params.unique && (existing = observers.match({filter, params})).length) {
+		if (dfn.params.unique !== 'replace') {
+			return existing[0];
+		}
+		observers.remove(existing[0]);
 	}
 	return observers.add(dfn);
 }

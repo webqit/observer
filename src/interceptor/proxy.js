@@ -2,10 +2,10 @@
 /**
  * @imports
  */
-import _isClass from '@onephrase/util/js/isClass.js';
-import _isFunction from '@onephrase/util/js/isFunction.js';
-import _isTypeObject from '@onephrase/util/js/isTypeObject.js';
-import _getType from '@onephrase/util/js/getType.js';
+import _isClass from '@webqit/util/js/isClass.js';
+import _isFunction from '@webqit/util/js/isFunction.js';
+import _isTypeObject from '@webqit/util/js/isTypeObject.js';
+import _getType from '@webqit/util/js/getType.js';
 import _get from './get.js';
 import _set from './set.js';
 import _has from './has.js';
@@ -33,10 +33,10 @@ export default function(subject) {
             }
             return val;
         },
-        set:  _set,
+        set:  (...args) => {_set(...args); return true},
         has: _has,
-        deleteProperty: _del,
-        defineProperty: _def,
+        deleteProperty: (...args) => {_del(...args); return true},
+        defineProperty: (...args) => {_def(...args); return true},
         ownKeys: _ownKeys,
     });
 	return proxy;

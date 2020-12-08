@@ -2,6 +2,8 @@
 /**
  * @imports
  */
+import _arrFrom from '@webqit/util/arr/from.js';
+import _intersect from '@webqit/util/arr/intersect.js';
 import Fireable from '../Fireable.js';
 
 /**
@@ -23,7 +25,7 @@ export default class extends Fireable {
 	 * @return void
 	 */
 	fire(event, next, recieved) {
-		if (this.disconnected || (this.filter && this.filter !== event.type)) {
+		if (this.disconnected || (this.filter && !_intersect(_arrFrom(this.filter), [event.type]).length)) {
 			return next(...Array.prototype.slice.call(arguments, 2));
 		}
 		return this.handler(event, recieved, next);

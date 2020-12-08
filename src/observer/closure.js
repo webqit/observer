@@ -2,10 +2,10 @@
 /**
  * @imports
  */
-import _copy from '@onephrase/util/obj/copy.js';
-import _unique from '@onephrase/util/arr/unique.js';
-import _isTypeObject from '@onephrase/util/js/isTypeObject.js';
-import _isArray from '@onephrase/util/js/isArray.js';
+import _copy from '@webqit/util/obj/copy.js';
+import _unique from '@webqit/util/arr/unique.js';
+import _isTypeObject from '@webqit/util/js/isTypeObject.js';
+import _isArray from '@webqit/util/js/isArray.js';
 import getObservers from './getObservers.js';
 import unlink from './unlink.js';
 import link from './link.js';
@@ -37,9 +37,6 @@ export default function(callback, ...subjects) {
 		var currentKeys = Object.keys(cntxt.subject);
 		var related = [];
 		var changes = _unique(initialKeys.concat(currentKeys)).map(key => {
-			if (_isArray(cntxt.subject) && (key === 'length' || key === '.observer')) {
-				return;
-			}
 			if (cntxt.subjectCopy[key] !== cntxt.subject[key]) {
 				related.push(key);
 				// ---------------------------------

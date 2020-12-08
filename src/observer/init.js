@@ -2,7 +2,7 @@
 /**
  * @imports
  */
-import _arrFrom from '@onephrase/util/arr/from.js';
+import _arrFrom from '@webqit/util/arr/from.js';
 import _get from '../interceptor/get.js';
 import _set from '../interceptor/set.js';
 

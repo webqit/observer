@@ -2,9 +2,9 @@
 /**
  * @imports
  */
-import _isFunction from '@onephrase/util/js/isFunction.js';
-import _isTypeObject from '@onephrase/util/js/isTypeObject.js';
-import _getType from '@onephrase/util/js/getType.js';
+import _isFunction from '@webqit/util/js/isFunction.js';
+import _isTypeObject from '@webqit/util/js/isTypeObject.js';
+import _getType from '@webqit/util/js/getType.js';
 import getObservers from './getObservers.js';
 
 /**
@@ -19,7 +19,7 @@ import getObservers from './getObservers.js';
  */
 export default function(subject, filter, originalHandler = null, params = {}) {
 	if (!subject || !_isTypeObject(subject)) {
-		throw new Error('Object must be of type subject; "' + _getType(subject) + '" given!');
+		throw new Error('Observable subjects must be of type object; "' + _getType(subject) + '" given!');
 	}
 	if (_isFunction(filter)) {
 		params = arguments.length > 2 ? originalHandler : {};

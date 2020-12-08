@@ -1,5 +1,5 @@
 {
-  "name": "@web-native-js/observer",
+  "name": "@webqit/observer",
   "title": "Observer",
   "description": "A simple set of functions for intercepting and observing JavaScript objects and arrays.",
   "keywords": [
@@ -11,15 +11,15 @@
     "object.observe",
     "array.observe"
   ],
-  "homepage": "https://web-native.dev/package/observer",
-  "version": "1.0.9",
+  "homepage": "https://webqit.dev/tooling/observer",
+  "version": "1.2.0",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/web-native/observer.git"
+    "url": "git+https://github.com/webqit/observer.git"
   },
   "bugs": {
-    "url": "https://github.com/web-native/observer/issues"
+    "url": "https://github.com/webqit/observer/issues"
   },
   "type": "module",
   "main": "src/index.js",
@@ -30,7 +30,7 @@
     "build": "webpack --config ./webpack.config.cjs"
   },
   "dependencies": {
-    "@onephrase/util": "^0.6.2"
+    "@webqit/util": "^0.7.0"
   },
   "devDependencies": {
     "webpack": "^4.44.1",
@@ -53,10 +53,10 @@
     ],
     "config": {
       "patreonUsername": "ox_harris",
-      "githubUsername": "web-native",
+      "githubUsername": "webqit",
       "githubRepository": "observer",
-      "githubSlug": "web-native/observer",
-      "npmPackageName": "@web-native-js/observer"
+      "githubSlug": "webqit/observer",
+      "npmPackageName": "@webqit/observer"
     }
   }
 }

@@ -2,7 +2,7 @@
 /**
  * @imports
  */
-import _each from '@onephrase/util/obj/each.js';
+import _each from '@webqit/util/obj/each.js';
 import getObservers from './getObservers.js';
 import observe from './observe.js';
 import Delta from './Delta.js';
@@ -17,21 +17,39 @@ import Delta from './Delta.js';
  * @return void
  */
 export default function(subject, field, value) {
+	if (subject === value) {
+		return;
+	}
 	var observers;
 	observe(value, changes => {
 		if (observers = getObservers(subject, false)) {
 			var _changes = changes.map(delta => {
+				// ------------
+				// Recursive events must not propagate
+				// ------------
+				var d = delta;
+				do {
+					if (d.subject === subject) {
+						return;
+					}
+				} while(d = d.src);
+				// ------------
+				// Create propagation
+				// ------------
 				var dfn = {}; _each(delta, (key, value) => {
-					if (key !== 'subject' && key !== 'name' && key !== 'path') {
+					if (key !== 'subject' && key !== 'name' && key !== 'path' && key !== 'src') {
 						dfn[key] = value;
 					}
 				});
 				dfn.name = field;
-				dfn.path = field + '.' + delta.path;
+				dfn.path = [field].concat(delta.path);
 				dfn.originalSubject = delta.originalSubject;
+				dfn.src = delta;
 				return new Delta(subject, dfn);
-			});
-			return observers.fire(_changes);
+			}).filter(c => c);
+			if (_changes.length) {
+				return observers.fire(_changes);
+			}
 		}
 	}, {subtree:true, unique:true, tags:[linkTag, field, subject]});
 };

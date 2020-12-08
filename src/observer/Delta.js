@@ -2,7 +2,7 @@
 /**
  * @imports
  */
-import _each from '@onephrase/util/obj/each.js';
+import _each from '@webqit/util/obj/each.js';
 
 /**
  * ---------------------------
@@ -35,7 +35,7 @@ export default class {
 			Object.defineProperty(this, key, {value, enumerable:true});
 		});
 		if (!this.path) {
-			Object.defineProperty(this, 'path', {value:dfn.name, enumerable:true});
+			Object.defineProperty(this, 'path', {value:[dfn.name], enumerable:true});
 		}
 		Object.seal(this);
 	}

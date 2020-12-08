@@ -2,11 +2,11 @@
 /**
  * @imports
  */
-import _arrFrom from '@onephrase/util/arr/from.js';
-import _isString from '@onephrase/util/js/isString.js';
-import _isTypeObject from '@onephrase/util/js/isTypeObject.js';
+import _arrFrom from '@webqit/util/arr/from.js';
+import _isTypeObject from '@webqit/util/js/isTypeObject.js';
 import getObservers from '../observer/getObservers.js';
 import unlink from '../observer/unlink.js';
+import Event from '../observer/Event.js';
 import getInterceptors from './getInterceptors.js';
 import _has from './has.js';
 import _get from './get.js';
@@ -17,30 +17,29 @@ import _get from './get.js';
  *
  * @param array|object	subject
  * @param string|array	keys
- * @param any			detail
+ * @param object		params
  *
- * @return bool
+ * @return Event
  */
-export default function(subject, keys, detail = null) {
+export default function(subject, keys, params = {}) {
 	if (!subject || !_isTypeObject(subject)) {
 		throw new Error('Target must be of type object!');
 	}
 	var keys = _arrFrom(keys);
 	var events = keys.map(key => {
-		if (_isString(key) && key.indexOf('.') !== -1) {
-			throw new Error('Property names with a dot are not supported!');
-		}
 		// ---------------------------------
 		// The event object
+		var oldValue;
+		if (_has(subject, key)) {
+			oldValue = _get(subject, key);
+		}
 		var e = {
 			name:key,
 			type:'del',
 			related:keys,
-			detail,
+			detail: params.detail,
+			oldValue,
 		};
-		if (_has(subject, key)) {
-			e.oldValue = _get(subject, key);
-		}
 		// ---------------------------------
 		// Execute any "del" traps, otherwise "del" the default way
 		var interceptors, defaultDel = function(_success) {
@@ -51,7 +50,7 @@ export default function(subject, keys, detail = null) {
 			return _success;
 		};
 		if (interceptors = getInterceptors(subject, false)) {
-			e.success = interceptors.fire({type:'del', name:key, related:keys}, defaultDel);
+			e.success = interceptors.fire({type:'del', name:key, oldValue, related:keys}, defaultDel);
 		} else {
 			e.success = defaultDel();
 		}
@@ -64,9 +63,12 @@ export default function(subject, keys, detail = null) {
 	});
 	var successfulEvents = events.filter(e => e.success);
 	// ---------------------------------
-	var observers;
+	var observers, evt;
 	if (observers = getObservers(subject, false)) {
-		observers.fire(successfulEvents);
+		evt = observers.fire(successfulEvents);
+		evt.successCount = successfulEvents.length;
+	} else if (params.eventObject) {
+		evt = new Event(subject);
 	}
-	return successfulEvents.length > 0;
+	return params.eventObject ? evt : successfulEvents.length > 0;
 }

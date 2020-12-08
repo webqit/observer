@@ -2,7 +2,7 @@
 /**
  * @imports
  */
-import _isTypeObject from '@onephrase/util/js/isTypeObject.js';
+import _isTypeObject from '@webqit/util/js/isTypeObject.js';
 import getInterceptors from './getInterceptors.js';
 
 /**
