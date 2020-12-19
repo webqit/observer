@@ -9,7 +9,7 @@ import _isNumber from '@webqit/util/js/isNumber.js';
 import _isObject from '@webqit/util/js/isObject.js';
 import _isTypeObject from '@webqit/util/js/isTypeObject.js';
 import getObservers from '../observer/getObservers.js';
-import build from '../observer/build.js';
+import build, { isUserObject } from '../observer/build.js';
 import unlink from '../observer/unlink.js';
 import link from '../observer/link.js';
 import Event from '../observer/Event.js';
@@ -78,10 +78,10 @@ export default function(define, subject, keysOrPayload, value = null, params = {
 			return _success;
 		};
 		if (interceptors) {
-			var eventObject = descriptor 
+			var responseObject = descriptor 
 				? {type:'def', name:key, descriptor, related, detail, isUpdate, oldValue} 
 				: {type:'set', name:key, value, related, detail, isUpdate, oldValue};
-			e.success = interceptors.fire(eventObject, defaultSet);
+			e.success = interceptors.fire(responseObject, defaultSet);
 		} else {
 			e.success = defaultSet();
 		}
@@ -94,7 +94,7 @@ export default function(define, subject, keysOrPayload, value = null, params = {
 			// Observe incoming value for bubbling
 			if (_isTypeObject(e.value)) {
 				link(subject, key, e.value);
-				if (observers && (observers.subBuild || observers.build)) {
+				if (observers && (observers.subBuild || (observers.build && isUserObject(e.value)))) {
 					build(e.value, observers.subBuild, observers.build);
 				}
 			}
@@ -112,10 +112,10 @@ export default function(define, subject, keysOrPayload, value = null, params = {
 	// ---------------------------------
 	var evt;
 	if (observers) {
-		evt = observers.fire(successfulEvents);
+		evt = observers.fire(successfulEvents, params.cancellable);
 		evt.successCount = successfulEvents.length;
-	} else if (params.eventObject) {
+	} else if (params.responseObject) {
 		evt = new Event(subject);
 	}
-	return params.eventObject ? evt : successfulEvents.length > 0;
+	return params.responseObject ? evt : successfulEvents.length > 0;
 }

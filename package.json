@@ -11,8 +11,8 @@
     "object.observe",
     "array.observe"
   ],
-  "homepage": "https://webqit.dev/tooling/observer",
-  "version": "1.2.0",
+  "homepage": "https://webqit.io/tooling/observer",
+  "version": "1.2.7",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -27,7 +27,8 @@
     "watch": "webpack --watch",
     "test": "node ./.tests/index.js",
     "build-dev": "webpack --config ./webpack.config.dev.cjs",
-    "build": "webpack --config ./webpack.config.cjs"
+    "build": "webpack --config ./webpack.config.cjs",
+    "prepublish": "npm run build"
   },
   "dependencies": {
     "@webqit/util": "^0.7.0"

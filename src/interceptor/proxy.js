@@ -27,6 +27,9 @@ export default function(subject) {
     }
     var proxy = new Proxy(subject, {
         get: (subject, key) => {
+            if (key === Symbol.for('.observer.proxy.target')) {
+                return () => subject;
+            }
             var val = _get(subject, key);
             if (_isFunction(val) && !_isClass(val)) {
                 return val.bind(proxy);

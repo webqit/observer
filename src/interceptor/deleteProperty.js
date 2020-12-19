@@ -65,10 +65,10 @@ export default function(subject, keys, params = {}) {
 	// ---------------------------------
 	var observers, evt;
 	if (observers = getObservers(subject, false)) {
-		evt = observers.fire(successfulEvents);
+		evt = observers.fire(successfulEvents, params.cancellable);
 		evt.successCount = successfulEvents.length;
-	} else if (params.eventObject) {
+	} else if (params.responseObject) {
 		evt = new Event(subject);
 	}
-	return params.eventObject ? evt : successfulEvents.length > 0;
+	return params.responseObject ? evt : successfulEvents.length > 0;
 }

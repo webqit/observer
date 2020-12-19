@@ -28,11 +28,12 @@ export default class extends Firebase {
 	 * Fires all observers with the given evt (change).
 	 *
 	 * @param array|Delta		changes
+	 * @param bool				cancellable
 	 *
 	 * @return Event
 	 */
-	fire(changes) {
-		var evt = new Event(this.subject);
+	fire(changes, cancellable) {
+		var evt = new Event(this.subject, cancellable);
 		// We accept multiple changes
 		changes = _arrFrom(changes, false).map(delta => !(delta instanceof Delta) ? new Delta(this.subject, delta) : delta);
 		if (this.currentlyFiring.filter(d => changes.filter(delta => d.type === delta.type && d.name === delta.name).length).length) {
@@ -40,10 +41,10 @@ export default class extends Firebase {
 		}
 		this.currentlyFiring.push(...changes);
 		this.fireables.forEach(observer => {
-			if (evt.propagationStopped) {
+			if (evt.propagationStopped && cancellable) {
 				return evt;
 			}
-			evt.respond(observer.fire(changes));
+			evt.respondWith(observer.fire(changes));
 		});
 		changes.forEach(delta => _remove(this.currentlyFiring, delta));
 		return evt;

@@ -13,5 +13,5 @@ import Interceptors from './Interceptors.js';
  * @returns Observers
  */
 export default function(subject, createIfNotExist = true) {
-    return getFirebase(subject, 'wn.interceptors', createIfNotExist ? Interceptors : null);
+    return getFirebase(subject, '.observer.interceptors', createIfNotExist ? Interceptors : null);
 };

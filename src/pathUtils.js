@@ -2,9 +2,9 @@
 /**
  * @imports
  */
-import _isArray from '@webqit/util/js/isArray';
-import _arrFrom from '@webqit/util/arr/from';
-import _all from '@webqit/util/arr/all';
+import _isArray from '@webqit/util/js/isArray.js';
+import _arrFrom from '@webqit/util/arr/from.js';
+import _all from '@webqit/util/arr/all.js';
 
 /**
  *  Returns paths in 2-dimensional form.
@@ -12,7 +12,7 @@ import _all from '@webqit/util/arr/all';
  * - key                    => [ [key] ]
  * - [key]                  => [ [key] ]
  * - [ [key] ]              => [ [key] ]
- * - [ [key1, key2] ]      => [ [key1, key2] ]
+ * - [ [key1, key2] ]       => [ [key1, key2] ]
  * 
  * @param Array|String paths
  * 

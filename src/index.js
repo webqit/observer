@@ -13,6 +13,7 @@ import ownKeys from './interceptor/ownKeys.js';
 import intercept from './interceptor/intercept.js';
 import unintercept from './interceptor/unintercept.js';
 import proxy from './interceptor/proxy.js';
+import unproxy from './interceptor/unproxy.js';
 // Observer
 import observe from './observer/observe.js';
 import unobserve from './observer/unobserve.js';
@@ -44,6 +45,7 @@ export default {
 	intercept,
 	unintercept,
 	proxy,
+	unproxy,
 	// Observer
 	observe,
 	unobserve,

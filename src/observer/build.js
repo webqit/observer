@@ -36,7 +36,7 @@ export default function build(subject, paths = null, subtree = false) {
 	var _paths2D = paths2D(paths);
 	// If any path starts with a dot, (a wild card path), all keys at this level is implied
 	var rootLevelKeysToObserve = !_paths2D.length || _paths2D.filter(path => /*Starts with an empty segment*/!path[0] && path[0] !== 0).length
-		? _keys(subject) 
+		? _keys(subject)
 		: _paths2D.map(path => path[0]);
 	var subLevelKeysToObserve = _paths2D.length ? _paths2D.map(path => path.slice(1)).filter(p => p.length) : null;
 	observers.subBuild = subLevelKeysToObserve && subLevelKeysToObserve.length ? subLevelKeysToObserve : null;
@@ -61,4 +61,5 @@ export default function build(subject, paths = null, subtree = false) {
  * 
  * @return Bool
  */
-const isUserObject = value => (value instanceof Object) || (value instanceof Array) || (value instanceof Function);
+export const isUserObject = value => ((value instanceof Object) || (value instanceof Array) || (value instanceof Function))
+	&& (typeof window === 'undefined' || value !== window);

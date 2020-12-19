@@ -91,14 +91,14 @@ export default class extends Fireable {
 								changesObject[name] = _changes[i];
 							});
 						}
-						evt.respond(this.handler(changesObject, evt));
+						evt.respondWith(this.handler(changesObject, evt));
 					} else {
-						evt.respond(this.handler(_changes[0], evt));
+						evt.respondWith(this.handler(_changes[0], evt));
 					}
 				});
 			}
 		} else if ((this.params.subtree || changes.filter(delta => pathIsSame(delta.path, [delta.name])).length === changes.length) && changes.filter(delta => diff(delta)).length) {
-			evt.respond(this.handler(changes, evt));
+			evt.respondWith(this.handler(changes, evt));
 		}
 		return evt;
 	}

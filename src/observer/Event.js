@@ -18,12 +18,14 @@ export default class {
 	 * Initializes the instance.
 	 *
 	 * @param array|object		target
+	 * @param bool				cancellable
 	 *
 	 * @return void
 	 */
-	constructor(target) {
+	constructor(target, cancellable = false) {
 		this._ = {};
 		this._.target = target;
+		this._.cancellable = cancellable;
 		this._.propagationStopped = false;
 		this._.defaultPrevented = false;
 		this._.promisesInstance = null;
@@ -37,6 +39,15 @@ export default class {
 	 */
 	get target() {
 		return this._.target;
+	}
+
+	/**
+	 * Gets the "cancellable" flag.
+	 *
+	 * @return bool
+	 */
+	get cancellable() {
+		return this._.cancellable;
 	}
 
 	/**
@@ -116,7 +127,7 @@ export default class {
 	 *
 	 * @return void
 	 */
-	respond(rspns) {
+	respondWith(rspns) {
 		var proms;
 		var isEvent = _isObject(rspns) && !_isUndefined(rspns.propagationStopped) && !_isUndefined(rspns.defaultPrevented)
 		if ((rspns === false) || (isEvent && rspns.propagationStopped)) {

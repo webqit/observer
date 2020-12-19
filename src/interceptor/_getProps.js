@@ -26,7 +26,7 @@ export default function(ownKeys, subject) {
 		);
 	};
 	if (interceptors = getInterceptors(subject, false)) {
-		return interceptors.fire({type:ownKeys ? 'ownKeys' : 'keys'}, defaultKeys);
+		return interceptors.fire({type:ownKeys ? 'ownKeys' : 'keys'}, defaultKeys) || [];
 	}
 	return defaultKeys();
 }
