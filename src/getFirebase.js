@@ -22,7 +22,7 @@ export default function(subject, firebaseKeyType, Base = null) {
     var firebase, firebaseKeyTypeSymbol = Symbol.for(firebaseKeyType);
     if (!(firebase = subject[firebaseKeyTypeSymbol]) && Base) {
         firebase = new Base(subject);
-        subject[firebaseKeyTypeSymbol] = firebase;
+        Object.defineProperty(subject, firebaseKeyTypeSymbol, {get: () => firebase, enumerable: false});
     }
     return firebase;
 };

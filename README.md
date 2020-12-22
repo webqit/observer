@@ -7,7 +7,7 @@
 
 <!-- /BADGES -->
 
-*[Observer](https://webqit.io/tooling/observer)* is an API for intercepting and observing JavaScript objects and arrays.
+*[Observer](https://webqit.io/tooling/observer)* is an API for observing and intercepting JavaScript objects and arrays.
 
 > [Visit project homepage](https://webqit.io/tooling/observer).
 
