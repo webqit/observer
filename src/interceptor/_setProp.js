@@ -16,6 +16,7 @@ import Event from '../observer/Event.js';
 import getInterceptors from './getInterceptors.js';
 import _has from './has.js';
 import _get from './get.js';
+import _unproxy from './unproxy.js';
 
 /**
  * Executes a "_setProp" type of operation on a subject.
@@ -38,6 +39,7 @@ export default function(define, subject, keysOrPayload, value = null, params = {
 		value = null;
 	}
 	// ----------
+	subject = _unproxy(subject);
 	var interceptors = getInterceptors(subject, false),
 		observers = getObservers(subject, false);
 	// ----------

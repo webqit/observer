@@ -10,6 +10,7 @@ import _isFunction from '@webqit/util/js/isFunction.js';
 import _isTypeObject from '@webqit/util/js/isTypeObject.js';
 import closure from '../observer/closure.js';
 import getInterceptors from './getInterceptors.js';
+import _unproxy from './unproxy.js';
 
 /**
  * Runs a "get" query operation on a subject.
@@ -25,6 +26,7 @@ export default function(subject, keys, autoClosures = false) {
 	if (!subject || !_isTypeObject(subject)) {
 		throw new Error('Target must be of type object!');
 	}
+	subject = _unproxy(subject);
 	// ---------------------------------
 	// Execute any "get" traps, otherwise "get" the default way
 	var value, interceptors, defaultGet = function(_value) {

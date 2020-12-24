@@ -10,6 +10,7 @@ import Event from '../observer/Event.js';
 import getInterceptors from './getInterceptors.js';
 import _has from './has.js';
 import _get from './get.js';
+import _unproxy from './unproxy.js';
 
 /**
  * Executes a "delete" operation on a subject.
@@ -25,6 +26,7 @@ export default function(subject, keys, params = {}) {
 	if (!subject || !_isTypeObject(subject)) {
 		throw new Error('Target must be of type object!');
 	}
+	subject = _unproxy(subject);
 	var keys = _arrFrom(keys);
 	var events = keys.map(key => {
 		// ---------------------------------

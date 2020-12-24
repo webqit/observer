@@ -4,6 +4,7 @@
  */
 import _isTypeObject from '@webqit/util/js/isTypeObject.js';
 import getInterceptors from './getInterceptors.js';
+import _unproxy from './unproxy.js';
 
 /**
  * Runs a "getProps" type of query operation on a subject.
@@ -18,6 +19,7 @@ export default function(ownKeys, subject) {
 	if (!subject || !_isTypeObject(subject)) {
 		throw new Error('Target must be of type object!');
 	}
+	subject = _unproxy(subject);
 	// ---------------------------------
 	// Execute any "keys" traps, otherwise "test" the default way
 	var interceptors, defaultKeys = function(_keys) {
