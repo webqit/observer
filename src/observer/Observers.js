@@ -4,6 +4,7 @@
  */
 import _arrFrom from '@webqit/util/arr/from.js';
 import _remove from '@webqit/util/arr/remove.js';
+import _last from '@webqit/util/arr/last.js';
 import Firebase from '../Firebase.js';
 import Observer from './Observer.js';
 import Delta from './Delta.js';
@@ -16,6 +17,18 @@ import Event from './Event.js';
  */
 
 export default class extends Firebase {
+	
+	/**
+	 * Initializes the instance.
+	 *
+	 * @param object	subject
+	 * 
+	 * @return void
+	 */
+	constructor(subject) {
+		super(subject);
+		this.buffers = [];
+	}
 	
 	/**
 	 * @inheritdoc
@@ -36,6 +49,10 @@ export default class extends Firebase {
 		var evt = new Event(this.subject, cancellable);
 		// We accept multiple changes
 		changes = _arrFrom(changes, false).map(delta => !(delta instanceof Delta) ? new Delta(this.subject, delta) : delta);
+		if (this.buffers.length) {
+			_last(this.buffers)(changes);
+			return evt;
+		}
 		if (this.currentlyFiring.filter(d => changes.filter(delta => d.type === delta.type && d.name === delta.name).length).length) {
 			//return false;
 		}
