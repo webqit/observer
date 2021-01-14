@@ -22,6 +22,7 @@ import init from './observer/init.js';
 import build from './observer/build.js';
 import link from './observer/link.js';
 import unlink from './observer/unlink.js';
+import getObservers from './observer/getObservers.js';
 
 // Now we'll mimick standard Trap properties
 // so that can be used as standard Trap out of the box.
@@ -54,4 +55,5 @@ export default {
 	build,
 	link,
 	unlink,
+	getObservers,
 };
