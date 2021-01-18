@@ -10,6 +10,7 @@
 *[Observer](https://github.com/webqit/observer)* is an API for observing and intercepting JavaScript objects and arrays.
 
 > [Visit project docs](https://github.com/webqit/docs/tree/master/observer).
+> [Visit project homepage](https://webqit.io/tooling/oohtml).
 
 ```js
 let obj = {};
