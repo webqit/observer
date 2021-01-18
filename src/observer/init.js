@@ -15,7 +15,16 @@ import _set from '../interceptor/set.js';
  * @return void
  */
 export default function(subject, keys) {
+	var initializedProps, initPropsKey = Symbol.for('.observer.init.props');
+	if (!(initializedProps = subject[initPropsKey])) {
+		initializedProps = [];
+		Object.defineProperty(subject, initPropsKey, {value: initializedProps, enumerable: false});
+	}
 	_arrFrom(keys).forEach(key => {
+		if (initializedProps.includes(key)) {
+			return;
+		}
+		initializedProps.push(key);
 		var value = subject[key], onGetFire, onSetFire;
 		var currentDescriptor = Object.getOwnPropertyDescriptor(subject, key)
 		|| {enumerable: key in subject ? false/*existing but hidden*/ : true};
