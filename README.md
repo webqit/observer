@@ -7,9 +7,9 @@
 
 <!-- /BADGES -->
 
-*[Observer](https://webqit.io/tooling/observer)* is an API for observing and intercepting JavaScript objects and arrays.
+*[Observer](https://github.com/webqit/observer)* is an API for observing and intercepting JavaScript objects and arrays.
 
-> [Visit project docs](https://webqit.io/tooling/observer).
+> [Visit project docs](https://github.com/webqit/docs/tree/master/observer).
 
 ```js
 let obj = {};
@@ -25,11 +25,11 @@ Observer.set(obj, path, value);
 Follow the [installation guide](https://webqit.io/tooling/observer/installation) to obtain the Observer API.
 
 ## Documentation
-+ [Examples](https://webqit.io/tooling/observer/examples)
-+ [API](https://webqit.io/tooling/observer/api)
++ [Examples](https://github.com/webqit/docs/tree/master/observer/examples)
++ [API](https://github.com/webqit/docs/tree/master/observer/api)
 
 ## Design Goals
-See the [features explainer](https://webqit.io/tooling/observer/explainer).
+See the [features explainer](https://github.com/webqit/docs/tree/master/observer/explainer).
 
 ## Issues
 To report bugs or request features, please submit an [issue](https://github.com/webqit/observer/issues).
