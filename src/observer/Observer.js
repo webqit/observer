@@ -62,27 +62,66 @@ export default class extends Fireable {
 			&& (!this.params.diff || (_isFunction(this.params.diff) ? this.params.diff(delta.value, delta.oldValue) : delta.value !== delta.oldValue));
 		var evt = new Event(this.subject);
 		if (this.filters2D.length) {
-			var observerPathArray_Resolved_Exploded = [];
+			var observerPathArray_Dynamic_Exploded = [];
+			var eventsPathArray_Subtree_Combined = [];
 			var matches = this.filters2D.filter((observerPathArray, i) => {
-				observerPathArray_Resolved_Exploded[i] = [];
 				// one observerPathArray can turn out to be two if dynamic
-				// and evt.originatingFields is multiple
+				// OR evt.originatingFields is multiple and this.params.subtree
 				return changes.filter(delta => {
 					var observerPathArray_Resolved = this.filtersIsDynamic 
 						? observerPathArray.map((seg, k) => seg || seg === 0 ? seg : delta.path[k] || '')
 						: observerPathArray;
-					if (!observerPathArray_Resolved_Exploded[i].filter(_dynamicFieldOutcome => pathIsSame(_dynamicFieldOutcome, observerPathArray_Resolved)).length) {
-						observerPathArray_Resolved_Exploded[i].push(observerPathArray_Resolved);
-					}
-					return (pathIsSame(observerPathArray_Resolved, delta.path)
+					var eventPathMatch = (pathIsSame(observerPathArray_Resolved, delta.path)
 						|| (this.params.suptree !== false && pathStartsWith(observerPathArray_Resolved, delta.path) && (!_isNumeric(this.params.suptree) || pathAfter(observerPathArray_Resolved, delta.path).length <= this.params.suptree))
 						|| (this.params.subtree && pathStartsWith(delta.path, observerPathArray_Resolved) && (!_isNumeric(this.params.subtree) || pathAfter(delta.path, observerPathArray_Resolved).length <= this.params.subtree))
 					) && (!this.filtersIsDynamic || !pathsIsDynamic(observerPathArray_Resolved)) && diff(delta);
+					if (eventPathMatch) {
+						// Add delta.path if is subtree path
+						if (delta.path.length > observerPathArray_Resolved.length) {
+							// Add delta.path if not already exists
+							if (!eventsPathArray_Subtree_Combined.filter(_path => pathIsSame(_path, delta.path)).length) {
+								eventsPathArray_Subtree_Combined.push(delta.path);
+							}
+						} else {
+							if (!observerPathArray_Dynamic_Exploded[i]) {
+								observerPathArray_Dynamic_Exploded[i] = [];
+							}
+							// Add observerPathArray_Resolved if not already exists
+							if (!observerPathArray_Dynamic_Exploded[i].filter(_dynamicFieldOutcome => pathIsSame(_dynamicFieldOutcome, observerPathArray_Resolved)).length) {
+								observerPathArray_Dynamic_Exploded[i].push(observerPathArray_Resolved);
+							}
+						}
+						return true;
+					}
 				}).length;
 			}).length;
 			if (matches) {
-				_crossJoin(observerPathArray_Resolved_Exploded).forEach(pathArrays => {
-					var _changes = this.formatChanges(pathArrays, changes);
+				/**
+				 * observerPathArray_Dynamic_Exploded is 3D of this.filters2D, i.e:
+				 * this.filters2D: 								[ 0:path1, 1:path2, 2:path3, ]
+				 * this.observerPathArray_Dynamic_Exploded: 	[ 0:[path1], 1:[path2], 2:[path3], ]
+				 * 
+				 * This structure especially becomes useful where this.filters2D has dynamic paths,
+				 * OR where evt.originatingFields is multiple and this.params.subtree, i.e:
+				 * this.filters2D: 								[ 0:explodable_path1, 1:explodable_path2, 2:path3, ]
+				 * this.observerPathArray_Dynamic_Exploded: 	[ 0:[path1_a, path1_b], 1:[path2_a, path2_b], 2:[path3], ]
+				 * 
+				 * Now, _crossJoin([ ['path1_a', 'path1_b'], ['path2_a', 'path2_b'], ['path3'], ]);
+				 * [["path1_a","path2_a","path3"],["path1_a","path2_b","path3"],["path1_b","path2_a","path3"],["path1_b","path2_b","path3"]]
+				 * 
+				 * Thus, in the case of the dynamic paths, handler is called 4 times - all possible combination of paths
+				 */
+				var deliveryBatches = [];
+				if (eventsPathArray_Subtree_Combined.length) {
+					// As one batch
+					deliveryBatches.push(eventsPathArray_Subtree_Combined);
+				}
+				if (observerPathArray_Dynamic_Exploded.length) {
+					// As multiple batches
+					deliveryBatches.push(..._crossJoin(observerPathArray_Dynamic_Exploded));
+				}
+				deliveryBatches.forEach(deliveryBatch => {
+					var _changes = this.formatChanges(deliveryBatch, changes);
 					if (this.filtersIsOriginally2D) {
 						var changesObject = _changes;
 						if (_isObject(this.filter)) {
