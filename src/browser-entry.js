@@ -5,7 +5,7 @@
 import Observer from './index.js';
 
 // As globals
-if (!window.WQ) {
-	window.WQ = {};
+if (!window.WebQit) {
+	window.WebQit = {};
 }
-window.WQ.Observer = Observer;
+window.WebQit.Observer = Observer;

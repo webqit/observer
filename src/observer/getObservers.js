@@ -13,5 +13,5 @@ import Observers from './Observers.js';
  * @returns Observers
  */
 export default function(subject, createIfNotExist = true) {
-    return getFirebase(subject, '.observer.observers', createIfNotExist ? Observers : null);
+    return getFirebase(subject, 'observers', createIfNotExist ? Observers : null);
 };

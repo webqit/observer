@@ -7,7 +7,7 @@ import _isFunction from '@webqit/util/js/isFunction.js';
 import _getType from '@webqit/util/js/getType.js';
 
 /**
- * Returns an subject's firebase.
+ * Returns a observer-specific object embedded on an element.
  *
  * @param array|object	subject
  * @param string      	firebaseKeyType
@@ -15,14 +15,19 @@ import _getType from '@webqit/util/js/getType.js';
  *
  * @return Firebase
  */
-export default function(subject, firebaseKeyType, Base = null) {
+export default function(subject, prop, Base = null) {
     if (!_isTypeObject(subject)) {
-        throw new Error('Object must be of type subject; "' + _getType(subject) + '" given!');
+        throw new Error('Subject must be of type object; "' + _getType(subject) + '" given!');
     }
-    var firebase, firebaseKeyTypeSymbol = Symbol.for(firebaseKeyType);
-    if (!(firebase = subject[firebaseKeyTypeSymbol]) && Base) {
-        firebase = new Base(subject);
-        Object.defineProperty(subject, firebaseKeyTypeSymbol, {get: () => firebase, enumerable: false});
+    var webqitStub, webqitStubSymbol = Symbol.for('.webqit');
+    if (!(webqitStub = subject[webqitStubSymbol])) {
+        Object.defineProperty(subject, webqitStubSymbol, {value: {}, enumerable: false});
     }
-    return firebase;
-};
+    if (!webqitStub.observer) {
+        webqitStub.observer = {};
+    }
+    if (!webqitStub.observer[prop] && Base) {
+        webqitStub.observer[prop] = new Base(subject);
+    }
+    return webqitStub.observer[prop];
+}
