@@ -12,7 +12,7 @@
     "array.observe"
   ],
   "homepage": "https://webqit.io/tooling/observer",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -26,7 +26,7 @@
   "main": "src/index.js",
   "scripts": {
     "build": "webpack --config ./webpack.config.cjs",
-    "version": "npm run build && git add -A dist",
+    "preversion": "npm run build && git add -A dist",
     "postversion": "npm publish",
     "postpublish": "git push && git push --tags"
   },
