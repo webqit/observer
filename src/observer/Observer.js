@@ -62,8 +62,8 @@ export default class extends Fireable {
 						? observerPathArray.map((seg, k) => seg || seg === 0 ? seg : delta.path[k] || '')
 						: observerPathArray;
 					return (!this.filtersIsDynamic || !pathsIsDynamic(observerPathArray_Resolved)) && diff(delta) && ((!this.params.subtree && pathIsSame(observerPathArray_Resolved, delta.path))
-						|| (!this.params.subtree && this.params.suptree && pathStartsWith(observerPathArray_Resolved, delta.path) && (!_isNumeric(this.params.suptree) || pathAfter(observerPathArray_Resolved, delta.path).length <= this.params.suptree))
-						|| (this.params.subtree && delta.path.length > observerPathArray_Resolved.length && pathStartsWith(delta.path, observerPathArray_Resolved) && (!_isNumeric(this.params.subtree) || pathAfter(delta.path, observerPathArray_Resolved).length <= this.params.subtree))
+						|| (this.params.suptree && pathStartsWith(observerPathArray_Resolved, delta.path) && (!_isNumeric(this.params.suptree) || pathAfter(observerPathArray_Resolved, delta.path).length <= this.params.suptree))
+						|| (this.params.subtree && delta.path.length >= observerPathArray_Resolved.length && pathStartsWith(delta.path, observerPathArray_Resolved) && (!_isNumeric(this.params.subtree) || pathAfter(delta.path, observerPathArray_Resolved).length <= this.params.subtree))
 					);
 				}).length;
 			});
@@ -72,13 +72,13 @@ export default class extends Fireable {
 					var changesObject = matches;
 					if (_isObject(this.filter)) {
 						changesObject = {...this.filter};
-						changes.forEach((e, i) => {
+						matches.forEach((e, i) => {
 							changesObject[e.name] = e;
 						});
 					}
 					evt.respondWith(this.handler(changesObject, evt));
 				} else {
-					changes.forEach((e, i) => {
+					matches.forEach((e, i) => {
 						evt.respondWith(this.handler(e, evt));
 					});
 				}
