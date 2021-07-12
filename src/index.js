@@ -2,28 +2,27 @@
 /**
  * @imports
  */
-// Interceptor
-import set from './interceptor/set.js';
-import get from './interceptor/get.js';
-import has from './interceptor/has.js';
-import deleteProperty from './interceptor/deleteProperty.js';
-import defineProperty from './interceptor/defineProperty.js';
-import keys from './interceptor/keys.js';
-import ownKeys from './interceptor/ownKeys.js';
-import intercept from './interceptor/intercept.js';
-import unintercept from './interceptor/unintercept.js';
-import proxy from './interceptor/proxy.js';
-import unproxy from './interceptor/unproxy.js';
-// Observer
-import observe from './observer/observe.js';
-import unobserve from './observer/unobserve.js';
-import closure from './observer/closure.js';
-import init from './observer/init.js';
-import build from './observer/build.js';
-import link from './observer/link.js';
-import unlink from './observer/unlink.js';
-import getObservers from './observer/getObservers.js';
-
+// Operators
+import set from './operators/set.js';
+import get from './operators/get.js';
+import has from './operators/has.js';
+import deleteProperty from './operators/deleteProperty.js';
+import defineProperty from './operators/defineProperty.js';
+import keys from './operators/keys.js';
+import ownKeys from './operators/ownKeys.js';
+import accessorize from './operators/accessorize.js';
+import proxy from './operators/proxy.js';
+import unproxy from './operators/unproxy.js';
+// Hierarchy
+import build from './hierarchy/build.js';
+import link from './hierarchy/link.js';
+import unlink from './hierarchy/unlink.js';
+// Subscribers
+import observe from './subscribers/observe.js';
+import unobserve from './subscribers/unobserve.js';
+import intercept from './subscribers/intercept.js';
+import unintercept from './subscribers/unintercept.js';
+import closure from './subscribers/closure.js';
 // Now we'll mimick standard Trap properties
 // so that can be used as standard Trap out of the box.
 const del = deleteProperty;
@@ -33,7 +32,7 @@ const def = defineProperty;
  * @exports
  */
 export default {
-	// Interceptor
+	// Operators
 	set,
 	get,
 	has,
@@ -43,17 +42,17 @@ export default {
 	def,
 	keys,
 	ownKeys,
-	intercept,
-	unintercept,
+	accessorize,
 	proxy,
 	unproxy,
-	// Observer
-	observe,
-	unobserve,
-	closure,
-	init,
+	// Hierarchy
 	build,
 	link,
 	unlink,
-	getObservers,
-};
+	// Subscribers
+	observe,
+	unobserve,
+	intercept,
+	unintercept,
+	closure,
+}
