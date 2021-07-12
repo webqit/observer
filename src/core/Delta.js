@@ -3,6 +3,7 @@
  * @imports
  */
 import _each from '@webqit/util/obj/each.js';
+import { DotSafePath } from './pathUtils.js';
 
 /**
  * ---------------------------
@@ -32,10 +33,13 @@ export default class Delta {
 			throw new Error('Property name must be given in definition!');
 		}
 		_each(dfn, (key, value) => {
+			if (key === 'path') {
+				value = DotSafePath.resolve(value);
+			}
 			Object.defineProperty(this, key, {value, enumerable:true});
 		});
 		if (!this.path) {
-			Object.defineProperty(this, 'path', {value:[dfn.name], enumerable:true});
+			Object.defineProperty(this, 'path', {value: DotSafePath.resolve([dfn.name]), enumerable:true});
 		}
 		Object.seal(this);
 	}

@@ -99,9 +99,9 @@ describe(`Test: .observe() + .set()`, function() {
         it(`Should assert that "custom events" in the namespace fire.`, function() {
             Observers2.getFirebase(obj).fire([{
                 name: 'costum-name', // required
-                type: 'costum-set', // required
+                type: 'costum-type', // required
             }]);
-            expect(_changesRecieved[0][0]).to.be.an('object').that.includes({ name: 'costum-name', type: 'costum-set', });
+            expect(_changesRecieved[0][0]).to.be.an('object').that.includes({ name: 'costum-name', type: 'costum-type', });
         });
         
         it(`Should that "set" operations in the namespace are recieved.`, function() {
@@ -116,5 +116,104 @@ describe(`Test: .observe() + .set()`, function() {
 
     });
  
+    describe(`Observe paths.`, function() {
+
+        it(`Observe a one-level path of an object.`, function() {
+            var obj = {}, _change;
+            // -----
+            observe(obj, 'key1', change => {
+                _change = change;
+            });
+            // -----
+            set(obj, {
+                key1: 'value1',
+            });
+            // -----
+            expect(_change).to.be.an('object').that.includes({ name: 'key1', type: 'set', });
+        });
+
+        it(`Observe a two-level path of an object.`, function() {
+            var obj = {}, _changes = [];
+            // -----
+            observe(obj, ['key1', 'sub.key1'], change => {
+                _changes.push(change);
+            });
+            // -----
+            set(obj, {
+                key1: {},
+                key2: {},
+            });
+            set(obj.key1, {
+                'sub.key1': {},
+                subkey1: {},
+            });
+            // -----
+            expect(_changes).to.have.lengthOf(1);
+            expect(_changes[0]).to.be.an('object').that.deep.includes({ name: 'key1', path: [ 'key1', 'sub.key1' ], type: 'set', });
+        });
+
+        it(`Observe path 0 of an array.`, function() {
+            var arr = [], _changes = [];
+            // -----
+            observe(arr, 0, change => {
+                _changes.push(change);
+            });
+            // -----
+            set(arr, 0, {});
+            // -----
+            expect(_changes).to.have.lengthOf(1);
+            expect(_changes[0]).to.be.an('object').that.deep.includes({ name: 0, path: [ 0 ], type: 'set', });
+        });
+
+        it(`Observe path [0, 'key1'] of an array.`, function() {
+            var arr = [], _changes = [];
+            // -----
+            observe(arr, [0, 'key1'], change => {
+                _changes.push(change);
+            });
+            // -----
+            set(arr, 0, {});
+            set(arr[0], 'key1', {});
+            // -----
+            expect(_changes).to.have.lengthOf(1);
+            expect(_changes[0]).to.be.an('object').that.deep.includes({ name: 0, path: [ 0, 'key1' ], type: 'set', });
+        });
+
+        it(`Observe wildcard paths.`, function() {
+            var obj = {}, _changes = [];
+            // -----
+            observe(obj, ['key1', ,], change => {
+                _changes.push(change);
+            });
+            // -----
+            set(obj, {
+                key1: {},
+                key2: {},
+            });
+            set(obj.key1, {
+                'sub.key1': {},
+                subkey1: {},
+            });
+            // -----
+            expect(_changes).to.have.lengthOf(2);
+            expect(_changes[0]).to.be.an('object').that.deep.includes({ name: 'key1', path: [ 'key1', 'sub.key1' ], type: 'set', });
+        });
+
+        it(`Observe path [0] and subtree of an array.`, function() {
+            var arr = [], _changes = [];
+            // -----
+            observe(arr, 0, change => {
+                _changes.push(change);
+            }, {subtree: true});
+            // -----
+            set(arr, 0, {});
+            set(arr[0], 'key1', {});
+            // -----
+            expect(_changes).to.have.lengthOf(2);
+            expect(_changes[1][0]).to.be.an('object').that.deep.includes({ name: 0, path: [ 0, 'key1' ], type: 'set', });
+        });
+
+    });
+
  });
   

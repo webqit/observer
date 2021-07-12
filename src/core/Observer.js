@@ -61,9 +61,16 @@ export default class Observer extends Fireable {
 				// one observerPathArray can turn out to be two if dynamic
 				// OR evt.originatingFields is multiple and this.params.subtree
 				return this.filters2D.filter((observerPathArray, i) => {
-					var observerPathArray_Resolved = this.filtersIsDynamic 
-						? observerPathArray.map((seg, k) => seg || seg === 0 ? seg : delta.path[k] || '')
-						: observerPathArray;
+					var observerPathArray_Resolved = observerPathArray.slice();
+					if (this.filtersIsDynamic) {
+						// Note that if we had tried to loop thru observerPathArray_Resolved,
+						// we wouldn't be able tp access slots that are truly empty, as in: [ 'key', <1 empty item> ]
+						delta.path.forEach((_seg, i) => {
+							observerPathArray_Resolved[i] = observerPathArray_Resolved[i] || observerPathArray_Resolved[i] === 0 
+								? observerPathArray_Resolved[i]
+								: _seg;
+						});
+					}
 					return (!this.filtersIsDynamic || !pathsIsDynamic(observerPathArray_Resolved)) && diff(delta) && ((!this.params.subtree && _equals(observerPathArray_Resolved, delta.path))
 						|| (this.params.suptree && _arrStartsWith(observerPathArray_Resolved, delta.path) && (!_isNumeric(this.params.suptree) || _arrAfter(observerPathArray_Resolved, delta.path).length <= this.params.suptree))
 						|| (this.params.subtree && delta.path.length >= observerPathArray_Resolved.length && _arrStartsWith(delta.path, observerPathArray_Resolved) && (!_isNumeric(this.params.subtree) || _arrAfter(delta.path, observerPathArray_Resolved).length <= this.params.subtree))
