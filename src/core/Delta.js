@@ -3,7 +3,7 @@
  * @imports
  */
 import _each from '@webqit/util/obj/each.js';
-import { DotSafePath } from './pathUtils.js';
+import { DotSafePath } from './utils.js';
 
 /**
  * ---------------------------

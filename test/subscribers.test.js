@@ -8,6 +8,10 @@ import Interceptors from '../src/core/Interceptors.js';
 import observe from '../src/subscribers/observe.js';
 import intercept from '../src/subscribers/intercept.js';
 import set from '../src/operators/set.js';
+import accessorize from '../src/operators/accessorize.js';
+import unaccessorize from '../src/operators/unaccessorize.js';
+import proxy from '../src/operators/proxy.js';
+import unproxy from '../src/operators/unproxy.js';
 
 describe(`Test: .observe() + .set()`, function() {
 
@@ -211,6 +215,101 @@ describe(`Test: .observe() + .set()`, function() {
             // -----
             expect(_changes).to.have.lengthOf(2);
             expect(_changes[1][0]).to.be.an('object').that.deep.includes({ name: 0, path: [ 0, 'key1' ], type: 'set', });
+        });
+
+    });
+
+    describe(`Accessorize/unaccessorize.`, function() {
+
+        it(`Should report a change on setting an accessorized prop. Should report nothing after unaccessorizing the prop.`, function() {
+            var obj = {}, _changes = [];
+            // -----
+            observe(obj, changes => {
+                _changes.push(changes);
+            });
+            // -----
+            var accessorizeFlag = accessorize(obj, 'key1');
+            obj.key1 = 'value1'; // Should fire event
+            // -----
+            var unaccessorizeFlag = unaccessorize(obj, 'key1');
+            obj.key1 = 'value1-b'; // Should not fire event
+            // -----
+            expect(accessorizeFlag).to.be.true;
+            expect(unaccessorizeFlag).to.be.true;
+            expect(_changes).to.be.an('array').with.length(1);
+        });
+
+        it(`Should report a change on setting an immutable accessorized prop. Should be unable to unaccessorize the immutable prop. Should report additional changes`, function() {
+            var obj = {}, _changes = [];
+            // -----
+            observe(obj, changes => {
+                _changes.push(changes);
+            });
+            // -----
+            var accessorizeFlag = accessorize(obj, 'key1', { configurable: false });
+            obj.key1 = 'value1'; // Should fire event
+            // -----
+            var unaccessorizeFlag = unaccessorize(obj, 'key1');
+            obj.key1 = 'value1-b'; // Should still fire event
+            // -----
+            expect(accessorizeFlag).to.be.true;
+            expect(unaccessorizeFlag).to.be.false;
+            expect(_changes).to.be.an('array').with.length(2);
+        });
+
+    });
+
+    describe(`Proxy/unproxy.`, function() {
+
+        it(`Should report a change on setting a prop on a proxied instance.`, function() {
+            var obj = {}, _changes = [];
+            // -----
+            observe(obj, changes => {
+                _changes.push(changes);
+            });
+            // -----
+            var _obj = proxy(obj);
+            _obj.key1 = 'value1'; // Should fire event
+            _obj.key2 = 'value2'; // Should fire event
+            // -----
+            expect(_obj === obj).to.be.false;
+            expect(unproxy(_obj) === obj).to.be.true;
+            expect(_changes).to.be.an('array').with.length(2);
+        });
+
+    });
+
+    describe(`Accessorize/unaccessorize.`, function() {
+
+        it(`Should report just a change on PROGRAMMATICALLY setting an already ACCESSORIZED prop.`, function() {
+            var obj = {}, _changes = [];
+            // -----
+            observe(obj, changes => {
+                _changes.push(changes);
+            });
+            // -----
+            accessorize(obj, 'key1');
+            set(obj, 'key1', 'value1'); // Should fire just one event
+            // -----
+            obj.key1 = 'value1-b'; // Should fire event
+            // -----
+            expect(_changes).to.be.an('array').with.length(2);
+        });
+
+        it(`Should report just a change on PROGRAMMATICALLY setting an already ACCESSORIZED prop of a PROXIED instance.`, function() {
+            var obj = {}, _changes = [];
+            // -----
+            observe(obj, changes => {
+                _changes.push(changes);
+            });
+            // -----
+            accessorize(obj, 'key1');
+            var _obj = proxy(obj);
+            set(_obj, 'key1', 'value1'); // Should fire just one event
+            // -----
+            obj.key1 = 'value1-b'; // Should fire event
+            // -----
+            expect(_changes).to.be.an('array').with.length(2);
         });
 
     });

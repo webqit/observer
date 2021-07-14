@@ -4,6 +4,7 @@
  */
 import _arrFrom from '@webqit/util/arr/from.js';
 import _isTypeObject from '@webqit/util/js/isTypeObject.js';
+import _internals from '@webqit/util/js/internals.js';
 import Interceptors from '../core/Interceptors.js';
 import Observers from '../core/Observers.js';
 import Event from '../core/Event.js';
@@ -27,8 +28,8 @@ export default function(subject, keys, params = {}) {
 		throw new Error('Target must be of type object!');
 	}
 	subject = _unproxy(subject);
-	var keys = _arrFrom(keys);
-	var events = keys.map(key => {
+	var _keys = _arrFrom(keys);
+	var events = _keys.map(key => {
 		// ---------------------------------
 		// The event object
 		var oldValue;
@@ -38,21 +39,25 @@ export default function(subject, keys, params = {}) {
 		var e = {
 			name:key,
 			type:'del',
-			related:keys,
+			related: _keys,
 			detail: params.detail,
 			oldValue,
 		};
 		// ---------------------------------
 		// Execute any "del" traps, otherwise "del" the default way
 		var interceptors, defaultDel = function(_success) {
-			if (!arguments.length) {
-				delete subject[key];
-				return true;
+			if (arguments.length) {
+				return _success;
 			}
-			return _success;
+			if (_internals(subject, 'accessorizedProps', false).has(key)
+			&& !_internals(subject, 'accessorizedProps').get(key).restore()) {
+				return false;
+			}
+			delete subject[key];
+			return true;
 		};
 		if (interceptors = Interceptors.getFirebase(subject, false, params.namespace)) {
-			e.success = interceptors.fire({type:'del', name:key, oldValue, related:keys}, defaultDel);
+			e.success = interceptors.fire({type:'del', name:key, oldValue, related: _keys}, defaultDel);
 		} else {
 			e.success = defaultDel();
 		}

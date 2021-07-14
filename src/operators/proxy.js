@@ -6,6 +6,7 @@ import _isClass from '@webqit/util/js/isClass.js';
 import _isFunction from '@webqit/util/js/isFunction.js';
 import _isTypeObject from '@webqit/util/js/isTypeObject.js';
 import _getType from '@webqit/util/js/getType.js';
+import _internals from '@webqit/util/js/internals.js';
 import _del from './deleteProperty.js';
 import _def from './defineProperty.js';
 import _ownKeys from './ownKeys.js';
@@ -28,11 +29,8 @@ export default function(subject, params = {}) {
     }
     var proxy = new Proxy(subject, {
         get: (subject, key) => {
-            if (key === Symbol.for('.observer.proxy.target')) {
-                return () => subject;
-            }
             var val = _get(subject, key, params);
-            if (!params.autoBindAccessorizedMethods && _isFunction(val) && !_isClass(val)) {
+            if (params.proxyAutoBinding !== false && _isFunction(val) && !_isClass(val)) {
                 return val.bind(proxy);
             }
             return val;
@@ -43,5 +41,6 @@ export default function(subject, params = {}) {
         defineProperty: (...args) => {_def(...args.concat(params)); return true},
         ownKeys: (...args) => _ownKeys(...args.concat(params)),
     });
+    _internals(proxy).set(proxy, subject);
 	return proxy;
 }

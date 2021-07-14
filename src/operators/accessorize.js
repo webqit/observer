@@ -2,7 +2,9 @@
 /**
  * @imports
  */
+import _isArray from '@webqit/util/js/isArray.js';
 import _arrFrom from '@webqit/util/arr/from.js';
+import _internals from '@webqit/util/js/internals.js';
 import _get from './get.js';
 import _set from './set.js';
 
@@ -13,47 +15,65 @@ import _set from './set.js';
  * @param string|array	keys
  * @param object		params
  *
- * @return void
+ * @return bool|array
  */
-export default function(subject, keys, params = {}) {
-	var initializedProps, initPropsKey = Symbol.for('.observer.init.props');
-	if (!(initializedProps = subject[initPropsKey])) {
-		initializedProps = [];
-		Object.defineProperty(subject, initPropsKey, {value: initializedProps, enumerable: false});
-	}
-	_arrFrom(keys).forEach(key => {
-		if (initializedProps.includes(key)) {
-			return;
+export default function(subject, keys = [], params = {}) {
+	var successFlags = (arguments.length === 1 ? Object.keys(subject) : _arrFrom(keys)).map(key => {
+		if (_internals(subject, 'accessorizedProps').has(key) && _internals(subject, 'accessorizedProps').get(key).touch(true)) {
+			return false;
 		}
-		initializedProps.push(key);
-		var value = subject[key], onGetFire, onSetFire;
-		var currentDescriptor = Object.getOwnPropertyDescriptor(subject, key)
-		|| {enumerable: key in subject ? false/*existing but hidden*/ : true};
+		// ----------
+		var currentDescriptor = Object.getOwnPropertyDescriptor(subject, key) || {
+			enumerable: key in subject ? false/*existing but hidden*/ : true,
+			configurable: params.configurable !== false,
+		};
 		if ('value' in currentDescriptor) {
 			delete currentDescriptor.value;
 		}
 		if ('writable' in currentDescriptor) {
 			delete currentDescriptor.writable;
 		}
+		// ----------
 		currentDescriptor.get = () => {
-			if (onGetFire) {
-				return value;
-			}
-			onGetFire = true;
-			var _value = _get(subject, key, params);
-			onGetFire = false;
-			return _value;
+			// _get() will return here
+			// but to call _internals(subject, 'accessorizedProps').get(key).get();
+			return _get(subject, key, params);
 		};
 		currentDescriptor.set = newValue => {
-			if (onSetFire) {
-				value = newValue;
-				return true;
-			}
-			onSetFire = true;
-			var rspns = _set(subject, key, newValue, params);
-			onSetFire = false;
-			return true;
+			// _set() will return here
+			// but to call _internals(subject, 'accessorizedProps').get(key).set();
+			return _set(subject, key, newValue, params);
 		};
-		Object.defineProperty(subject, key, currentDescriptor);
+		// ----------
+		try {
+			const startingValue = subject[key];
+			Object.defineProperty(subject, key, currentDescriptor);
+			_internals(subject, 'accessorizedProps').set(key, {
+				value: startingValue,
+				read: function() { return this.value; },
+				write: function(value) { this.value = value; return true; },
+				restore: function() {
+					try {
+						if (this.intact()) {
+							delete subject[key];
+							subject[key] = this.value;
+							_internals(subject, 'accessorizedProps').delete(key);
+						}
+						return true;
+					} catch(e) {}
+					return false;
+				},
+				intact: function() {
+					return (Object.getOwnPropertyDescriptor(subject, key) || {}).get === currentDescriptor.get;
+				},
+				touch: function(attemptRestore = false) {
+					// If intact, or not intact but not restorable, return true - "valid"
+					return this.intact() || (attemptRestore ? !this.restore() : false);
+				},
+			});
+			return true;
+		} catch(e) {}
+		return false;
 	});
+	return _isArray(keys) ? successFlags : successFlags[0];
 }

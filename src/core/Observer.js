@@ -11,7 +11,7 @@ import _arrAfter from '@webqit/util/arr/after.js';
 import _arrStartsWith from '@webqit/util/arr/startsWith.js';
 import Fireable from './Fireable.js';
 import Event from './Event.js';
-import { paths2D, pathsIs2D, pathsIsDynamic, paths2DIsDynamic } from './pathUtils.js'
+import { paths2D, pathsIs2D, pathsIsDynamic, paths2DIsDynamic } from './utils.js'
 
 /**
  * ---------------------------

@@ -11,6 +11,7 @@ import defineProperty from './operators/defineProperty.js';
 import keys from './operators/keys.js';
 import ownKeys from './operators/ownKeys.js';
 import accessorize from './operators/accessorize.js';
+import unaccessorize from './operators/unaccessorize.js';
 import proxy from './operators/proxy.js';
 import unproxy from './operators/unproxy.js';
 // Hierarchy
@@ -43,6 +44,7 @@ export default {
 	keys,
 	ownKeys,
 	accessorize,
+	unaccessorize,
 	proxy,
 	unproxy,
 	// Hierarchy

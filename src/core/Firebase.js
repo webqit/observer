@@ -8,7 +8,8 @@ import _isTypeObject from '@webqit/util/js/isTypeObject.js';
 import _isFunction from '@webqit/util/js/isFunction.js';
 import _getType from '@webqit/util/js/getType.js';
 import _equals from '@webqit/util/arr/equals.js';
-import { paths2D } from './pathUtils.js'
+import _internals from '@webqit/util/js/internals.js';
+import { paths2D } from './utils.js'
 
 /**
  * ---------------------------
@@ -106,18 +107,10 @@ export default class Firebase {
 		if (!_isTypeObject(subject)) {
 			throw new Error('Subject must be of type object; "' + _getType(subject) + '" given!');
 		}
-		var webqitFootprint, webqitFootprintSymbol = Symbol.for('.webqit');
-		if (!(webqitFootprint = subject[webqitFootprintSymbol])) {
-			webqitFootprint = {};
-			Object.defineProperty(subject, webqitFootprintSymbol, {value: webqitFootprint, enumerable: false});
+		if (!_internals(subject, 'firebases').has(ImplementationClass) && createIfNotExists) {
+			_internals(subject, 'firebases').set(ImplementationClass, new ImplementationClass(subject));
 		}
-		if (!webqitFootprint.observer) {
-			webqitFootprint.observer = new Map;
-		}
-		if (!webqitFootprint.observer.has(ImplementationClass) && createIfNotExists) {
-			webqitFootprint.observer.set(ImplementationClass, new ImplementationClass(subject));
-		}
-		return webqitFootprint.observer.get(ImplementationClass);
+		return _internals(subject, 'firebases').get(ImplementationClass);
 	}
 
 	/**

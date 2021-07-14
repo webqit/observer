@@ -2,7 +2,7 @@
 /**
  * @imports
  */
-import _isTypeObject from '@webqit/util/js/isTypeObject.js';
+import _internals from '@webqit/util/js/internals.js';
 
 /**
  * Returns the original object earlier proxied by proxy().
@@ -12,9 +12,6 @@ import _isTypeObject from '@webqit/util/js/isTypeObject.js';
  * @return Any
  */
 export default function(subject) {
-    var proxyTarget;
-	if (_isTypeObject(subject) && (proxyTarget = subject[Symbol.for('.webqit.observer.proxy.target')])) {
-		return proxyTarget();
-    }
-    return subject;
+    // Proxy targets are mapped to their own instances internally
+    return _internals(subject, false).get(subject) || subject;
 }

@@ -8,6 +8,7 @@ import _isArray from '@webqit/util/js/isArray.js';
 import _isNumber from '@webqit/util/js/isNumber.js';
 import _isObject from '@webqit/util/js/isObject.js';
 import _isTypeObject from '@webqit/util/js/isTypeObject.js';
+import _internals from '@webqit/util/js/internals.js';
 import Interceptors from '../core/Interceptors.js';
 import Observers from '../core/Observers.js';
 import Event from '../core/Event.js';
@@ -69,15 +70,20 @@ export default function(define, subject, keysOrPayload, value = null, params = {
 		// ---------------------------------
 		// The set operation
 		var defaultSet = function(_success) {
-			if (!arguments.length) {
-				if (descriptor) {
-					Object.defineProperty(subject, key, descriptor);
-				} else {
-					subject[key] = value;
-				}
-				return true;
+			if (arguments.length) {
+				return _success;
 			}
-			return _success;
+			if (descriptor) {
+				if (_internals(subject, 'accessorizedProps', false).has(key)
+				&& !_internals(subject, 'accessorizedProps').get(key).restore()) {
+					return false;
+				}
+				Object.defineProperty(subject, key, descriptor);
+			} else if (_internals(subject, 'accessorizedProps', false).has(key)) {
+				return _internals(subject, 'accessorizedProps').get(key).write(value);
+			}
+			subject[key] = value;
+			return true;
 		};
 		if (interceptors) {
 			var responseObject = descriptor 

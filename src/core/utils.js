@@ -50,3 +50,4 @@ export function pathsIsDynamic(pathArray) {
 export function paths2DIsDynamic(paths) {
 	return paths.filter(pathArray => pathsIsDynamic(_arrFrom(pathArray))).length > 0;
 }
+

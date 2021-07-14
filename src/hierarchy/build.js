@@ -6,7 +6,7 @@ import _isTypeObject from '@webqit/util/js/isTypeObject.js';
 import _arrFrom from '@webqit/util/arr/from.js';
 import _before from '@webqit/util/str/before.js';
 import _after from '@webqit/util/str/after.js';
-import { paths2D } from '../core/pathUtils.js';
+import { paths2D } from '../core/utils.js';
 import Observers from '../core/Observers.js';
 import _keys from '../operators/keys.js';
 import _get from '../operators/get.js';
