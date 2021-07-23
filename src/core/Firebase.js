@@ -80,11 +80,7 @@ export default class Firebase {
 			var dfnTags = _arrFrom((dfn.params || {}).tags);
 			// -----------------------
 			return (!dfn.originalHandler || fireable.handler === dfn.originalHandler)
-<<<<<<< HEAD
 				&& (!dfnFilter.length || _arrEquals(dfnFilter, fireableFilter))
-=======
-				&& (!dfnFilter.length || _equals(dfnFilter, fireableFilter))
->>>>>>> 61da1201f3c0964bfa06d65c69f2e564f3ef6e38
 				&& (!dfnTags.length || (dfnTags.length === fireableTags.length && _intersect(fireableTags, dfnTags).length === dfnTags.length));
 		});
 	}

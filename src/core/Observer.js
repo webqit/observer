@@ -69,11 +69,7 @@ export default class Observer extends Fireable {
 								: _seg;
 						});
 					}
-<<<<<<< HEAD
 					return (!this.filtersIsDynamic || !pathsIsDynamic(observerPathArray_Resolved)) && diff(delta) && ((!this.params.subtree && _arrEquals(observerPathArray_Resolved, delta.path))
-=======
-					return (!this.filtersIsDynamic || !pathsIsDynamic(observerPathArray_Resolved)) && diff(delta) && ((!this.params.subtree && _equals(observerPathArray_Resolved, delta.path))
->>>>>>> 61da1201f3c0964bfa06d65c69f2e564f3ef6e38
 						|| (this.params.suptree && _arrStartsWith(observerPathArray_Resolved, delta.path) && (!_isNumeric(this.params.suptree) || _arrAfter(observerPathArray_Resolved, delta.path).length <= this.params.suptree))
 						|| (this.params.subtree && delta.path.length >= observerPathArray_Resolved.length && _arrStartsWith(delta.path, observerPathArray_Resolved) && (!_isNumeric(this.params.subtree) || _arrAfter(delta.path, observerPathArray_Resolved).length <= this.params.subtree))
 					);
@@ -95,11 +91,7 @@ export default class Observer extends Fireable {
 					});
 				}
 			}
-<<<<<<< HEAD
 		} else if ((this.params.subtree || changes.filter(delta => _arrEquals(delta.path, [delta.name])).length === changes.length) && changes.filter(delta => diff(delta)).length) {
-=======
-		} else if ((this.params.subtree || changes.filter(delta => _equals(delta.path, [delta.name])).length === changes.length) && changes.filter(delta => diff(delta)).length) {
->>>>>>> 61da1201f3c0964bfa06d65c69f2e564f3ef6e38
 			evt.respondWith(this.handler(changes, evt));
 		}
 		return evt;

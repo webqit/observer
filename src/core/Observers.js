@@ -38,11 +38,7 @@ export default class Observers extends Firebase {
 	/**
 	 * Fires all observers with the given evt (change).
 	 *
-<<<<<<< HEAD
 	 * @param array|Mutation		changes
-=======
-	 * @param array|Delta		changes
->>>>>>> 61da1201f3c0964bfa06d65c69f2e564f3ef6e38
 	 * @param bool				cancellable
 	 *
 	 * @return Event
@@ -50,11 +46,7 @@ export default class Observers extends Firebase {
 	fire(changes, cancellable) {
 		var evt = new Event(this.subject, cancellable);
 		// We accept multiple changes
-<<<<<<< HEAD
 		changes = _arrFrom(changes, false).map(delta => !(delta instanceof Mutation) ? new Mutation(this.subject, delta) : delta);
-=======
-		changes = _arrFrom(changes, false).map(delta => !(delta instanceof Delta) ? new Delta(this.subject, delta) : delta);
->>>>>>> 61da1201f3c0964bfa06d65c69f2e564f3ef6e38
 		if (this.buffers.length) {
 			_last(this.buffers)(changes);
 			return evt;
