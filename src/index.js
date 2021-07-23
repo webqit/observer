@@ -12,9 +12,9 @@ import ownKeys from './actions/ownKeys.js';
 import keys from './actions/keys.js';
 // Actors
 import accessorize from './actors/accessorize.js';
-import unaccessorize from './actions/unaccessorize.js';
-import proxy from './actions/proxy.js';
-import unproxy from './actions/unproxy.js';
+import unaccessorize from './actors/unaccessorize.js';
+import proxy from './actors/proxy.js';
+import unproxy from './actors/unproxy.js';
 // Reactions
 import observe from './reactions/observe.js';
 import unobserve from './reactions/unobserve.js';
