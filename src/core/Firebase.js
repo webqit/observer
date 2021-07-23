@@ -1,0 +1,131 @@
+
+/**
+ * @imports
+ */
+import { _isTypeObject, _isFunction, _getType, _internals } from '@webqit/util/js/index.js';
+import { _from as _arrFrom, _intersect, _equals as _arrEquals } from '@webqit/util/arr/index.js';
+import { paths2D } from './utils.js'
+
+/**
+ * ---------------------------
+ * The Firebase class
+ * ---------------------------
+ */
+
+export default class Firebase {
+	
+	/**
+	 * Initializes the instance.
+	 *
+	 * @param object	subject
+	 * 
+	 * @return void
+	 */
+	constructor(subject) {
+		this.subject = subject;
+		this.fireables = [];
+		this.currentlyFiring = [];
+	}
+	
+	/**
+	 * Adds an Fireable instance
+	 * with optional tags.
+	 *
+	 * @param Fireable			fireable
+	 *
+	 * @return Fireable
+	 */
+	add(fireable) {
+		this.fireables.push(fireable);
+		return fireable;
+	}
+	
+	/**
+	 * Removes fireables by instance.
+	 *
+	 * @param Fireable			fireable
+	 *
+	 * @return void
+	 */
+	remove(fireable) {
+		this.fireables = this.fireables.filter(_fireable => _fireable !== fireable);
+	}
+	
+	/**
+	 * Removes fireables by definition.
+	 *
+	 * @param object			dfn
+	 *
+	 * @return void
+	 */
+	removeMatches(dfn) {
+		this.match(dfn).forEach(fireable => {
+			this.fireables = this.fireables.filter(_fireable => _fireable !== fireable);
+		});
+	}
+	
+	/**
+	 * Finds fireables by definition.
+	 *
+	 * @param object			dfn
+	 *
+	 * @return array
+	 */
+	match(dfn) {
+		return this.fireables.filter(fireable => {
+			var fireableFilter = paths2D(fireable.filter);
+			var fireableTags = _arrFrom((fireable.params || {}).tags);
+			// -----------------------
+			var dfnFilter = paths2D(dfn.filter);
+			var dfnTags = _arrFrom((dfn.params || {}).tags);
+			// -----------------------
+			return (!dfn.originalHandler || fireable.handler === dfn.originalHandler)
+				&& (!dfnFilter.length || _arrEquals(dfnFilter, fireableFilter))
+				&& (!dfnTags.length || (dfnTags.length === fireableTags.length && _intersect(fireableTags, dfnTags).length === dfnTags.length));
+		});
+	}
+		
+	/**
+	 * Returns a observer-specific object embedded on an element.
+	 *
+	 * @param array|object	subject
+	 * @param bool      	createIfNotExists
+	 * @param string      	namespace
+	 *
+	 * @return Firebase
+	 */
+	static getFirebase(subject, createIfNotExists = true, namespace = null) {
+		var ImplementationClass = this;
+		if (namespace && this._namespaces && this._namespaces.has(namespace)) {
+			ImplementationClass = this._namespaces.get(namespace);
+		}
+		if (!_isTypeObject(subject)) {
+			throw new Error('Subject must be of type object; "' + _getType(subject) + '" given!');
+		}
+		if (!_internals(subject, 'firebases').has(ImplementationClass) && createIfNotExists) {
+			_internals(subject, 'firebases').set(ImplementationClass, new ImplementationClass(subject));
+		}
+		return _internals(subject, 'firebases').get(ImplementationClass);
+	}
+
+	/**
+	 * Extend a Fireable Class with a namespace.
+	 *
+	 * @param string		namespace
+	 * @param class      	ImplementationClass
+	 *
+	 * @return void|class
+	 */
+	static namespace(namespace, ImplementationClass = null) {
+		if (!this._namespaces) {
+			this._namespaces = new Map;
+		}
+		if (arguments.length === 1) {
+			return this._namespaces.get(namespace);
+		}
+		if (!(ImplementationClass.prototype instanceof this)) {
+			throw new Error(`The implementation of the namespace ${this.name}.${namespace} must be a subclass of ${this.name}.`);
+		}
+		this._namespaces.set(namespace, ImplementationClass);
+	}
+}

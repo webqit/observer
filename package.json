@@ -1,0 +1,68 @@
+{
+  "name": "@webqit/observer",
+  "title": "Observer",
+  "description": "A simple set of functions for intercepting and observing JavaScript objects and arrays.",
+  "keywords": [
+    "observer",
+    "reflection",
+    "interception",
+    "pub/sub pattern",
+    "object.observe",
+    "array.observe",
+    "events"
+  ],
+  "homepage": "https://webqit.io/tooling/observer",
+  "version": "1.5.3",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/webqit/observer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/webqit/observer/issues"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "main": "src/index.js",
+  "scripts": {
+    "test": "mocha --extension .test.js --exit",
+    "test:coverage": "c8 --reporter=text-lcov npm run test | coveralls",
+    "build": "webpack --config ./webpack.config.cjs",
+    "preversion": "npm run test && npm run build && git add -A dist",
+    "postversion": "npm publish",
+    "postpublish": "git push && git push --tags"
+  },
+  "dependencies": {
+    "@webqit/util": "^0.8.5"
+  },
+  "devDependencies": {
+    "chai": "^4.3.4",
+    "coveralls": "^3.1.1",
+    "mocha-lcov-reporter": "^1.3.0",
+    "webpack": "^4.44.1",
+    "webpack-cli": "^3.3.12"
+  },
+  "author": "Oxford Harrison <oxharris.dev@gmail.com>",
+  "maintainers": [
+    "Oxford Harrison <oxharris.dev@gmail.com>"
+  ],
+  "contributors": [],
+  "funding": {
+    "type": "patreon",
+    "url": "https://patreon.com/ox_harris"
+  },
+  "badges": {
+    "list": [
+      "npmversion",
+      "npmdownloads",
+      "patreon"
+    ],
+    "config": {
+      "patreonUsername": "ox_harris",
+      "githubUsername": "webqit",
+      "githubRepository": "observer",
+      "githubSlug": "webqit/observer",
+      "npmPackageName": "@webqit/observer"
+    }
+  }
+}
