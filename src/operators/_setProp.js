@@ -71,7 +71,11 @@ export default function(define, subject, keysOrPayload, value = null, params = {
 		// The set operation
 		var defaultSet = function(_success) {
 			if (arguments.length) {
-				return _success;
+				if (descriptor) {
+					descriptor = _success;
+				} else {
+					value = _success;
+				}
 			}
 			if (descriptor) {
 				if (_internals(subject, 'accessorizedProps', false).has(key)

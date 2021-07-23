@@ -28,6 +28,9 @@ import closure from './subscribers/closure.js';
 // so that can be used as standard Trap out of the box.
 const del = deleteProperty;
 const def = defineProperty;
+// Core
+import Observers from './core/Observers.js';
+import Interceptors from './core/Interceptors.js';
 
 /**
  * @exports
@@ -57,4 +60,7 @@ export default {
 	intercept,
 	unintercept,
 	closure,
+	// Core
+	Observers,
+	Interceptors,
 }

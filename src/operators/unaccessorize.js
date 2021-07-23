@@ -3,6 +3,7 @@
  * @imports
  */
 import _isArray from '@webqit/util/js/isArray.js';
+import _isObject from '@webqit/util/js/isObject.js';
 import _arrFrom from '@webqit/util/arr/from.js';
 import _internals from '@webqit/util/js/internals.js';
 
@@ -16,6 +17,7 @@ import _internals from '@webqit/util/js/internals.js';
  * @return bool|array
  */
 export default function(subject, keys = [], params = {}) {
+	params = _isObject(keys) ? keys : params;
 	var successFlags = (arguments.length === 1 ? Object.keys(subject) : _arrFrom(keys)).map(key => {
 		if (_internals(subject, 'accessorizedProps', false).has(key)) {
 			return _internals(subject, 'accessorizedProps').get(key).restore();
