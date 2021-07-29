@@ -64,7 +64,7 @@ export default function(subject, field, value, event = null, params = {}) {
 			related: [field],
 		}, event);
 		let eventObject = observers.fire(_event, params.cancellable);
-		if (params.eventReturnType) {
+		if (params.eventTypeReturn) {
 			return eventObject;
 		}
 	}

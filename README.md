@@ -21,9 +21,9 @@ let obj = {};
 ...using the [`Observer.observe()`](https://webqit.io/tooling/observer/docs/api/reactions/observe) method.
 
 ```js
-Observer.observe(obj, changes => {
-    changes.forEach(c => {
-        console.log(c.type, c.name, c.path, c.value, c.oldValue);
+Observer.observe(obj, mutations => {
+    mutations.forEach(mutation => {
+        console.log(mutation.type, mutation.name, mutation.path, mutation.value, mutation.oldValue);
     });
 });
 ```
@@ -123,12 +123,12 @@ Observer.set(obj, {
 }, { detail: 'Certain detail' });
 ```
 
-Observers will recieve this value in a `delta.detail` property.
+Observers will recieve this value in a `mutation.detail` property.
 
 ```js
 // An observer with detail
-Observer.observe(obj, 'prop1', delta => {
-    console.log('An operation has been made with detail:' + delta.detail);
+Observer.observe(obj, 'prop1', mutation => {
+    console.log('An operation has been made with detail:' + mutation.detail);
 });
 ```
 
@@ -138,35 +138,35 @@ Observers can access and *act* on a special object called the *Response Object*.
 
 ```js
 // An observer and the response object
-Observer.observe(obj, 'prop1', (delta, response) => {
+Observer.observe(obj, 'prop1', (mutation, event) => {
     if (1) {
-        response.preventDefault(); // Or return false
+        event.preventDefault(); // Or return false
     } else if (2) {
-        response.stopPropagation(); // Or return false
+        event.stopPropagation(); // Or return false
     } else if (3) {
-        response.waitUntil(new Promise); // Or return new Promise
+        event.waitUntil(new Promise); // Or return new Promise
     }
 });
 ```
 
-Operators can access and honour the response.
+Operators can access and honour the event's state.
 
 ```js
-// A set operation that returns the responseObject
-let response = Observer.set(obj, {
+// A set operation that returns the eventTypeReturn
+let event = Observer.set(obj, {
     prop2: 'value2',
     prop3: 'value3',
-}, { responseObject: true });
+}, { eventTypeReturn: true });
 ```
 
 ```js
-if (response.defaultPrevented) {
-    // response.preventDefault() was called
-} else if (response.propagationStopped) {
-    // response.stopPropagation() was called
-} else if (response.promises) {
-    // response.waitUntil() was called
-    response.promises.then(() => {
+if (event.defaultPrevented) {
+    // event.preventDefault() was called
+} else if (event.propagationStopped) {
+    // event.stopPropagation() was called
+} else if (event.promises) {
+    // event.waitUntil() was called
+    event.promises.then(() => {
 
     });
 }

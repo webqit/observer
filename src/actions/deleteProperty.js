@@ -73,8 +73,8 @@ export default function(subject, keys, params = {}) {
 	if (observers = Observers.getFirebase(subject, false, params.namespace)) {
 		evt = observers.fire(successfulEvents, params.cancellable);
 		evt.successCount = successfulEvents.length;
-	} else if (params.eventReturnType) {
+	} else if (params.eventTypeReturn) {
 		evt = new Event(subject);
 	}
-	return params.eventReturnType ? evt : successfulEvents.length > 0;
+	return params.eventTypeReturn ? evt : successfulEvents.length > 0;
 }

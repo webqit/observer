@@ -124,8 +124,8 @@ export default function(define, subject, keysOrPayload, value = null, params = {
 	if (observers) {
 		evt = observers.fire(successfulEvents, params.cancellable);
 		evt.successCount = successfulEvents.length;
-	} else if (params.eventReturnType) {
+	} else if (params.eventTypeReturn) {
 		evt = new Event(subject);
 	}
-	return params.eventReturnType ? evt : successfulEvents.length > 0;
+	return params.eventTypeReturn ? evt : successfulEvents.length > 0;
 }
