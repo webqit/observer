@@ -24,21 +24,36 @@ export default function(subject, keys = [], params = {}) {
 			return false;
 		}
 		// ----------
-		var originalDescriptor = Object.getOwnPropertyDescriptor(subject, key) || {
-			writable: true,
-			enumerable: key in subject ? false/* existing but inherited*/ : true,
-			configurable: params.configurable !== false,
+		const getDescriptorDeep = () => {
+			var descriptor, proto = subject;
+			while (!descriptor && (proto = Object.getPrototypeOf(proto))) {
+				descriptor = Object.getOwnPropertyDescriptor(proto, key);
+			}
+			return descriptor;
 		};
 		// ----------
-		var currentDescriptor = { ...originalDescriptor };
-		if ('value' in currentDescriptor) {
-			delete currentDescriptor.value;
-		}
-		if ('writable' in currentDescriptor) {
-			delete currentDescriptor.writable;
+		var originalOwnDescriptor = Object.getOwnPropertyDescriptor(subject, key),
+			altOriginalOwnDescriptor,
+			activeIsAltOriginalOwnDescriptor;
+		if (!originalOwnDescriptor) {
+			// Not an own property
+			// and maybe not even defined at all in the prototype chain
+			altOriginalOwnDescriptor = {
+				writable: true,
+				enumerable: key in subject ? false/* existing but inherited*/ : true,
+				configurable: params.configurable !== false,
+			};
 		}
 		// ----------
-		currentDescriptor.get = () => {
+		var reactiveOwnDescriptor = { ...(originalOwnDescriptor || altOriginalOwnDescriptor) };
+		if ('value' in reactiveOwnDescriptor) {
+			delete reactiveOwnDescriptor.value;
+		}
+		if ('writable' in reactiveOwnDescriptor) {
+			delete reactiveOwnDescriptor.writable;
+		}
+		// ----------
+		reactiveOwnDescriptor.get = () => {
 			if (controlObject.ongoingGets.length) {
 				// .touch(true)
 				return controlObject.get();
@@ -51,7 +66,7 @@ export default function(subject, keys = [], params = {}) {
 			return value;
 		};
 		var setting;
-		currentDescriptor.set = newValue => {
+		reactiveOwnDescriptor.set = newValue => {
 			if (controlObject.ongoingSets.length) {
 				return controlObject.set(newValue);
 			}
@@ -66,12 +81,61 @@ export default function(subject, keys = [], params = {}) {
 		var controlObject = {
 			ongoingGets: [],
 			ongoingSets: [],
-			get: function() { return originalDescriptor.get ? originalDescriptor.get() : originalDescriptor.value; },
-			set: function(value) { if (originalDescriptor.set) { return originalDescriptor.set(value); } else { originalDescriptor.value = value; return true; } },
+			get: function() {
+				// ---------------------
+				var descriptor = originalOwnDescriptor;
+				if (!descriptor) {
+					if (activeIsAltOriginalOwnDescriptor) {
+						// Already switched to altOriginalOwnDescriptor
+						descriptor = altOriginalOwnDescriptor;
+					} else {
+						// getDescriptorDeep() or altOriginalOwnDescriptor
+						descriptor = getDescriptorDeep() || altOriginalOwnDescriptor;
+					}
+				}
+				// ---------------------
+				return descriptor.get ? descriptor.get.call(subject) : descriptor.value;
+			},
+			set: function(value) {
+				// ---------------------
+				var descriptor = originalOwnDescriptor;
+				if (!descriptor) {
+					if (activeIsAltOriginalOwnDescriptor) {
+						// Already switched to altOriginalOwnDescriptor
+						descriptor = altOriginalOwnDescriptor;
+					} else if (descriptor = getDescriptorDeep()) {
+						if (('value' in descriptor)) {
+							// Deep is data property.
+							// We should rather switch to altOriginalOwnDescriptor
+							descriptor = altOriginalOwnDescriptor;
+							activeIsAltOriginalOwnDescriptor = true;
+						}
+					} else {
+						// Not yet switched to altOriginalOwnDescriptor
+						// and no getDescriptorDeep()
+						descriptor = altOriginalOwnDescriptor;
+						activeIsAltOriginalOwnDescriptor = true;
+					}
+				}
+				// ---------------------
+				if (descriptor.set || descriptor.get) {
+					if (!descriptor.set) {
+						return false;
+					}
+					return descriptor.set.call(subject, value);
+				} else {
+					descriptor.value = value;
+					return true;
+				}
+			},
 			restore: function() {
 				try {
 					if (this.intact()) {
-						Object.defineProperty(subject, key, originalDescriptor);
+						if (originalOwnDescriptor || activeIsAltOriginalOwnDescriptor /* switched */) {
+							Object.defineProperty(subject, key, originalOwnDescriptor || altOriginalOwnDescriptor /* switch target */);
+						} else {
+							delete subject[key];
+						}
 						_internals(subject, 'accessorizedProps').delete(key);
 					}
 					return true;
@@ -79,7 +143,7 @@ export default function(subject, keys = [], params = {}) {
 				return false;
 			},
 			intact: function() {
-				return (Object.getOwnPropertyDescriptor(subject, key) || {}).get === currentDescriptor.get;
+				return (Object.getOwnPropertyDescriptor(subject, key) || {}).get === reactiveOwnDescriptor.get;
 			},
 			touch: function(attemptRestore = false) {
 				// If intact, or not intact but not restorable, return true - "valid"
@@ -88,7 +152,7 @@ export default function(subject, keys = [], params = {}) {
 		}
 		// ----------
 		try {
-			Object.defineProperty(subject, key, currentDescriptor);
+			Object.defineProperty(subject, key, reactiveOwnDescriptor);
 			_internals(subject, 'accessorizedProps').set(key, controlObject);
 			return true;
 		} catch(e) {}
