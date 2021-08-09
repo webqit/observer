@@ -122,11 +122,11 @@ export default function(subject, keys = [], params = {}) {
 					if (!descriptor.set) {
 						return false;
 					}
+					// Can sometimes return undefined
 					return descriptor.set.call(subject, value);
-				} else {
-					descriptor.value = value;
-					return true;
 				}
+				descriptor.value = value;
+				return true;
 			},
 			restore: function() {
 				try {
