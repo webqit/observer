@@ -24,10 +24,13 @@ export default function(subject, keys = [], params = {}) {
 			return false;
 		}
 		// ----------
-		var currentDescriptor = Object.getOwnPropertyDescriptor(subject, key) || {
-			enumerable: key in subject ? false/*existing but hidden*/ : true,
+		var originalDescriptor = Object.getOwnPropertyDescriptor(subject, key) || {
+			writable: true,
+			enumerable: key in subject ? false/* existing but inherited*/ : true,
 			configurable: params.configurable !== false,
 		};
+		// ----------
+		var currentDescriptor = { ...originalDescriptor };
 		if ('value' in currentDescriptor) {
 			delete currentDescriptor.value;
 		}
@@ -36,42 +39,57 @@ export default function(subject, keys = [], params = {}) {
 		}
 		// ----------
 		currentDescriptor.get = () => {
+			if (controlObject.ongoingGets.length) {
+				// .touch(true)
+				return controlObject.get();
+			}
 			// _get() will return here
-			// but to call _internals(subject, 'accessorizedProps').get(key).get();
-			return _get(subject, key, params);
+			// but to call controlObject.get();
+			controlObject.ongoingGets.push(1);
+			var value = _get(subject, key, params);
+			controlObject.ongoingGets.pop();
+			return value;
 		};
+		var setting;
 		currentDescriptor.set = newValue => {
+			if (controlObject.ongoingSets.length) {
+				return controlObject.set(newValue);
+			}
 			// _set() will return here
-			// but to call _internals(subject, 'accessorizedProps').get(key).set();
-			return _set(subject, key, newValue, params);
+			// but to call controlObject.set();
+			controlObject.ongoingSets.push(1);
+			var operation = _set(subject, key, newValue, params);
+			controlObject.ongoingSets.pop();
+			return operation;
 		};
 		// ----------
+		var controlObject = {
+			ongoingGets: [],
+			ongoingSets: [],
+			get: function() { return originalDescriptor.get ? originalDescriptor.get() : originalDescriptor.value; },
+			set: function(value) { if (originalDescriptor.set) { return originalDescriptor.set(value); } else { originalDescriptor.value = value; return true; } },
+			restore: function() {
+				try {
+					if (this.intact()) {
+						Object.defineProperty(subject, key, originalDescriptor);
+						_internals(subject, 'accessorizedProps').delete(key);
+					}
+					return true;
+				} catch(e) {}
+				return false;
+			},
+			intact: function() {
+				return (Object.getOwnPropertyDescriptor(subject, key) || {}).get === currentDescriptor.get;
+			},
+			touch: function(attemptRestore = false) {
+				// If intact, or not intact but not restorable, return true - "valid"
+				return this.intact() || (attemptRestore ? !this.restore() : false);
+			},
+		}
+		// ----------
 		try {
-			const startingValue = subject[key];
 			Object.defineProperty(subject, key, currentDescriptor);
-			_internals(subject, 'accessorizedProps').set(key, {
-				value: startingValue,
-				read: function() { return this.value; },
-				write: function(value) { this.value = value; return true; },
-				restore: function() {
-					try {
-						if (this.intact()) {
-							delete subject[key];
-							subject[key] = this.value;
-							_internals(subject, 'accessorizedProps').delete(key);
-						}
-						return true;
-					} catch(e) {}
-					return false;
-				},
-				intact: function() {
-					return (Object.getOwnPropertyDescriptor(subject, key) || {}).get === currentDescriptor.get;
-				},
-				touch: function(attemptRestore = false) {
-					// If intact, or not intact but not restorable, return true - "valid"
-					return this.intact() || (attemptRestore ? !this.restore() : false);
-				},
-			});
+			_internals(subject, 'accessorizedProps').set(key, controlObject);
 			return true;
 		} catch(e) {}
 		return false;

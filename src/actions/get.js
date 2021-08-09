@@ -35,7 +35,7 @@ export default function(subject, keys, params = {}) {
 				return _value;
 			}
 			if (_internals(subject, 'accessorizedProps').has(key) && _internals(subject, 'accessorizedProps').get(key).touch(true)) {
-				return _internals(subject, 'accessorizedProps').get(key).read();
+				return _internals(subject, 'accessorizedProps').get(key).get();
 			}
 			return subject[key];
 		};

@@ -82,7 +82,7 @@ export default function(define, subject, keysOrPayload, value = null, params = {
 				}
 				Object.defineProperty(subject, key, descriptor);
 			} else if (_internals(subject, 'accessorizedProps', false).has(key)) {
-				return _internals(subject, 'accessorizedProps').get(key).write(value);
+				return _internals(subject, 'accessorizedProps').get(key).set(value);
 			}
 			subject[key] = value;
 			return true;
