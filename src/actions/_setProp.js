@@ -118,7 +118,7 @@ export default function(define, subject, keysOrPayload, value = null, params = {
 	} else if (_isObject(keysOrPayload) && (keys = Object.keys(keysOrPayload))) {
 		events = keys.map(key => handleSet(key, keysOrPayload[key], keys, params.detail));
 	}
-	var successfulEvents = events.filter(e => e.success);
+	var successfulEvents = events.filter(e => e.success !== false);
 	// ---------------------------------
 	var evt;
 	if (observers) {

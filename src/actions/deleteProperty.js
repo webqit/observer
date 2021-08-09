@@ -67,7 +67,7 @@ export default function(subject, keys, params = {}) {
 		}
 		return e;
 	});
-	var successfulEvents = events.filter(e => e.success);
+	var successfulEvents = events.filter(e => e.success !== false);
 	// ---------------------------------
 	var observers, evt;
 	if (observers = Observers.getFirebase(subject, false, params.namespace)) {
