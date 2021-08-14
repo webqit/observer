@@ -4,6 +4,7 @@
  */
 import { _isFunction, _isTypeObject, _getType } from '@webqit/util/js/index.js';
 import build, { isUserObject } from '../connectors/build.js';
+import _unproxy from '../actors/unproxy.js';
 import Observers from '../core/Observers.js';
 
 /**
@@ -17,6 +18,7 @@ import Observers from '../core/Observers.js';
  * @return Observer
  */
 export default function(subject, filter, handler = null, params = {}) {
+	subject = _unproxy(subject);
 	if (!subject || !_isTypeObject(subject)) {
 		throw new Error('Observable subjects must be of type object; "' + _getType(subject) + '" given!');
 	}

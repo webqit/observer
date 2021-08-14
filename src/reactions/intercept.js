@@ -3,6 +3,7 @@
  * @imports
  */
 import { _isFunction, _isTypeObject, _getType } from '@webqit/util/js/index.js';
+import _unproxy from '../actors/unproxy.js';
 import Interceptors from '../core/Interceptors.js';
 
 /**
@@ -16,6 +17,7 @@ import Interceptors from '../core/Interceptors.js';
  * @return Interceptor
  */
 export default function(subject, filter, handler, params = {}) {
+	subject = _unproxy(subject);
 	if (!_isTypeObject(subject)) {
 		throw new Error('Object must be of type subject; "' + _getType(handler) + '" given!');
 	}

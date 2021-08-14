@@ -2,8 +2,9 @@
 /**
  * @imports
  */
- import { _isFunction, _isTypeObject, _getType } from '@webqit/util/js/index.js';
- import Observers from '../core/Observers.js';
+import { _isFunction, _isTypeObject, _getType } from '@webqit/util/js/index.js';
+import _unproxy from '../actors/unproxy.js';
+import Observers from '../core/Observers.js';
 
 /**
  * Removes observers from an subject's firebase.
@@ -16,6 +17,7 @@
  * @return void
  */
 export default function(subject, filter, originalHandler = null, params = {}) {
+	subject = _unproxy(subject);
 	if (!subject || !_isTypeObject(subject)) {
 		throw new Error('Observable subjects must be of type object; "' + _getType(subject) + '" given!');
 	}

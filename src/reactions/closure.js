@@ -5,6 +5,7 @@
 import { _copy } from '@webqit/util/obj/index.js';
 import { _unique } from '@webqit/util/arr/index.js';
 import { _isArray, _isTypeObject } from '@webqit/util/js/index.js';
+import _unproxy from '../actors/unproxy.js';
 import Observers from '../core/Observers.js';
 import unlink from '../connectors/unlink.js';
 import link from '../connectors/link.js';
@@ -20,6 +21,7 @@ import link from '../connectors/link.js';
  */
 export default function(callback, ...subjects) {
 	var context = subjects.map(subject => {
+		subject = _unproxy(subject);
 		if (!_isTypeObject(subject)) {
 			throw new Error('Target must be of type object!');
 		}
