@@ -37,7 +37,7 @@ export default function(subject, keys, params = {}) {
 		}
 		var e = {
 			name: key,
-			type: 'deletion',
+			type: 'deleteProperty',
 			related: _keys,
 			detail: params.detail,
 			oldValue,

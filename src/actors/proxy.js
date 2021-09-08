@@ -18,15 +18,17 @@ import _has from '../actions/has.js';
  * to the proxy instead of the object itself.
  *
  * @param object|array		subject
+ * @param object		    trapPatch
  * @param object		    params
  *
  * @return Proxy
  */
-export default function(subject, params = {}) {
+export default function(subject, trapPatch = {}, params = {}) {
 	if (!_isTypeObject(subject)) {
 		throw new Error('Object must be of type subject; "' + _getType(subject) + '" given!');
     }
     var proxy = new Proxy(subject, {
+        ...trapPatch,
         get: (subject, key) => {
             var val = _get(subject, key, params);
             if (params.proxyAutoBinding !== false && _isFunction(val) && !_isClass(val)) {

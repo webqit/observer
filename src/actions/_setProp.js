@@ -45,7 +45,7 @@ export default function(define, subject, keysOrPayload, value = null, params = {
 	const handleSet = (key, value, related, detail) => {
 		var type = 'set', descriptor;
 		if (define) {
-			type = 'definition';
+			type = 'defineProperty';
 			descriptor = value || {};
 			value = descriptor.value;
 		}
@@ -57,7 +57,7 @@ export default function(define, subject, keysOrPayload, value = null, params = {
 			oldValue = _get(subject, key, params);
 		}
 		var e = {
-			name:key,
+			name: key,
 			type,
 			value,
 			related,
