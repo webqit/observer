@@ -17,9 +17,9 @@ import _has from '../actions/has.js';
  * Returns an object as a proxy and binds all instance methods
  * to the proxy instead of the object itself.
  *
- * @param object|array		subject
- * @param object		    trapPatch
- * @param object		    params
+ * @param Object|Array		subject
+ * @param Object		    trapPatch
+ * @param Object		    params
  *
  * @return Proxy
  */
