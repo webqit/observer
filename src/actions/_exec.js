@@ -27,7 +27,7 @@ export default function(type, target, payload = {}, params = {}) {
 		return arguments.length ? _val : Reflect[type](target, ...Object.values(payload));
 	};
 	if (interceptors = Interceptors.getFirebase(target, false, params.namespace)) {
-		return interceptors.fire({ type, ...payload }, defaultHandler) || [];
+		return interceptors.fire({ type, ...payload }, defaultHandler);
 	}
 	return defaultHandler();
 }
