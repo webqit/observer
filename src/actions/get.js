@@ -39,7 +39,9 @@ export default function(target, keys, receiver = null, params = {}) {
 			if (_internals(target, 'accessorizedProps').has(key) && _internals(target, 'accessorizedProps').get(key).touch(true)) {
 				return _internals(target, 'accessorizedProps').get(key).get();
 			}
-			return Reflect.get(target, key, receiver);
+			return receiver 
+				? Reflect.get(target, key, receiver) 
+				: Reflect.get(target, key);
 		};
 		if (interceptors = Interceptors.getFirebase(target, true, params.namespace)) {
 			return interceptors.fire({type:'get', name: key, related: _keys, receiver}, defaultGet);
