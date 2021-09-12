@@ -13,27 +13,27 @@ import _has from './has.js';
 import _get from './get.js';
 
 /**
- * Executes a "delete" operation on a subject.
- * Fires any observers that may be bound to subject.
+ * Executes a "deleteProperty" operation on a target.
+ * Fires any observers that may be bound to target.
  *
- * @param array|object	subject
+ * @param array|object	target
  * @param string|array	keys
  * @param object		params
  *
  * @return Event
  */
-export default function(subject, keys, params = {}) {
-	if (!subject || !_isTypeObject(subject)) {
+export default function(target, keys, params = {}) {
+	if (!target || !_isTypeObject(target)) {
 		throw new Error('Target must be of type object!');
 	}
-	subject = _unproxy(subject);
+	target = _unproxy(target);
 	var _keys = _arrFrom(keys);
 	var events = _keys.map(key => {
 		// ---------------------------------
 		// The event object
 		var oldValue;
-		if (_has(subject, key, params)) {
-			oldValue = _get(subject, key, params);
+		if (_has(target, key, params)) {
+			oldValue = _get(target, key, null, params);
 		}
 		var e = {
 			name: key,
@@ -48,14 +48,14 @@ export default function(subject, keys, params = {}) {
 			if (arguments.length) {
 				return _success;
 			}
-			if (_internals(subject, 'accessorizedProps', false).has(key)
-			&& !_internals(subject, 'accessorizedProps').get(key).restore()) {
+			if (_internals(target, 'accessorizedProps', false).has(key)
+			&& !_internals(target, 'accessorizedProps').get(key).restore()) {
 				return false;
 			}
-			delete subject[key];
+			delete target[key];
 			return true;
 		};
-		if (interceptors = Interceptors.getFirebase(subject, false, params.namespace)) {
+		if (interceptors = Interceptors.getFirebase(target, false, params.namespace)) {
 			e.success = interceptors.fire({type: 'deleteProperty', name:key, oldValue, related: _keys}, defaultDel);
 		} else {
 			e.success = defaultDel();
@@ -63,18 +63,18 @@ export default function(subject, keys, params = {}) {
 		// ---------------------------------
 		// Unobserve outgoing value for bubbling
 		if (e.success && _isTypeObject(e.oldValue)) {
-			unlink(subject, key, e.oldValue, null, params);
+			unlink(target, key, e.oldValue, null, params);
 		}
 		return e;
 	});
 	var successfulEvents = events.filter(e => e.success !== false);
 	// ---------------------------------
 	var observers, evt;
-	if (observers = Observers.getFirebase(subject, false, params.namespace)) {
+	if (observers = Observers.getFirebase(target, false, params.namespace)) {
 		evt = observers.fire(successfulEvents, params.cancellable);
 		evt.successCount = successfulEvents.length;
 	} else if (params.eventTypeReturn) {
-		evt = new Event(subject);
+		evt = new Event(target);
 	}
 	return params.eventTypeReturn ? evt : successfulEvents.length > 0;
 }

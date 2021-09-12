@@ -7,30 +7,37 @@ import _unproxy from '../actors/unproxy.js';
 import Interceptors from '../core/Interceptors.js';
 
 /**
- * Removes traps from an subject's firebase.
+ * Removes traps from an target's firebase.
  *
- * @param array|object				subject
- * @param string|array|function		filter
- * @param function					originalHandler
+ * @param array|object				target
+ * @param object					trap
  * @param object					params
  *
  * @return void
  */
-export default function(subject, filter, originalHandler = null, params = {}) {
-	subject = _unproxy(subject);
-	if (!subject || !_isTypeObject(subject)) {
-		throw new Error('Object must be of type subject; "' + _getType(subject) + '" given!');
+export default function(target, trap = null, params = {}) {
+	target = _unproxy(target);
+	if (!target || !_isTypeObject(target)) {
+		throw new Error('Object must be of type target; "' + _getType(target) + '" given!');
 	}
-	if (_isFunction(filter)) {
-		params = arguments.length > 2 ? originalHandler : {};
-		originalHandler = filter;
-		filter = null;
+	var interceptors = Interceptors.getFirebase(target, false, params.namespace);
+	if (!_isObject(trap)) {
+		// Backwards compatibility
+		if (_isFunction(trap)) {
+			trap = { [null]: trap };
+		} else if (_isFunction(params)) {
+			trap = { [trap]: params };
+			params = arguments.length > 3 ? arguments[3] : {};
+		}
+		isOriginallyObj = false;
 	}
-	if (originalHandler && !_isFunction(originalHandler)) {
-		throw new Error('Handler must be a function; "' + _getType(originalHandler) + '" given!');
-	}
-	var interceptors;
-	if (interceptors = Interceptors.getFirebase(subject, false, params.namespace)) {
-		return interceptors.removeMatches({filter, originalHandler, params,});
+	if (interceptors = Interceptors.getFirebase(target, false, params.namespace)) {
+		Object.keys(trap).forEach(filter => {
+			if (!_isFunction(trap[filter])) {
+				throw new Error('Callback' + (filter === null ? '' : ' for ' + filter) + ' must be a function; "' + _getType(trap[filter]) + '" given!');
+			}
+			var dfn = { filter, originalHandler: trap[filter], params };
+			return interceptors.removeMatches(dfn);
+		});
 	}
 }

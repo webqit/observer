@@ -16,15 +16,15 @@ export default class Mutation {
 	/**
 	 * Initializes the instance.
 	 *
-	 * @param array|object	subject
+	 * @param array|object	target
 	 * @param object		dfn
 	 *
 	 * @return void
 	 */
-	constructor(subject, dfn) {
-		this.subject = subject;
+	constructor(target, dfn) {
+		this.target = target;
 		if (!dfn.originalSubject) {
-			this.originalSubject = subject;
+			this.originalSubject = target;
 		}
 		if (!('type' in dfn)) {
 			throw new Error('Mutation type must be given in definition!');

@@ -12,20 +12,22 @@ import Interceptors from '../core/Interceptors.js';
 import _unproxy from '../actors/unproxy.js';
 
 /**
- * Runs a "get" query operation on a subject.
- * Fires any such query observers that may be bound to subject.
+ * Runs a "get" operation on a target.
+ * Fires any such query observers that may be bound to target.
  *
- * @param array|object	subject
+ * @param array|object	target
  * @param string|array	keys
+ * @param object		receiver
  * @param object		params
  *
  * @return mixed
  */
-export default function(subject, keys, params = {}) {
-	if (!subject || !_isTypeObject(subject)) {
+export default function(target, keys, receiver = null, params = {}) {
+	target = receiver || target;
+	if (!target || !_isTypeObject(target)) {
 		throw new Error('Target must be of type object!');
 	}
-	subject = _unproxy(subject);
+	target = _unproxy(target);
 	// ---------------------------------
 	var _keys = _arrFrom(keys);
 	var values = _keys.map(key => {
@@ -34,16 +36,16 @@ export default function(subject, keys, params = {}) {
 			if (arguments.length) {
 				return _value;
 			}
-			if (_internals(subject, 'accessorizedProps').has(key) && _internals(subject, 'accessorizedProps').get(key).touch(true)) {
-				return _internals(subject, 'accessorizedProps').get(key).get();
+			if (_internals(target, 'accessorizedProps').has(key) && _internals(target, 'accessorizedProps').get(key).touch(true)) {
+				return _internals(target, 'accessorizedProps').get(key).get();
 			}
-			return subject[key];
+			return Reflect.get(target, key, receiver);
 		};
-		if (interceptors = Interceptors.getFirebase(subject, true, params.namespace)) {
-			return interceptors.fire({type:'get', name: key, related: _keys}, defaultGet);
+		if (interceptors = Interceptors.getFirebase(target, true, params.namespace)) {
+			return interceptors.fire({type:'get', name: key, related: _keys, receiver}, defaultGet);
 		}
 		return defaultGet();
 	});
 	// ---------------------------------
-	return _isArray() ? values : values[0];
+	return _isArray(keys) ? values : values[0];
 }

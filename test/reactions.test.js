@@ -8,6 +8,7 @@ import Interceptors from '../src/core/Interceptors.js';
 import observe from '../src/reactions/observe.js';
 import intercept from '../src/reactions/intercept.js';
 import set from '../src/actions/set.js';
+import get from '../src/actions/get.js';
 import accessorize from '../src/actors/accessorize.js';
 import unaccessorize from '../src/actors/unaccessorize.js';
 import proxy from '../src/actors/proxy.js';
@@ -70,8 +71,19 @@ describe(`Test: .observe() + .set()`, function() {
         }
         Observers.namespace('ns1', Observers2);
         Interceptors.namespace('ns1', Interceptors2);
+
+        it(`Should assert that methods of an Observers namespace class are called.`, function() {
+            observe(obj, changes => {
+                _changesRecieved.push(changes);
+            }, {
+                namespace: 'ns1',
+            });
+            expect(ObserversCustomAddMethodCalled).to.be.true;
+        });
         
         it(`Should that "events" off the namespace dont't leak.`, function() {
+            ObserversCustomAddMethodCalled = false;
+            InterceptorsCustomAddMethodCalled = false;
             observe(obj, () => {});
             set(obj, {
                 key1: 'value1',
@@ -82,16 +94,8 @@ describe(`Test: .observe() + .set()`, function() {
             expect(InterceptorsCustomAddMethodCalled).to.be.false;
         });
 
-        it(`Should assert that methods of an Observers namespace class are called.`, function() {
-            observe(obj, changes => {
-                _changesRecieved.push(changes);
-            }, {
-                namespace: 'ns1',
-            });
-            expect(ObserversCustomAddMethodCalled).to.be.true;
-        });
-
         it(`Should assert that methods of an Interceptors namespace class are called.`, function() {
+            InterceptorsCustomAddMethodCalled = false;
             intercept(obj, 'set', (e, recieved, next) => {
                 return next();
             }, {
@@ -99,8 +103,22 @@ describe(`Test: .observe() + .set()`, function() {
             });
             expect(InterceptorsCustomAddMethodCalled).to.be.true;
         });
+
+        it(`Should assert that interceptor was called.`, function() {
+            var handlerWasCalled;
+            intercept(obj, {
+                set: (e, recieved, next) => {
+                    handlerWasCalled = e.value;
+                    return next('new val');
+                },
+            });
+            set(obj, 'someProp', 'some val');
+            expect(handlerWasCalled).to.be.eq('some val');
+            expect(obj.someProp).to.be.eq('new val');
+        });
         
         it(`Should assert that "custom events" in the namespace fire.`, function() {
+            _changesRecieved = [];
             Observers2.getFirebase(obj).fire([{
                 name: 'costum-name', // required
                 type: 'costum-type', // required
@@ -109,13 +127,14 @@ describe(`Test: .observe() + .set()`, function() {
         });
         
         it(`Should that "set" operations in the namespace are recieved.`, function() {
+            _changesRecieved = [];
             set(obj, {
                 key1: 'value1',
                 key2: 'value2',
             }, {
                 namespace: 'ns1',
             });
-            expect(_changesRecieved[1]).to.be.an('array').with.length(2);
+            expect(_changesRecieved[0]).to.be.an('array').with.length(2);
         });
 
     });

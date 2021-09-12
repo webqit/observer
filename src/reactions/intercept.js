@@ -2,40 +2,52 @@
 /**
  * @imports
  */
-import { _isFunction, _isTypeObject, _getType } from '@webqit/util/js/index.js';
+import { _isFunction, _isTypeObject, _isObject, _getType } from '@webqit/util/js/index.js';
 import _unproxy from '../actors/unproxy.js';
 import Interceptors from '../core/Interceptors.js';
 
 /**
- * Adds a trap to an subject's firebase.
+ * Adds a trap to an target's firebase.
  *
- * @param array|object				subject
- * @param string|array|function		filter
- * @param function					handler
+ * @param array|object				target
+ * @param object					trap
  * @param object					params
  *
  * @return Interceptor
  */
-export default function(subject, filter, handler, params = {}) {
-	subject = _unproxy(subject);
-	if (!_isTypeObject(subject)) {
-		throw new Error('Object must be of type subject; "' + _getType(handler) + '" given!');
+export default function(target, trap, params = {}) {
+	target = _unproxy(target);
+	if (!_isTypeObject(target)) {
+		throw new Error('Object must be of type target; "' + _getType(handler) + '" given!');
 	}
-	if (_isFunction(filter)) {
-		params = arguments.length > 2 ? handler : {};
-		handler = filter;
-		filter = null;
-	}
-	if (!_isFunction(handler)) {
-		throw new Error('Callback must be a function; "' + _getType(handler) + '" given!');
-	}
-	var interceptors = Interceptors.getFirebase(subject, true, params.namespace);
-	var dfn = {filter, handler, params,}, existing;
-	if (dfn.params.unique && (existing = interceptors.match(dfn)).length) {
-		if (dfn.params.unique !== 'replace') {
-			return existing[0];
+	var returnObj = {}, isOriginallyObj = true;
+	if (!_isObject(trap)) {
+		// Backwards compatibility
+		if (_isFunction(trap)) {
+			trap = { [null]: trap };
+		} else if (_isFunction(params)) {
+			trap = { [trap]: params };
+			params = arguments.length > 3 ? arguments[3] : {};
 		}
-		interceptors.remove(existing[0]);
+		isOriginallyObj = false;
 	}
-	return interceptors.add(dfn);
+	var interceptors = Interceptors.getFirebase(target, true, params.namespace);
+	Object.keys(trap).forEach(filter => {
+		if (!_isFunction(trap[filter])) {
+			throw new Error('Callback' + (filter === null ? '' : ' for ' + filter) + ' must be a function; "' + _getType(trap[filter]) + '" given!');
+		}
+		var dfn = { filter, handler: trap[filter], params }, existing;
+		if (dfn.params.unique && (existing = interceptors.match(dfn)).length) {
+			if (dfn.params.unique !== 'replace') {
+				return existing[0];
+			}
+			interceptors.remove(existing[0]);
+		}
+		if (isOriginallyObj) {
+			returnObj[filter] = interceptors.add(dfn);
+		} else {
+			returnObj = interceptors.add(dfn);
+		}
+	});
+	return returnObj;
 }

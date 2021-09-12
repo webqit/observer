@@ -18,7 +18,7 @@ export default class Interceptors extends Firebase {
 	 * @inheritdoc
 	 */
 	add(dfn) {
-		return super.add(new Interceptor(this.subject, dfn));
+		return super.add(new Interceptor(this.target, dfn));
 	}
 
 	/**
@@ -31,7 +31,7 @@ export default class Interceptors extends Firebase {
 	 */
 	fire(action, defaultHandler = null) {
 		if (!(action instanceof Action)) {
-			action = new Action(this.subject, action);
+			action = new Action(this.target, action);
 		}
 		if (this.currentlyFiring.filter(a => a.type === action.type && a.name === action.name).length) {
 			return defaultHandler ? defaultHandler() : undefined;

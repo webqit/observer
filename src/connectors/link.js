@@ -11,7 +11,7 @@ import observe from '../reactions/observe.js';
 /**
  * Bubble helper
  *
- * @param array|object	subject
+ * @param array|object	target
  * @param string		field
  * @param array|object	value
  * @param object		event
@@ -19,20 +19,20 @@ import observe from '../reactions/observe.js';
  *
  * @return void
  */
-export default function(subject, field, value, event = null, params = {}) {
-	if (subject === value) {
+export default function(target, field, value, event = null, params = {}) {
+	if (target === value) {
 		return;
 	}
 	var observers;
 	observe(value, (changes, eventObject) => {
-		if (observers = Observers.getFirebase(subject, false, params.namespace)) {
+		if (observers = Observers.getFirebase(target, false, params.namespace)) {
 			var _changes = changes.map(delta => {
 				// ------------
 				// Recursive events must not propagate
 				// ------------
 				var d = delta;
 				do {
-					if (d.subject === subject) {
+					if (d.target === target) {
 						return;
 					}
 				} while(d = d.src);
@@ -40,7 +40,7 @@ export default function(subject, field, value, event = null, params = {}) {
 				// Create propagation
 				// ------------
 				var dfn = {}; _each(delta, (key, value) => {
-					if (key !== 'subject' && key !== 'name' && key !== 'path' && key !== 'src') {
+					if (key !== 'target' && key !== 'name' && key !== 'path' && key !== 'src') {
 						dfn[key] = value;
 					}
 				});
@@ -48,14 +48,14 @@ export default function(subject, field, value, event = null, params = {}) {
 				dfn.path = [field].concat(delta.path);
 				dfn.originalSubject = delta.originalSubject;
 				dfn.src = delta;
-				return new Mutation(subject, dfn);
+				return new Mutation(target, dfn);
 			}).filter(c => c);
 			if (_changes.length) {
 				return observers.fire(_changes, eventObject.cancellable);
 			}
 		}
-	}, {subtree: true, ...params, unique: true, tags: [linkTag, field, subject]});
-	if (_isObject(event) && (observers = Observers.getFirebase(subject, false, params.namespace))) {
+	}, {subtree: true, ...params, unique: true, tags: [linkTag, field, target]});
+	if (_isObject(event) && (observers = Observers.getFirebase(target, false, params.namespace))) {
 		// The event object
 		var _event = _merge({
 			name: field,

@@ -3,13 +3,19 @@
  * @imports
  */
 // Actions
-import set from './actions/set.js';
-import get from './actions/get.js';
-import has from './actions/has.js';
-import deleteProperty from './actions/deleteProperty.js';
+import apply from './actions/apply.js';
+import construct from './actions/construct.js';
 import defineProperty from './actions/defineProperty.js';
+import deleteProperty from './actions/deleteProperty.js';
+import get from './actions/get.js';
+import getOwnPropertyDescriptor from './actions/getOwnPropertyDescriptor.js';
+import getPrototypeOf from './actions/getPrototypeOf.js';
+import has from './actions/has.js';
+import isExtensible from './actions/isExtensible.js';
 import ownKeys from './actions/ownKeys.js';
-import keys from './actions/keys.js';
+import preventExtensions from './actions/preventExtensions.js';
+import set from './actions/set.js';
+import setPrototypeOf from './actions/setPrototypeOf.js';
 // Actors
 import accessorize from './actors/accessorize.js';
 import unaccessorize from './actors/unaccessorize.js';
@@ -28,25 +34,25 @@ import unlink from './connectors/unlink.js';
 // Core
 import Observers from './core/Observers.js';
 import Interceptors from './core/Interceptors.js';
-// Now we'll mimick standard Trap properties
-// so that can be used as standard Trap out of the box.
-const del = deleteProperty;
-const def = defineProperty;
 
 /**
  * @exports
  */
 export default {
 	// Actions
-	set,
-	get,
-	has,
-	deleteProperty,
-	del,
+	apply,
+	construct,
 	defineProperty,
-	def,
+	deleteProperty,
+	get,
+	getOwnPropertyDescriptor,
+	getPrototypeOf,
+	has,
+	isExtensible,
 	ownKeys,
-	keys,
+	preventExtensions,
+	set,
+	setPrototypeOf,
 	// Actors
 	accessorize,
 	unaccessorize,

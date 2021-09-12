@@ -17,12 +17,12 @@ export default class Firebase {
 	/**
 	 * Initializes the instance.
 	 *
-	 * @param object	subject
+	 * @param object	target
 	 * 
 	 * @return void
 	 */
-	constructor(subject) {
-		this.subject = subject;
+	constructor(target) {
+		this.target = target;
 		this.fireables = [];
 		this.currentlyFiring = [];
 	}
@@ -88,24 +88,24 @@ export default class Firebase {
 	/**
 	 * Returns a observer-specific object embedded on an element.
 	 *
-	 * @param array|object	subject
+	 * @param array|object	target
 	 * @param bool      	createIfNotExists
 	 * @param string      	namespace
 	 *
 	 * @return Firebase
 	 */
-	static getFirebase(subject, createIfNotExists = true, namespace = null) {
+	static getFirebase(target, createIfNotExists = true, namespace = null) {
 		var ImplementationClass = this;
 		if (namespace && this._namespaces && this._namespaces.has(namespace)) {
 			ImplementationClass = this._namespaces.get(namespace);
 		}
-		if (!_isTypeObject(subject)) {
-			throw new Error('Subject must be of type object; "' + _getType(subject) + '" given!');
+		if (!_isTypeObject(target)) {
+			throw new Error('Subject must be of type object; "' + _getType(target) + '" given!');
 		}
-		if (!_internals(subject, 'firebases').has(ImplementationClass) && createIfNotExists) {
-			_internals(subject, 'firebases').set(ImplementationClass, new ImplementationClass(subject));
+		if (!_internals(target, 'firebases').has(ImplementationClass) && createIfNotExists) {
+			_internals(target, 'firebases').set(ImplementationClass, new ImplementationClass(target));
 		}
-		return _internals(subject, 'firebases').get(ImplementationClass);
+		return _internals(target, 'firebases').get(ImplementationClass);
 	}
 
 	/**

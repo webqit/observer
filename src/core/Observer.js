@@ -22,13 +22,13 @@ export default class Observer extends Fireable {
 	/**
 	 * Initializes the instance.
 	 *
-	 * @param array|object		subject
+	 * @param array|object		target
 	 * @param object			dfn
 	 *
 	 * @return void
 	 */
-	constructor(subject, dfn) {
-		super(subject, dfn);
+	constructor(target, dfn) {
+		super(target, dfn);
 		// The rest of this code is designed for a 2-dimensional array.
 		this.filters2D = paths2D(this.filter);
 		this.filtersIsOriginally2D = pathsIs2D(this.filter);
@@ -53,7 +53,7 @@ export default class Observer extends Fireable {
 		const diff = delta => !['set', 'def'].includes(delta.type) || (
 			!this.params.diff || (_isFunction(this.params.diff) ? this.params.diff(delta.value, delta.oldValue) : delta.value !== delta.oldValue)
 		);
-		var evt = new Event(this.subject);
+		var evt = new Event(this.target);
 		if (this.filters2D.length) {
 			var matches = changes.filter(delta => {
 				// one observerPathArray can turn out to be two if dynamic

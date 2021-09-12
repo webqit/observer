@@ -18,19 +18,21 @@ import _has from './has.js';
 import _get from './get.js';
 
 /**
- * Executes a "_setProp" type of operation on a subject.
- * Fires any observers for the specific type that may be bound to subject.
+ * Executes a "_setProp" type of operation on a target.
+ * Fires any observers for the specific type that may be bound to target.
  *
  * @param bool			define
- * @param array|object	subject
- * @param string|array	keysOrPayload
- * @param mixed			value
+ * @param array|object	target
+ * @param object		payload
  * @param Object		params
  *
  * @return Event
  */
-export default function(define, subject, keysOrPayload, value = null, params = {}) {
-	if (!subject || !_isTypeObject(subject)) {
+export default function(define, target, payload, params = {}) {
+	target = payload.receiver || target;
+	var keysOrPayload = payload.keysOrPayload;
+	var value = payload.value;
+	if (!target || !_isTypeObject(target)) {
 		throw new Error('Target must be of type object!');
 	}
 	if (_isObject(keysOrPayload)) {
@@ -38,9 +40,9 @@ export default function(define, subject, keysOrPayload, value = null, params = {
 		value = null;
 	}
 	// ----------
-	subject = _unproxy(subject);
-	var interceptors = Interceptors.getFirebase(subject, false, params.namespace),
-		observers = Observers.getFirebase(subject, false, params.namespace);
+	target = _unproxy(target);
+	var interceptors = Interceptors.getFirebase(target, false, params.namespace),
+		observers = Observers.getFirebase(target, false, params.namespace);
 	// ----------
 	const handleSet = (key, value, related, detail) => {
 		var type = 'set', descriptor;
@@ -52,14 +54,15 @@ export default function(define, subject, keysOrPayload, value = null, params = {
 		// ---------------------------------
 		// The event object
 		var isUpdate = false, oldValue;
-		if (_has(subject, key, params)) {
+		if (_has(target, key, params)) {
 			isUpdate = true;
-			oldValue = _get(subject, key, params);
+			oldValue = _get(target, key, payload.receiver, params);
 		}
 		var e = {
 			name: key,
 			type,
 			value,
+			receiver: payload.receiver,
 			related,
 			detail,
 			isUpdate,
@@ -76,21 +79,21 @@ export default function(define, subject, keysOrPayload, value = null, params = {
 				}
 			}
 			if (descriptor) {
-				if (_internals(subject, 'accessorizedProps', false).has(key)
-				&& !_internals(subject, 'accessorizedProps').get(key).restore()) {
+				if (_internals(target, 'accessorizedProps', false).has(key)
+				&& !_internals(target, 'accessorizedProps').get(key).restore()) {
 					return false;
 				}
-				Object.defineProperty(subject, key, descriptor);
-			} else if (_internals(subject, 'accessorizedProps', false).has(key)) {
-				return _internals(subject, 'accessorizedProps').get(key).set(value);
+				Object.defineProperty(target, key, descriptor);
+			} else if (_internals(target, 'accessorizedProps', false).has(key)) {
+				return _internals(target, 'accessorizedProps').get(key).set(value);
 			}
-			subject[key] = value;
+			target[key] = value;
 			return true;
 		};
 		if (interceptors) {
 			var eventObject = descriptor 
-				? {type: 'defineProperty', name:key, descriptor, related, detail, isUpdate, oldValue} 
-				: {type: 'set', name:key, value, related, detail, isUpdate, oldValue};
+				? {type: 'defineProperty', name: key, descriptor, receiver: payload.receiver, related, detail, isUpdate, oldValue} 
+				: {type: 'set', name: key, value, receiver: payload.receiver, related, detail, isUpdate, oldValue};
 			e.success = interceptors.fire(eventObject, defaultSet);
 		} else {
 			e.success = defaultSet();
@@ -99,11 +102,11 @@ export default function(define, subject, keysOrPayload, value = null, params = {
 		if (e.success && e.value !== e.oldValue) {
 			// Unobserve outgoing value for bubbling
 			if (_isTypeObject(e.oldValue)) {
-				unlink(subject, key, e.oldValue, null, params);
+				unlink(target, key, e.oldValue, null, params);
 			}
 			// Observe incoming value for bubbling
 			if (_isTypeObject(e.value)) {
-				link(subject, key, e.value, null, params);
+				link(target, key, e.value, null, params);
 				if (observers && (observers.subBuild || (observers.build && isUserObject(e.value)))) {
 					build(e.value, observers.subBuild, observers.build, params.namespace);
 				}
@@ -125,7 +128,7 @@ export default function(define, subject, keysOrPayload, value = null, params = {
 		evt = observers.fire(successfulEvents, params.cancellable);
 		evt.successCount = successfulEvents.length;
 	} else if (params.eventTypeReturn) {
-		evt = new Event(subject);
+		evt = new Event(target);
 	}
 	return params.eventTypeReturn ? evt : successfulEvents.length > 0;
 }

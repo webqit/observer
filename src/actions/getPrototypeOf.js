@@ -5,7 +5,7 @@
 import _exec from './_exec.js';
 
 /**
- * Runs a "ownKeys" operation on a target.
+ * Runs a "getPrototypeOf" operation on a target.
  *
  * @param array|object	target
  * @param object		params
@@ -13,5 +13,5 @@ import _exec from './_exec.js';
  * @return array
  */
 export default function(target, params = {}) {
-	return _exec('ownKeys', target, {}, params);
+	return _exec('getPrototypeOf', target, {}, params);
 }

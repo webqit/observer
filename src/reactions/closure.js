@@ -11,8 +11,8 @@ import unlink from '../connectors/unlink.js';
 import link from '../connectors/link.js';
 
 /**
- * Executes a callback function on a subject in "closure" mode.
- * Fires any observers that may be bound to subject on recorded changes.
+ * Executes a callback function on a target in "closure" mode.
+ * Fires any observers that may be bound to target on recorded changes.
  *
  * @param function		callback
  * @param array			...subjects
@@ -20,14 +20,14 @@ import link from '../connectors/link.js';
  * @return array|Event
  */
 export default function(callback, ...subjects) {
-	var context = subjects.map(subject => {
-		subject = _unproxy(subject);
-		if (!_isTypeObject(subject)) {
+	var context = subjects.map(target => {
+		target = _unproxy(target);
+		if (!_isTypeObject(target)) {
 			throw new Error('Target must be of type object!');
 		}
 		return {
-			subject,
-			subjectCopy: _isArray(subject) ? subject.slice(0) : _copy(subject),
+			target,
+			subjectCopy: _isArray(target) ? target.slice(0) : _copy(target),
 		};
 	});
 	// ---------------------------------
@@ -36,10 +36,10 @@ export default function(callback, ...subjects) {
 	const fireDiffs = () => {
 		context.map(cntxt => {
 			var initialKeys = Object.keys(cntxt.subjectCopy);
-			var currentKeys = Object.keys(cntxt.subject);
+			var currentKeys = Object.keys(cntxt.target);
 			var related = [];
 			var changes = _unique(initialKeys.concat(currentKeys)).map(key => {
-				if (cntxt.subjectCopy[key] !== cntxt.subject[key]) {
+				if (cntxt.subjectCopy[key] !== cntxt.target[key]) {
 					related.push(key);
 					// ---------------------------------
 					// The event object
@@ -50,7 +50,7 @@ export default function(callback, ...subjects) {
 					};
 					if (currentKeys.includes(key)) {
 						e.type = 'set';
-						e.value = cntxt.subject[key];
+						e.value = cntxt.target[key];
 						if (initialKeys.includes(key)) {
 							e.isUpdate = true;
 						}
@@ -63,18 +63,18 @@ export default function(callback, ...subjects) {
 					// ---------------------------------
 					// Unobserve outgoing value for bubbling
 					if (_isTypeObject(cntxt.subjectCopy[key])) {
-						unlink(cntxt.subject, key, cntxt.subjectCopy[key]);
+						unlink(cntxt.target, key, cntxt.subjectCopy[key]);
 					}
 					// Observe incoming value for bubbling
-					if (_isTypeObject(cntxt.subject[key])) {
-						link(cntxt.subject, key, cntxt.subject[key]);
+					if (_isTypeObject(cntxt.target[key])) {
+						link(cntxt.target, key, cntxt.target[key]);
 					}
 					return e;
 				}
 			}).filter(c => c);
 			// ---------------------------------
 			var observers;
-			if (changes.length && (observers = Observers.getFirebase(cntxt.subject, false))) {
+			if (changes.length && (observers = Observers.getFirebase(cntxt.target, false))) {
 				return observers.fire(changes);
 			}
 		});

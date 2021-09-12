@@ -10,13 +10,13 @@ export default class Fireable {
 	/**
 	 * Initializes the instance.
 	 *
-	 * @param object|array		subject
+	 * @param object|array		target
 	 * @param object			dfn
 	 *
 	 * @return void
 	 */
-	constructor(subject, dfn) {
-		this.subject = subject;
+	constructor(target, dfn) {
+		this.target = target;
 		this.handler = dfn.handler;
 		this.filter = dfn.filter;
 		this.params = dfn.params;

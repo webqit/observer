@@ -19,12 +19,12 @@ export default class Observers extends Firebase {
 	/**
 	 * Initializes the instance.
 	 *
-	 * @param object	subject
+	 * @param object	target
 	 * 
 	 * @return void
 	 */
-	constructor(subject) {
-		super(subject);
+	constructor(target) {
+		super(target);
 		this.buffers = [];
 	}
 	
@@ -32,7 +32,7 @@ export default class Observers extends Firebase {
 	 * @inheritdoc
 	 */
 	add(dfn) {
-		return super.add(new Observer(this.subject, dfn));
+		return super.add(new Observer(this.target, dfn));
 	}
 	
 	/**
@@ -44,9 +44,9 @@ export default class Observers extends Firebase {
 	 * @return Event
 	 */
 	fire(changes, cancellable) {
-		var evt = new Event(this.subject, cancellable);
+		var evt = new Event(this.target, cancellable);
 		// We accept multiple changes
-		changes = _arrFrom(changes, false).map(delta => !(delta instanceof Mutation) ? new Mutation(this.subject, delta) : delta);
+		changes = _arrFrom(changes, false).map(delta => !(delta instanceof Mutation) ? new Mutation(this.target, delta) : delta);
 		if (this.buffers.length) {
 			_last(this.buffers)(changes);
 			return evt;

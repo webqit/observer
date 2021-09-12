@@ -15,13 +15,13 @@ export default class Action {
 	/**
 	 * Initializes the instance.
 	 *
-	 * @param array|object	subject
+	 * @param array|object	target
 	 * @param object		dfn
 	 *
 	 * @return void
 	 */
-	constructor(subject, dfn) {
-		this.subject = subject;
+	constructor(target, dfn) {
+		this.target = target;
 		if (!dfn.type) {
 			throw new Error('Action type must be given in definition!');
 		}
