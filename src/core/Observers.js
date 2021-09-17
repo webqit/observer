@@ -68,4 +68,8 @@ export default class Observers extends Firebase {
 	static getFirebase(target, createIfNotExists = true, namespace = null) {
 		return super._getFirebase('observers', ...arguments);
 	}
+
+	static namespace(namespace, ImplementationClass = null) {
+		return super._namespace('observers', ...arguments);
+	}
 }
