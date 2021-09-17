@@ -95,14 +95,14 @@ export default class Firebase {
 	 *
 	 * @return Firebase
 	 */
-	static _getFirebase(type, target, createIfNotExists = true, namespace = null) {
+	static _getFirebase(type, target, createIfNotExists = true, namespace = this.__namespace) {
 		if (!_isTypeObject(target)) {
 			throw new Error('Subject must be of type object; "' + _getType(target) + '" given!');
 		}
 		var ImplementationClass = this;
-		if (namespace) { type += '-' + namespace; }
-		if (namespace && globalThis.WebQitObserverNamespaceRegistry.has(type)) {
-			ImplementationClass = globalThis.WebQitObserverNamespaceRegistry.get(type);
+		if (namespace && globalThis.WebQitObserverNamespaceRegistry.has(type + '-' + namespace)) {
+			ImplementationClass = globalThis.WebQitObserverNamespaceRegistry.get(type + '-' + namespace);
+			type += '-' + namespace
 		}
 		if (!_internals(target, 'firebases').has(type) && createIfNotExists) {
 			_internals(target, 'firebases').set(type, new ImplementationClass(target));
@@ -120,13 +120,14 @@ export default class Firebase {
 	 */
 	static _namespace(type, namespace, ImplementationClass = null) {
 		type += '-' + namespace;
-		if (arguments.length === 1) {
+		if (arguments.length === 2) {
 			return globalThis.WebQitObserverNamespaceRegistry.get(type);
 		}
 		if (!(ImplementationClass.prototype instanceof this)) {
 			throw new Error(`The implementation of the namespace ${this.name}.${namespace} must be a subclass of ${this.name}.`);
 		}
 		globalThis.WebQitObserverNamespaceRegistry.set(type, ImplementationClass);
+		ImplementationClass.__namespace = namespace;
 	}
 }
 

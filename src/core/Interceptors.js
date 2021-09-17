@@ -52,10 +52,10 @@ export default class Interceptors extends Firebase {
 	}
 
 	static getFirebase(target, createIfNotExists = true, namespace = null) {
-		return super._getFirebase('interceptors', ...arguments);
+		return super._getFirebase('interceptor', ...arguments);
 	}
 
 	static namespace(namespace, ImplementationClass = null) {
-		return super._namespace('interceptors', ...arguments);
+		return super._namespace('interceptor', ...arguments);
 	}
 }

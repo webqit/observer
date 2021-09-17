@@ -82,6 +82,7 @@ describe(`Test: .observe() + .set()`, function() {
         });
         
         it(`Should that "events" off the namespace dont't leak.`, function() {
+            _changesRecieved = [];
             ObserversCustomAddMethodCalled = false;
             InterceptorsCustomAddMethodCalled = false;
             observe(obj, () => {});
