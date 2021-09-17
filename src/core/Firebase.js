@@ -88,24 +88,26 @@ export default class Firebase {
 	/**
 	 * Returns a observer-specific object embedded on an element.
 	 *
+	 * @param string		type
 	 * @param array|object	target
 	 * @param bool      	createIfNotExists
 	 * @param string      	namespace
 	 *
 	 * @return Firebase
 	 */
-	static getFirebase(target, createIfNotExists = true, namespace = null) {
-		var ImplementationClass = this;
-		if (namespace && this._namespaces && this._namespaces.has(namespace)) {
-			ImplementationClass = this._namespaces.get(namespace);
-		}
+	static _getFirebase(type, target, createIfNotExists = true, namespace = null) {
 		if (!_isTypeObject(target)) {
 			throw new Error('Subject must be of type object; "' + _getType(target) + '" given!');
 		}
-		if (!_internals(target, 'firebases').has(ImplementationClass) && createIfNotExists) {
-			_internals(target, 'firebases').set(ImplementationClass, new ImplementationClass(target));
+		var ImplementationClass = this;
+		if (namespace) { type += '-' + namespace; }
+		if (namespace && globalThis.WebQitObserverNamespaceRegistry.has(type)) {
+			ImplementationClass = globalThis.WebQitObserverNamespaceRegistry.get(type);
 		}
-		return _internals(target, 'firebases').get(ImplementationClass);
+		if (!_internals(target, 'firebases').has(type) && createIfNotExists) {
+			_internals(target, 'firebases').set(type, new ImplementationClass(target));
+		}
+		return _internals(target, 'firebases').get(type);
 	}
 
 	/**
@@ -116,16 +118,18 @@ export default class Firebase {
 	 *
 	 * @return void|class
 	 */
-	static namespace(namespace, ImplementationClass = null) {
-		if (!this._namespaces) {
-			this._namespaces = new Map;
-		}
+	static _namespace(type, namespace, ImplementationClass = null) {
+		type += '-' + namespace;
 		if (arguments.length === 1) {
-			return this._namespaces.get(namespace);
+			return globalThis.WebQitObserverNamespaceRegistry.get(type);
 		}
 		if (!(ImplementationClass.prototype instanceof this)) {
 			throw new Error(`The implementation of the namespace ${this.name}.${namespace} must be a subclass of ${this.name}.`);
 		}
-		this._namespaces.set(namespace, ImplementationClass);
+		globalThis.WebQitObserverNamespaceRegistry.set(type, ImplementationClass);
 	}
+}
+
+if (!globalThis.WebQitObserverNamespaceRegistry) {
+	globalThis.WebQitObserverNamespaceRegistry = new Map();
 }

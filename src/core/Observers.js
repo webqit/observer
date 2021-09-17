@@ -64,4 +64,8 @@ export default class Observers extends Firebase {
 		//changes.forEach(delta => _remove(this.currentlyFiring, delta));
 		return evt;
 	}
+
+	static getFirebase(target, createIfNotExists = true, namespace = null) {
+		return super._getFirebase('observers', ...arguments);
+	}
 }

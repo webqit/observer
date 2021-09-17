@@ -50,4 +50,8 @@ export default class Interceptors extends Firebase {
 		this.currentlyFiring.pop();
 		return value;
 	}
+
+	static getFirebase(target, createIfNotExists = true, namespace = null) {
+		return super._getFirebase('interceptors', ...arguments);
+	}
 }
