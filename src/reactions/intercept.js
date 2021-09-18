@@ -24,7 +24,7 @@ export default function(target, trap, params = {}) {
 	if (!_isObject(trap)) {
 		// Backwards compatibility
 		if (_isFunction(trap)) {
-			trap = { [null]: trap };
+			trap = { '': trap };
 		} else if (_isFunction(params)) {
 			trap = { [trap]: params };
 			params = arguments.length > 3 ? arguments[3] : {};
