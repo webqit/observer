@@ -84,7 +84,9 @@ export default function(define, target, payload, params = {}) {
 					return false;
 				}
 				Object.defineProperty(target, key, descriptor);
-			} else if (_internals(target, 'accessorizedProps', false).has(key)) {
+				return true;
+			}
+			if (_internals(target, 'accessorizedProps', false).has(key)) {
 				return _internals(target, 'accessorizedProps').get(key).set(value);
 			}
 			target[key] = value;
