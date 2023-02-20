@@ -8,6 +8,9 @@
 
 # Overview
 
+> **Note**
+> <br>Major updates coming in this branch!
+
 Take a one-minute rundown of the Observer API.
 
 ## Observe
