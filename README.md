@@ -10,7 +10,7 @@
 
 
 > **Warning**
-> <br>Major updates and improvements coming in the next branch!
+> <br>Major updates and improvements coming in the "next" branch!
 
 
 Take a one-minute rundown of the Observer API.
