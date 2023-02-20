@@ -39,14 +39,14 @@ export default class ListenerRegistration extends Registration {
 	 * Calls the observer's handler function
 	 * on matching with the event's fields.
 	 *
-	 * @param Array			 		operations
+	 * @param Array			 		events
 	 *
 	 * @return Any
 	 */
-	fire( operations ) {
-		let matches = operations, filter = this.filter;
+	fire( events ) {
+		let matches = events, filter = this.filter;
 		if ( filter !== Infinity && ( filter = _arrFrom( filter ) ) ) {
-			matches = operations.filter( operation => filter.includes( operation.name ) );
+			matches = events.filter( event => filter.includes( event.name ) );
 		}
 		if ( matches.length ) {
 			return this.filter === Infinity || Array.isArray( this.filter )

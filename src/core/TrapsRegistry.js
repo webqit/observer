@@ -14,11 +14,11 @@ import Registry from './Registry.js';
 export default class TrapsRegistry extends Registry {
 
 	static getInstance( target, createIfNotExists = true, namespace = null ) {
-		return super._getInstance( 'operations', ...arguments );
+		return super._getInstance( 'traps', ...arguments );
 	}
 
 	static namespace( namespace, ImplementationClass = null ) {
-		return super._namespace( 'operations', ...arguments );
+		return super._namespace( 'traps', ...arguments );
 	}
 	
 	/**
@@ -31,21 +31,21 @@ export default class TrapsRegistry extends Registry {
 	/**
 	 * Fires all interceptors with the given action.
 	 *
-	 * @param Operation			operation
+	 * @param Event				event
 	 * @param function			defaultHandler
 	 *
 	 * @return mixed
 	 */
-	emit( operation, defaultHandler = null ) {
+	emit( event, defaultHandler = null ) {
 		const $this = this;
 		return ( function next( index, ..._args ) {
 			const registration = $this.entries[ index ];
 			if ( registration ) {
-				return registration.exec( operation, ( ...args ) => {
+				return registration.exec( event, ( ...args ) => {
 					return next( index + 1, ...args );
 				}/*next*/, ..._args );
 			}
-			return defaultHandler ? defaultHandler( operation, ..._args ) : _args[ 0 ];
+			return defaultHandler ? defaultHandler( event, ..._args ) : _args[ 0 ];
 		} )( 0 );
 	}
 }

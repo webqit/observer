@@ -1,11 +1,11 @@
 
 /**
  * ---------------------------
- * The Operation class
+ * The Event class
  * ---------------------------
  */
 
-export default class Operation {
+export default class Event {
 	
 	/**
 	 * Initializes the instance.
@@ -17,7 +17,7 @@ export default class Operation {
 	 */
 	constructor( target, dfn ) {
 		this.target = target;
-		if ( !( dfn.type ) ) throw new Error( 'Operation type must be given in definition!' );
+		if ( !( dfn.type ) ) throw new Error( 'Event type must be given in definition!' );
 		Object.assign( this, dfn );
 	}
 }

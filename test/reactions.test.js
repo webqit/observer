@@ -3,7 +3,7 @@
  * @imports
  */
 import { expect } from 'chai';
-import * as Observer from '../src/index.js';
+import Observer from '../src/index.js';
 import TrapsRegistry from '../src/core/TrapsRegistry.js';
 import ListenerRegistry from '../src/core/ListenerRegistry.js';
 
@@ -122,7 +122,7 @@ describe( `Test: .observe() + .set()`, function() {
             expect( _changesRecieved[ 0 ][ 0 ] ).to.be.an( 'object' ).that.includes( { name: 'costum-name', type: 'costum-type', } );
         } );
         
-        it( `Should that "set" operations in the namespace are recieved.`, function() {
+        it( `Should that "set" events in the namespace are recieved.`, function() {
             _changesRecieved = [];
             Observer.set( obj, {
                 key1: 'value1',

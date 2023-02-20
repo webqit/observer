@@ -16,18 +16,18 @@ export default class TrapsRegistration extends Registration {
 	 * Calls the observer's handler function
 	 * on matching with the event's fields.
 	 *
-	 * @param Operation			 		operation
+	 * @param Event			 			event
 	 * @param function					next
 	 * @param mixed					 	recieved
 	 *
 	 * @return void
 	 */
-	exec( operation, next, recieved ) {
-		if ( this.running || !this.traps[ operation.type ] ) {
+	exec( event, next, recieved ) {
+		if ( this.running || !this.traps[ event.type ] ) {
 			return next( ...Array.prototype.slice.call( arguments, 2 ) );
 		}
 		this.running = true;
-		return this.traps[ operation.type ]( operation, recieved, ( ...args ) => {
+		return this.traps[ event.type ]( event, recieved, ( ...args ) => {
 			this.running = false;
 			return next( ...args );
 		} );

@@ -14,11 +14,11 @@ import Registry from './Registry.js';
 export default class ListenerRegistry extends Registry {
 
 	static getInstance( target, createIfNotExists = true, namespace = null ) {
-		return super._getInstance( 'events', ...arguments );
+		return super._getInstance( 'listeners', ...arguments );
 	}
 
 	static namespace( namespace, ImplementationClass = null ) {
-		return super._namespace( 'events', ...arguments );
+		return super._namespace( 'listeners', ...arguments );
 	}
 	
 	/**
@@ -31,11 +31,11 @@ export default class ListenerRegistry extends Registry {
 	/**
 	 * Fires all observers with the given evt (change).
 	 *
-	 * @param Arrayn operations
+	 * @param Arrayn events
 	 *
 	 * @return Void
 	 */
-	emit( operations ) {
-		this.entries.forEach( listener => listener.fire( operations ) );
+	emit( events ) {
+		this.entries.forEach( listener => listener.fire( events ) );
 	}
 }
