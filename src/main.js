@@ -14,7 +14,7 @@ import { unproxy } from './actors.js';
 /**
  * Reduces a path array against handler.
  * 
- * @param Array|Object	    context
+ * @param Array|Object	    target
  * @param Array	            path
  * @param Function	        receiver
  * @param Function	        final
@@ -24,14 +24,19 @@ import { unproxy } from './actors.js';
  *
  * @return Any
  */
-export function deep( context, path, receiver, final, params = {} ) {
-    return ( function eat( context, _path, _params, ...args ) {
+export function deep( target, path, receiver, final, params = {} ) {
+    return ( function eat( target, _path, _params, ...args ) {
         const segment = _path.shift();
-        return receiver( context, segment, ( result, ...args ) => {
+        return receiver( target, segment, ( result, ...args ) => {
             // -----------
             const getParams = () => ( { ..._params, level: _params.level + 1, } );
             const addPath = obj => {
-                if ( obj instanceof Event ) { obj.path = ( context instanceof Event ? context.path : [] ).concat( obj.key ); }
+                if ( !( obj instanceof Event ) ) return;
+                obj.path = [ obj.key ];
+                if ( target instanceof Event ) {
+                    obj.path = target.path.concat( obj.key );
+                    obj.context = target;
+                }
             };
             // -----------
             if ( isPropsList( segment ) && Array.isArray( result ) ) {
@@ -48,13 +53,13 @@ export function deep( context, path, receiver, final, params = {} ) {
             return $isTypeObject && eat( result, _path, getParams(), ...args );
             // -----------
         }, _params, ...args );
-    } )( context, path.slice( 0 ), { ...params, level: 0 } );
+    } )( target, path.slice( 0 ), { ...params, level: 0 } );
 }
 
 /**
- * Adds an observer to an target's registry.
+ * Adds an observer to a target's registry.
  *
- * @param Array|Object	    context
+ * @param Array|Object	    target
  * @param String|Object	    prop
  * @param Function	        receiver
  * @param Object		    params
@@ -63,9 +68,9 @@ export function deep( context, path, receiver, final, params = {} ) {
  *
  * @return ListenerRegistration|AbortController
  */
-export function observe( context, prop, receiver, params = {}, isEvent = false, controller = null ) {
+export function observe( target, prop, receiver, params = {}, isEvent = false, controller = null ) {
     // ---------------
-    context = resolveObj( context );
+    target = resolveObj( target );
 	if ( _isFunction( arguments[ 1 ] ) ) {
         [ , receiver, params = {}, controller = null ] = arguments;
         prop = Infinity;
@@ -73,8 +78,8 @@ export function observe( context, prop, receiver, params = {}, isEvent = false, 
 	if ( !_isFunction( receiver ) ) throw new Error( `Handler must be a function; "${ _getType( receiver ) }" given!` );
     if ( !controller ) { controller = new AbortController; }
     // ---------------
-    const listenerRegistry = ListenerRegistry.getInstance( context, true, params.namespace );
-    get( context, prop, event_s => {
+    const listenerRegistry = ListenerRegistry.getInstance( target, true, params.namespace );
+    get( target, prop, event_s => {
         ( function exec( event_s, prevRegistration = null ) {
             prevRegistration && prevRegistration.remove();
             const registrationNext = listenerRegistry.addRegistration( prop, exec, { ...params, signal: controller.signal } );
@@ -85,23 +90,23 @@ export function observe( context, prop, receiver, params = {}, isEvent = false, 
 }
 
 /**
- * Adds a events object to an target's registry.
+ * Adds an event object to a target's registry.
  *
- * @param Array|Object	    context
+ * @param Array|Object	    target
  * @param Object	        traps
  * @param Object		    params
  *
  * @return AbortRegistry
  */
-export function intercept( context, traps, params = {} ) {
+export function intercept( target, traps, params = {} ) {
     // ---------------
-    context = resolveObj( context );
+    target = resolveObj( target );
     if ( !_isObject( traps ) ) {
-        [ /*context*/, /*type*/, /*handler*/, params = {} ] = arguments;
+        [ /*target*/, /*type*/, /*handler*/, params = {} ] = arguments;
         traps = { [ arguments[ 1 ] ]: arguments[ 2 ] };
     }
     // ---------------
-    return TrapsRegistry.getInstance( context, true, params.namespace ).addRegistration( { traps, params } );
+    return TrapsRegistry.getInstance( target, true, params.namespace ).addRegistration( { traps, params } );
 }
 
 /* ---------------QUERY APIs--------------- */
@@ -109,101 +114,101 @@ export function intercept( context, traps, params = {} ) {
 /**
  * Performs a "getOwnPropertyDescriptor" event.
  *
- * @param Array|Object	    context
+ * @param Array|Object	    target
  * @param String|Number	    prop
  * @param Function	        receiver
  * @param Object		    params
  *
  * @return Any
  */
-export function getOwnPropertyDescriptor( context, prop, receiver = x => x, params = {} ) {
-    return exec( context, 'getOwnPropertyDescriptor', { key: prop }, receiver, params );
+export function getOwnPropertyDescriptor( target, prop, receiver = x => x, params = {} ) {
+    return exec( target, 'getOwnPropertyDescriptor', { key: prop }, receiver, params );
 }
 
 /**
  * Performs a "getOwnPropertyDescriptors" event.
  * @note this isn't part of the standard Reflect API.
  *
- * @param Array|Object	    context
+ * @param Array|Object	    target
  * @param String|Number	    prop
  * @param Function	        receiver
  * @param Object		    params
  *
  * @return Any
  */
-export function getOwnPropertyDescriptors( context, prop, receiver = x => x, params = {} ) {
-    return exec( context, 'getOwnPropertyDescriptors', { key: prop }, receiver, params );
+export function getOwnPropertyDescriptors( target, prop, receiver = x => x, params = {} ) {
+    return exec( target, 'getOwnPropertyDescriptors', { key: prop }, receiver, params );
 }
 
 /**
  * Performs a "getPrototypeOf" event.
  *
- * @param Array|Object	    context
+ * @param Array|Object	    target
  * @param Function	        receiver
  * @param Object		    params
  *
  * @return Any
  */
-export function getPrototypeOf( context, receiver = x => x, params = {} ) {
-    return exec( context, 'getPrototypeOf', {}, receiver, params );
+export function getPrototypeOf( target, receiver = x => x, params = {} ) {
+    return exec( target, 'getPrototypeOf', {}, receiver, params );
 }
 
 /**
  * Performs a "isExtensible" event.
  *
- * @param Array|Object	    context
+ * @param Array|Object	    target
  * @param Function	        receiver
  * @param Object		    params
  *
  * @return Any
  */
-export function isExtensible( context, receiver = x => x, params = {} ) {
-    return exec( context, 'isExtensible', {}, receiver, params );
+export function isExtensible( target, receiver = x => x, params = {} ) {
+    return exec( target, 'isExtensible', {}, receiver, params );
 }
 
 /**
  * Performs a "ownKeys" event.
  *
- * @param Array|Object	    context
+ * @param Array|Object	    target
  * @param Function	        receiver
  * @param Object		    params
  *
  * @return Any
  */
-export function ownKeys( context, receiver = x => x, params = {} ) {
-    return exec( context, 'ownKeys', {}, receiver, params );
+export function ownKeys( target, receiver = x => x, params = {} ) {
+    return exec( target, 'ownKeys', {}, receiver, params );
 }
 
 /**
  * Performs an event of the given "type".
  *
- * @param Array|Object	    context
+ * @param Array|Object	    target
  * @param String|Number	    prop
  * @param Function	        receiver
  * @param Object		    params
  *
  * @return Any
  */
-export function has( context, prop, receiver = x => x, params = {} ) {
-    return exec( context, 'has', { key: prop }, receiver, params );
+export function has( target, prop, receiver = x => x, params = {} ) {
+    return exec( target, 'has', { key: prop }, receiver, params );
 }
 
 /**
  * Performs a get event.
  *
- * @param Array|Object	    context
+ * @param Array|Object	    target
  * @param String|Number	    prop
  * @param Function	        receiver
  * @param Object	        params
  *
  * @return Any
  */
-export function get( context, prop, receiver = x => x, params = {} ) {
+export function get( target, prop, receiver = x => x, params = {} ) {
     // ---------------
-    context = resolveObj( context );
+    target = resolveObj( target );
     if ( _isObject( receiver ) ) { [ params, receiver ] = [ receiver, x => x ]; }
     // ---------------
-    return resolveProps( context, prop, props => {
+    return resolveProps( target, prop, props => {
         const related = [ ...props ];
         return ( function next( results, _props, _done ) {
             if ( !_props.length ) return _done( results );
@@ -212,21 +217,21 @@ export function get( context, prop, receiver = x => x, params = {} ) {
             function defaultGet( event, value = undefined ) {
                 const _next = value => ( event.value = value, next( results.concat( params.asEvent ? event : value ), _props, _done ) );
                 if ( arguments.length > 1 ) return _next( value );
-                const accessorizedProps = _internals( context, 'accessorizedProps', false );
+                const accessorizedProps = _internals( target, 'accessorizedProps', false );
                 const accessorization = accessorizedProps && accessorizedProps.get( event.key );
                 if ( accessorization && accessorization.intact() ) {
                     return _next( accessorization.getValue() );
                 }
-                return _next( Reflect.get( context, event.key, ...( params.receiver ? [ params.receiver ] : [] ) ) );
+                return _next( Reflect.get( target, event.key, ...( params.receiver ? [ params.receiver ] : [] ) ) );
             }
             // ---------
-            const event = new Event( context, {
+            const event = new Event( target, {
                 type: 'get',
                 key: prop,
                 value: undefined,
                 related,
             } );
-            const listenerRegistry = TrapsRegistry.getInstance( context, false, params.namespace );
+            const listenerRegistry = TrapsRegistry.getInstance( target, false, params.namespace );
             if ( listenerRegistry ) {
                 return listenerRegistry.emit( event, defaultGet );
             }
@@ -242,7 +247,7 @@ export function get( context, prop, receiver = x => x, params = {} ) {
 /**
  * Performs a set event.
  * 
- * @param Object	        context
+ * @param Object	        target
  * @param String|Number	    prop
  * @param Any	            value
  * @param Function	        receiver
@@ -251,12 +256,12 @@ export function get( context, prop, receiver = x => x, params = {} ) {
  *
  * @return Any
  */
-export function set( context, prop, value, receiver = x => x, params = {}, def = false ) {
+export function set( target, prop, value, receiver = x => x, params = {}, def = false ) {
     // ---------------
-    context = resolveObj( context );
+    target = resolveObj( target );
     let entries = [ [ prop, value ] ];
     if ( _isObject( prop ) ) {
-        [ /*context*/, /*hash*/, receiver = x => x, params = {}, def = false ] = arguments;
+        [ /*target*/, /*hash*/, receiver = x => x, params = {}, def = false ] = arguments;
         entries = Object.entries( prop );
     }
     if ( _isObject( receiver ) ) { [ def, params, receiver ] = [ typeof params === 'boolean' ? params : false, receiver, x => x ]; }
@@ -269,21 +274,21 @@ export function set( context, prop, value, receiver = x => x, params = {}, def =
         function defaultSet( event, status = undefined ) {
             const _next = status => ( event.status = status, next( events.concat( event ), entries, _done ) );
             if ( arguments.length > 1 ) return _next( event, status );
-            const accessorizedProps = _internals( context, 'accessorizedProps', false );
+            const accessorizedProps = _internals( target, 'accessorizedProps', false );
             const accessorization = accessorizedProps && accessorizedProps.get( event.key );
             if ( event.type === 'defineProperty' ) {
                 if ( accessorization && !accessorization.restore() ) _next( false );
-                Object.defineProperty( context, event.key, event.value );
+                Object.defineProperty( target, event.key, event.value );
                 return _next( true );
             }
             if ( accessorization && accessorization.intact() ) {
                 return _next( accessorization.setValue( event.value ) );
             }
-            return _next( Reflect.set( context, event.key, event.value ) );
+            return _next( Reflect.set( target, event.key, event.value ) );
         }
         // ---------
         function exec( isUpdate, oldValue ) {
-            const event = new Event( context, {
+            const event = new Event( target, {
                 type: def ? 'defineProperty' : 'set',
                 key: prop,
                 value,
@@ -292,19 +297,19 @@ export function set( context, prop, value, receiver = x => x, params = {}, def =
                 related: [ ...related ],
                 detail: params.detail,
             } );
-            const listenerRegistry = TrapsRegistry.getInstance( context, false, params.namespace );
+            const listenerRegistry = TrapsRegistry.getInstance( target, false, params.namespace );
             return listenerRegistry 
                 ? listenerRegistry.emit( event, defaultSet ) 
                 : defaultSet( event );
         }
         // ---------
-        return has( context, prop, isUpdate => {
+        return has( target, prop, isUpdate => {
             if ( !isUpdate || params.oldValue !== true ) return exec( isUpdate );
-            return get( context, prop, oldValue => exec( isUpdate, oldValue ), params );
+            return get( target, prop, oldValue => exec( isUpdate, oldValue ), params );
         }, params );
         // ---------
     } )( [], entries.slice( 0 ), events => {
-        const listenerRegistry = ListenerRegistry.getInstance( context, false, params.namespace );
+        const listenerRegistry = ListenerRegistry.getInstance( target, false, params.namespace );
         if ( listenerRegistry ) listenerRegistry.emit( events );
         return receiver(
             isPropsList( prop/*original*/ ) ? events.map( opr => opr.status ) : events[ 0 ].status
@@ -315,7 +320,7 @@ export function set( context, prop, value, receiver = x => x, params = {}, def =
 /**
  * Performs a defineProperty event.
  * 
- * @param Object	        context
+ * @param Object	        target
  * @param String|Number	    prop
  * @param Object	        descriptor
  * @param Function	        receiver
@@ -323,38 +328,38 @@ export function set( context, prop, value, receiver = x => x, params = {}, def =
  *
  * @return Any
  */
-export function defineProperty( context, prop, descriptor, receiver = x => x, params = {} ) {
-    return set( context, prop, descriptor, receiver, params, true/*def*/ );
+export function defineProperty( target, prop, descriptor, receiver = x => x, params = {} ) {
+    return set( target, prop, descriptor, receiver, params, true/*def*/ );
 }
 
 /**
  * Performs a defineProperties event.
  * @note this isn't part of the standard Reflect API.
  * 
- * @param Object	        context
+ * @param Object	        target
  * @param Object	        descriptors
  * @param Function	        receiver
  * @param Object	        params
  *
  * @return Any
  */
-export function defineProperties( context, descriptors, receiver = x => x, params = {} ) {
-    return set( context, descriptors, receiver, params, true/*def*/ );
+export function defineProperties( target, descriptors, receiver = x => x, params = {} ) {
+    return set( target, descriptors, receiver, params, true/*def*/ );
 }
 
 /**
  * Performs a delete event.
  * 
- * @param Object	        context
+ * @param Object	        target
  * @param String|Number	    prop
  * @param Function	        receiver
  * @param Object	        params
  *
  * @return Any
  */
-export function deleteProperty( context, prop, receiver = x => x, params = {} ) {
+export function deleteProperty( target, prop, receiver = x => x, params = {} ) {
     // ---------------
-    context = resolveObj( context );
+    target = resolveObj( target );
     if ( _isObject( receiver ) ) { [ params, receiver ] = [ receiver, x => x ]; }
     // ---------------
     const props = _arrFrom( prop ), related = [ ...props ];
@@ -365,31 +370,31 @@ export function deleteProperty( context, prop, receiver = x => x, params = {} ) 
         function defaultDel( event, status = undefined ) {
             const _next = status => ( event.status = status, next( events.concat( event ), props, _done ) );
             if ( arguments.length > 1 ) return _next( event, status );
-            const accessorizedProps = _internals( context, 'accessorizedProps', false );
+            const accessorizedProps = _internals( target, 'accessorizedProps', false );
             const accessorization = accessorizedProps && accessorizedProps.get( event.key );
             if ( accessorization && !accessorization.restore() ) _next( false );
-            return _next( Reflect.deleteProperty( context, event.key ) );
+            return _next( Reflect.deleteProperty( target, event.key ) );
         }
         // ---------
         function exec( oldValue ) {
-            const event = new Event( context, {
+            const event = new Event( target, {
                 type: 'deleteProperty',
                 key: prop,
                 oldValue,
                 related: [ ...related ],
                 detail: params.detail,
             } );
-            const listenerRegistry = TrapsRegistry.getInstance( context, false, params.namespace );
+            const listenerRegistry = TrapsRegistry.getInstance( target, false, params.namespace );
             return listenerRegistry 
                 ? listenerRegistry.emit( event, defaultDel ) 
                 : defaultDel( event );
         }
         // ---------
         if ( params.oldValue === false ) return exec();
-        return get( context, prop, exec, params );
+        return get( target, prop, exec, params );
         // ---------
     } )( [], props.slice( 0 ), events => {
-        const listenerRegistry = ListenerRegistry.getInstance( context, false, params.namespace );
+        const listenerRegistry = ListenerRegistry.getInstance( target, false, params.namespace );
         if ( listenerRegistry ) listenerRegistry.emit( events );
         return receiver(
             isPropsList( prop/*original*/ ) ? events.map( opr => opr.status ) : events[ 0 ].status
@@ -402,7 +407,7 @@ export function deleteProperty( context, prop, receiver = x => x, params = {} ) 
 /**
  * Performs a "construct" event.
  *
- * @param Array|Object	    context
+ * @param Array|Object	    target
  * @param Array			    argumentsList
  * @param Object		    newTarget
  * @param Function	        receiver
@@ -410,14 +415,14 @@ export function deleteProperty( context, prop, receiver = x => x, params = {} ) 
  *
  * @return Any
  */
-export function construct( context, argumentsList, newTarget = null, receiver = x => x, params = {} ) {
-    return exec( context, 'construct', arguments.length > 2 ? { argumentsList, newTarget } : { argumentsList }, receiver, params );
+export function construct( target, argumentsList, newTarget = null, receiver = x => x, params = {} ) {
+    return exec( target, 'construct', arguments.length > 2 ? { argumentsList, newTarget } : { argumentsList }, receiver, params );
 }
 
 /**
  * Performs a "apply" event.
  *
- * @param Array|Object	    context
+ * @param Array|Object	    target
  * @param Any	            thisArgument
  * @param Array	            argumentsList
  * @param Function	        receiver
@@ -425,35 +430,35 @@ export function construct( context, argumentsList, newTarget = null, receiver = 
  *
  * @return Any
  */
-export function apply( context, thisArgument, argumentsList, receiver = x => x, params = {} ) {
-    return exec( context, 'apply', { thisArgument, argumentsList }, receiver, params );
+export function apply( target, thisArgument, argumentsList, receiver = x => x, params = {} ) {
+    return exec( target, 'apply', { thisArgument, argumentsList }, receiver, params );
 }
 
 /**
  * Performs a "setPrototypeOf" event.
  *
- * @param Array|Object	    context
+ * @param Array|Object	    target
  * @param Anyr	            proto
  * @param Function	        receiver
  * @param Object		    params
  *
  * @return Any
  */
-export function setPrototypeOf( context, proto, receiver = x => x, params = {} ) {
-    return exec( context, 'setPrototypeOf', { proto }, receiver, params );
+export function setPrototypeOf( target, proto, receiver = x => x, params = {} ) {
+    return exec( target, 'setPrototypeOf', { proto }, receiver, params );
 }
 
 /**
  * Performs a "preventExtension" event.
  *
- * @param Array|Object	    context
+ * @param Array|Object	    target
  * @param Function	        receiver
  * @param Object		    params
  *
  * @return Any
  */
-export function preventExtensions( context, receiver = x => x, params = {} ) {
-    return exec( context, 'preventExtensions', {}, receiver, params );
+export function preventExtensions( target, receiver = x => x, params = {} ) {
+    return exec( target, 'preventExtensions', {}, receiver, params );
 }
 
 /* ---------------HELPER APIs--------------- */
@@ -461,7 +466,7 @@ export function preventExtensions( context, receiver = x => x, params = {} ) {
 /**
  * Performs an event of the given "type".
  *
- * @param Array|Object	    context
+ * @param Array|Object	    target
  * @param String		    type
  * @param Object		    payload
  * @param Function	        receiver
@@ -469,18 +474,18 @@ export function preventExtensions( context, receiver = x => x, params = {} ) {
  *
  * @return Any
  */
-function exec( context, type, payload = {}, receiver = x => x, params = {} ) {
+function exec( target, type, payload = {}, receiver = x => x, params = {} ) {
     // ---------
-    context = resolveObj( context );
+    target = resolveObj( target );
     if ( _isObject( receiver ) ) { [ params, receiver ] = [ receiver, x => x ]; }    
     // ---------
     function defaultExec( event, result ) {
         if ( arguments.length > 1 ) return receiver( result );
-        return receiver( Reflect[ type ]( context, ...Object.values( payload ) ) );
+        return receiver( Reflect[ type ]( target, ...Object.values( payload ) ) );
     }
     // ---------
-    const event = new Event( context, { type, ...payload } );
-    const listenerRegistry = TrapsRegistry.getInstance( context, false, params.namespace );
+    const event = new Event( target, { type, ...payload } );
+    const listenerRegistry = TrapsRegistry.getInstance( target, false, params.namespace );
     if ( listenerRegistry ) {
         return listenerRegistry.emit( event, defaultExec );
     }

@@ -12,18 +12,18 @@ import { apply, construct, getPrototypeOf, setPrototypeOf, isExtensible, prevent
 /**
  * Accessorizes props.
  *
- * @param Array|Object	context
+ * @param Array|Object	target
  * @param String|Array	props
  * @param Object		params
  *
  * @return Array
  */
-export function accessorize( context, props, params = {} ) {
-    context = resolveContext( context );
-    const accessorizedProps = _internals( context, 'accessorizedProps' );
+export function accessorize( target, props, params = {} ) {
+    target = resolveTarget( target );
+    const accessorizedProps = _internals( target, 'accessorizedProps' );
     // ---------
     function getDescriptorDeep( prop ) {
-        let descriptor, proto = context;
+        let descriptor, proto = target;
         while ( !descriptor && ( proto = Object.getPrototypeOf( proto ) ) ) {
             descriptor = Object.getOwnPropertyDescriptor( proto, prop );
         }
@@ -44,15 +44,15 @@ export function accessorize( context, props, params = {} ) {
             return 'set' in this.descriptor ? this.descriptor.set( value ) : ( this.descriptor.value = value )
         };
         currentDescriptorRecord.intact = function() {
-            const currentDescriptor = Object.getOwnPropertyDescriptor( context, prop );
+            const currentDescriptor = Object.getOwnPropertyDescriptor( target, prop );
             return currentDescriptor.get === accessorization.get 
                 && currentDescriptor.set === accessorization.set
                 && accessorizedProps.get( prop ) === this;
         };
         currentDescriptorRecord.restore = function() {
             if ( !this.intact() ) return false;
-            if ( this.proto !== context ) { delete context[ prop ]; }
-            else { Object.defineProperty( context, prop, this.descriptor ); }
+            if ( this.proto !== target ) { delete target[ prop ]; }
+            else { Object.defineProperty( target, prop, this.descriptor ); }
             accessorizedProps.delete( prop );
             return true;
         };
@@ -69,7 +69,7 @@ export function accessorize( context, props, params = {} ) {
             accessorization.get = function () { return get( this, prop, params ); };
         }
         try {
-            Object.defineProperty( context, prop, accessorization );
+            Object.defineProperty( target, prop, accessorization );
             return true;
         } catch( e ) {
             accessorizedProps.delete( prop );
@@ -77,7 +77,7 @@ export function accessorize( context, props, params = {} ) {
         }
     }
     const _props = Array.isArray( props ) ? props : (
-        props === undefined ? Object.keys( context ) : [ props ]
+        props === undefined ? Object.keys( target ) : [ props ]
     );
     const statuses = _props.map( accessorizeProp );
     return props === undefined || Array.isArray( props ) 
@@ -88,21 +88,21 @@ export function accessorize( context, props, params = {} ) {
 /**
  * Unaccessorizes previously accessorized props.
  *
- * @param Array|Object	context
+ * @param Array|Object	target
  * @param String|Array	props
  * @param Object		params
  *
  * @return Array
  */
-export function unaccessorize( context, props, params = {} ) {
-    context = resolveContext( context );
-    const accessorizedProps = _internals( context, 'accessorizedProps' );
+export function unaccessorize( target, props, params = {} ) {
+    target = resolveTarget( target );
+    const accessorizedProps = _internals( target, 'accessorizedProps' );
     function unaccessorizeProp( prop ) {
         if ( !accessorizedProps.has( prop ) ) return true;
         return accessorizedProps.get( prop ).restore();
     }
     const _props = Array.isArray( props ) ? props : (
-        props === undefined ? Object.keys( context ) : [ props ]
+        props === undefined ? Object.keys( target ) : [ props ]
     );
     const statuses = _props.map( unaccessorizeProp );
     return props === undefined || Array.isArray( props ) 
@@ -116,14 +116,14 @@ export function unaccessorize( context, props, params = {} ) {
  * Returns an object as a proxy and binds all instance methods
  * to the proxy instead of the object itself.
  *
- * @param Array|Object		context
+ * @param Array|Object		target
  * @param Object		    params
  *
  * @return Proxy
  */
-export function proxy( context, params = {} ) {
-    context = resolveContext( context );
-    const proxy = new Proxy( context, {
+export function proxy( target, params = {} ) {
+    target = resolveTarget( target );
+    const proxy = new Proxy( target, {
         apply:  ( target, thisArgument, argumentsList ) => apply( target, thisArgument, argumentsList, params ),
         construct:  ( target, argumentsList, newTarget = null ) => construct( target, argumentsList, newTarget, params ),
         defineProperty:  ( target, propertyKey, attributes ) => defineProperty( target, propertyKey, attributes, params ),
@@ -144,32 +144,32 @@ export function proxy( context, params = {} ) {
         set: ( target, propertyKey, value, receiver = null ) => set( target, propertyKey, value, { ...params, receiver } ),
         setPrototypeOf: ( target, prototype ) => setPrototypeOf( target, prototype, params ),
     });
-    _internals( proxy ).set( proxy, context );
+    _internals( proxy ).set( proxy, target );
 	return proxy;
 }
 
 /**
  * Returns the original object earlier proxied by proxy().
  *
- * @param Proxy|Any		context
+ * @param Proxy|Any		target
  *
  * @return Any
  */
-export function unproxy( context ) {
+export function unproxy( target ) {
     // Proxy targets are mapped to their own instances internally
-    return _internals( context, false ).get( context ) || context;
+    return _internals( target, false ).get( target ) || target;
 }
 
 /* ---------------HELPERS--------------- */
 
 /** 
- * Ensures context object is an object or array.
+ * Ensures target object is an object or array.
  *
- * @param Array|Object	context
+ * @param Array|Object	target
  *
  * @return Array|Object
  */
-function resolveContext( context ) {
-	if ( !context || !_isTypeObject( context ) ) throw new Error('Target must be of type object!');
-	return unproxy( context );
+function resolveTarget( target ) {
+	if ( !target || !_isTypeObject( target ) ) throw new Error('Target must be of type object!');
+	return unproxy( target );
 }
