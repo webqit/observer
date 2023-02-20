@@ -116,10 +116,10 @@ describe( `Test: .observe() + .set()`, function() {
         it( `Should assert that "custom events" in the namespace fire.`, function() {
             _changesRecieved = [];
             ListenerRegistry2.getInstance( obj ).emit( [ {
-                name: 'costum-name', // required
+                key: 'costum-name', // required
                 type: 'costum-type', // required
             } ] );
-            expect( _changesRecieved[ 0 ][ 0 ] ).to.be.an( 'object' ).that.includes( { name: 'costum-name', type: 'costum-type', } );
+            expect( _changesRecieved[ 0 ][ 0 ] ).to.be.an( 'object' ).that.includes( { key: 'costum-name', type: 'costum-type', } );
         } );
         
         it( `Should that "set" events in the namespace are recieved.`, function() {
@@ -148,7 +148,7 @@ describe( `Test: .observe() + .set()`, function() {
                 key1: 'value1',
             } );
             // -----
-            expect( _change ).to.be.an( 'object' ).that.includes( { name: 'key1', type: 'set', } );
+            expect( _change ).to.be.an( 'object' ).that.includes( { key: 'key1', type: 'set', } );
         } );
 
         it( `Observe a two-level path of an object.`, function() {
@@ -168,8 +168,8 @@ describe( `Test: .observe() + .set()`, function() {
             } );
             // -----
             expect( _changes ).to.have.lengthOf( 2 );
-            expect( _changes[ 0 ] ).to.be.an( 'object' ).that.deep.includes( { name: 'sub.key1', path: [ 'key1', 'sub.key1' ], type: 'get', value: undefined, } );
-            expect( _changes[ 1 ] ).to.be.an( 'object' ).that.deep.includes( { name: 'sub.key1', path: [ 'key1', 'sub.key1' ], type: 'set', value: {}, } );
+            expect( _changes[ 0 ] ).to.be.an( 'object' ).that.deep.includes( { key: 'sub.key1', path: [ 'key1', 'sub.key1' ], type: 'get', value: undefined, } );
+            expect( _changes[ 1 ] ).to.be.an( 'object' ).that.deep.includes( { key: 'sub.key1', path: [ 'key1', 'sub.key1' ], type: 'set', value: {}, } );
         } );
 
         it( `Observe path 0 of an array.`, function() {
@@ -182,8 +182,8 @@ describe( `Test: .observe() + .set()`, function() {
             Observer.set( arr, 0, {} );
             // -----
             expect( _changes ).to.have.lengthOf( 2 );
-            expect( _changes[ 0 ] ).to.be.an( 'object' ).that.deep.includes( { name: 0, type: 'get', } );
-            expect( _changes[ 1 ] ).to.be.an( 'object' ).that.deep.includes( { name: 0, type: 'set', } );
+            expect( _changes[ 0 ] ).to.be.an( 'object' ).that.deep.includes( { key: 0, type: 'get', } );
+            expect( _changes[ 1 ] ).to.be.an( 'object' ).that.deep.includes( { key: 0, type: 'set', } );
         } );
 
         it( `Observe path [ 0, 'key1' ] of an array.`, function() {
@@ -197,8 +197,8 @@ describe( `Test: .observe() + .set()`, function() {
             Observer.set( arr[ 0 ], 'key1', {} );
             // -----
             expect( _changes ).to.have.lengthOf( 2 );
-            expect( _changes[ 0 ] ).to.be.an( 'object' ).that.deep.includes( { name: 'key1', path: [ 0, 'key1' ], type: 'get', } );
-            expect( _changes[ 1 ] ).to.be.an( 'object' ).that.deep.includes( { name: 'key1', path: [ 0, 'key1' ], type: 'set', } );
+            expect( _changes[ 0 ] ).to.be.an( 'object' ).that.deep.includes( { key: 'key1', path: [ 0, 'key1' ], type: 'get', } );
+            expect( _changes[ 1 ] ).to.be.an( 'object' ).that.deep.includes( { key: 'key1', path: [ 0, 'key1' ], type: 'set', } );
         } );
 
         it( `Observe wildcard paths.`, function() {
@@ -220,7 +220,7 @@ describe( `Test: .observe() + .set()`, function() {
             expect( _changes ).to.have.lengthOf( 2 );
             expect( _changes[ 0 ] ).to.be.an( 'array' ).lengthOf( 0 );
             expect( _changes[ 1 ] ).to.be.an( 'array' ).lengthOf( 2 );
-            expect( _changes[ 1 ][ 0 ] ).to.be.an( 'object' ).that.deep.includes( { name: 'sub.key1', path: [ 'key1', 'sub.key1' ], type: 'set', } );
+            expect( _changes[ 1 ][ 0 ] ).to.be.an( 'object' ).that.deep.includes( { key: 'sub.key1', path: [ 'key1', 'sub.key1' ], type: 'set', } );
         } );
 
     } );

@@ -31,7 +31,7 @@ export function deep( context, path, receiver, final, params = {} ) {
             // -----------
             const getParams = () => ( { ..._params, level: _params.level + 1, } );
             const addPath = obj => {
-                if ( obj instanceof Event ) { obj.path = ( context instanceof Event ? context.path : [] ).concat( obj.name ); }
+                if ( obj instanceof Event ) { obj.path = ( context instanceof Event ? context.path : [] ).concat( obj.key ); }
             };
             // -----------
             if ( isPropsList( segment ) && Array.isArray( result ) ) {
@@ -117,7 +117,7 @@ export function intercept( context, traps, params = {} ) {
  * @return Any
  */
 export function getOwnPropertyDescriptor( context, prop, receiver = x => x, params = {} ) {
-    return exec( context, 'getOwnPropertyDescriptor', { name: prop }, receiver, params );
+    return exec( context, 'getOwnPropertyDescriptor', { key: prop }, receiver, params );
 }
 
 /**
@@ -132,7 +132,7 @@ export function getOwnPropertyDescriptor( context, prop, receiver = x => x, para
  * @return Any
  */
 export function getOwnPropertyDescriptors( context, prop, receiver = x => x, params = {} ) {
-    return exec( context, 'getOwnPropertyDescriptors', { name: prop }, receiver, params );
+    return exec( context, 'getOwnPropertyDescriptors', { key: prop }, receiver, params );
 }
 
 /**
@@ -185,7 +185,7 @@ export function ownKeys( context, receiver = x => x, params = {} ) {
  * @return Any
  */
 export function has( context, prop, receiver = x => x, params = {} ) {
-    return exec( context, 'has', { name: prop }, receiver, params );
+    return exec( context, 'has', { key: prop }, receiver, params );
 }
 
 /**
@@ -213,16 +213,16 @@ export function get( context, prop, receiver = x => x, params = {} ) {
                 const _next = value => ( event.value = value, next( results.concat( params.asEvent ? event : value ), _props, _done ) );
                 if ( arguments.length > 1 ) return _next( value );
                 const accessorizedProps = _internals( context, 'accessorizedProps', false );
-                const accessorization = accessorizedProps && accessorizedProps.get( event.name );
+                const accessorization = accessorizedProps && accessorizedProps.get( event.key );
                 if ( accessorization && accessorization.intact() ) {
                     return _next( accessorization.getValue() );
                 }
-                return _next( Reflect.get( context, event.name, ...( params.receiver ? [ params.receiver ] : [] ) ) );
+                return _next( Reflect.get( context, event.key, ...( params.receiver ? [ params.receiver ] : [] ) ) );
             }
             // ---------
             const event = new Event( context, {
                 type: 'get',
-                name: prop,
+                key: prop,
                 value: undefined,
                 related,
             } );
@@ -270,22 +270,22 @@ export function set( context, prop, value, receiver = x => x, params = {}, def =
             const _next = status => ( event.status = status, next( events.concat( event ), entries, _done ) );
             if ( arguments.length > 1 ) return _next( event, status );
             const accessorizedProps = _internals( context, 'accessorizedProps', false );
-            const accessorization = accessorizedProps && accessorizedProps.get( event.name );
+            const accessorization = accessorizedProps && accessorizedProps.get( event.key );
             if ( event.type === 'defineProperty' ) {
                 if ( accessorization && !accessorization.restore() ) _next( false );
-                Object.defineProperty( context, event.name, event.value );
+                Object.defineProperty( context, event.key, event.value );
                 return _next( true );
             }
             if ( accessorization && accessorization.intact() ) {
                 return _next( accessorization.setValue( event.value ) );
             }
-            return _next( Reflect.set( context, event.name, event.value ) );
+            return _next( Reflect.set( context, event.key, event.value ) );
         }
         // ---------
         function exec( isUpdate, oldValue ) {
             const event = new Event( context, {
                 type: def ? 'defineProperty' : 'set',
-                name: prop,
+                key: prop,
                 value,
                 isUpdate,
                 oldValue,
@@ -366,15 +366,15 @@ export function deleteProperty( context, prop, receiver = x => x, params = {} ) 
             const _next = status => ( event.status = status, next( events.concat( event ), props, _done ) );
             if ( arguments.length > 1 ) return _next( event, status );
             const accessorizedProps = _internals( context, 'accessorizedProps', false );
-            const accessorization = accessorizedProps && accessorizedProps.get( event.name );
+            const accessorization = accessorizedProps && accessorizedProps.get( event.key );
             if ( accessorization && !accessorization.restore() ) _next( false );
-            return _next( Reflect.deleteProperty( context, event.name ) );
+            return _next( Reflect.deleteProperty( context, event.key ) );
         }
         // ---------
         function exec( oldValue ) {
             const event = new Event( context, {
                 type: 'deleteProperty',
-                name: prop,
+                key: prop,
                 oldValue,
                 related: [ ...related ],
                 detail: params.detail,
