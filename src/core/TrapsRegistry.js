@@ -31,21 +31,21 @@ export default class TrapsRegistry extends Registry {
 	/**
 	 * Fires all interceptors with the given action.
 	 *
-	 * @param Event				event
+	 * @param Descriptor		descriptor
 	 * @param function			defaultHandler
 	 *
 	 * @return mixed
 	 */
-	emit( event, defaultHandler = null ) {
+	emit( descriptor, defaultHandler = null ) {
 		const $this = this;
 		return ( function next( index, ..._args ) {
 			const registration = $this.entries[ index ];
 			if ( registration ) {
-				return registration.exec( event, ( ...args ) => {
+				return registration.exec( descriptor, ( ...args ) => {
 					return next( index + 1, ...args );
 				}/*next*/, ..._args );
 			}
-			return defaultHandler ? defaultHandler( event, ..._args ) : _args[ 0 ];
+			return defaultHandler ? defaultHandler( descriptor, ..._args ) : _args[ 0 ];
 		} )( 0 );
 	}
 }

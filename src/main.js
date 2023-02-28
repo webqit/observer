@@ -6,7 +6,7 @@ import { _internals, _isObject, _isTypeObject, _isFunction, _getType } from '@we
 import { _from as _arrFrom } from '@webqit/util/arr/index.js';
 import ListenerRegistry from './core/ListenerRegistry.js';
 import TrapsRegistry from './core/TrapsRegistry.js';
-import Event from './core/Event.js';
+import Descriptor from './core/Descriptor.js';
 import { unproxy } from './actors.js';
 
 /* ---------------SPECIAL APIs--------------- */
@@ -20,40 +20,44 @@ import { unproxy } from './actors.js';
  * @param Function	        final
  * @param Object	        params
  * 
- * @example deep( object, [ segement1, segement2 ], observe, ( value, isEvent, listener ) => {}, params );
+ * @example deep( object, [ segement1, segement2 ], observe, ( value, listener, isEvent ) => {}, params );
  *
  * @return Any
  */
-export function deep( target, path, receiver, final, params = {} ) {
-    return ( function eat( target, _path, _params, ...args ) {
+export function deep( target, path, receiver, final = x => x, params = {} ) {
+    const _final = ( ...args ) => {
+        if ( args.length > 1 && !args[ 1 ].isEvent && !params.eval ) return;
+        return final( ...args );
+    };
+    return ( function eat( target, _path, _params ) {
         const segment = _path.shift();
         return receiver( target, segment, ( result, ...args ) => {
             // -----------
-            const getParams = () => ( { ..._params, level: _params.level + 1, } );
-            const addPath = obj => {
-                if ( !( obj instanceof Event ) ) return;
-                obj.path = [ obj.key ];
-                if ( target instanceof Event ) {
-                    obj.path = target.path.concat( obj.key );
-                    obj.context = target;
+            const getParams = ( flags = {} ) => ( { ..._params, ...flags, level: _params.level + 1, } );
+            const addPath = desc => {
+                if ( !( desc instanceof Descriptor ) ) return;
+                desc.path = [ desc.key ];
+                if ( target instanceof Descriptor ) {
+                    desc.path = target.path.concat( desc.key );
+                    desc.context = target;
                 }
             };
             // -----------
             if ( isPropsList( segment ) && Array.isArray( result ) ) {
                 // -----------
                 result.forEach( addPath );
-                if ( !_path.length || ( !result.length && _params.midWayResults ) ) return final( result, ...args );
-                return result.map( entry => eat( entry, _path.slice( 0 ), getParams(), ...args ) )
+                if ( !_path.length || ( !result.length && _params.midWayResults ) ) return _final( result, ...args );
+                return result.map( entry => eat( entry, _path.slice( 0 ), getParams( ...args ) ) )
                 // -----------
             }
             // -----------
             addPath( result );
-            const $isTypeObject = _isTypeObject( resolveObj( result ) );
-            if ( !_path.length || ( !$isTypeObject && _params.midWayResults ) ) return final( result, ...args );
-            return $isTypeObject && eat( result, _path, getParams(), ...args );
+            const $isTypeObject = _isTypeObject( resolveObj( result, false ) );
+            if ( !_path.length || ( !$isTypeObject && _params.midWayResults ) ) return _final( result, ...args );
+            return $isTypeObject && eat( result, _path, getParams( ...args ) );
             // -----------
-        }, _params, ...args );
-    } )( target, path.slice( 0 ), { ...params, level: 0 } );
+        }, _params );
+    } )( target, path.slice( 0 ), { ...params, eval: true, level: 0 } );
 }
 
 /**
@@ -63,34 +67,43 @@ export function deep( target, path, receiver, final, params = {} ) {
  * @param String|Object	    prop
  * @param Function	        receiver
  * @param Object		    params
- * @param ListenerRegistration|AbortController controller
- * @param Bool              isEvent
  *
  * @return ListenerRegistration|AbortController
  */
-export function observe( target, prop, receiver, params = {}, isEvent = false, controller = null ) {
+export function observe( target, prop, receiver, params = {} ) {
     // ---------------
     target = resolveObj( target );
 	if ( _isFunction( arguments[ 1 ] ) ) {
-        [ , receiver, params = {}, controller = null ] = arguments;
+        [ , receiver, params = {} ] = arguments;
         prop = Infinity;
 	}
 	if ( !_isFunction( receiver ) ) throw new Error( `Handler must be a function; "${ _getType( receiver ) }" given!` );
-    if ( !controller ) { controller = new AbortController; }
+    let controller;
+    if ( !params.signal ) {
+        controller = new AbortController;
+        params = { ...params, signal: controller.signal };
+    }
     // ---------------
     const listenerRegistry = ListenerRegistry.getInstance( target, true, params.namespace );
-    get( target, prop, event_s => {
-        ( function exec( event_s, prevRegistration = null ) {
-            prevRegistration && prevRegistration.remove();
-            const registrationNext = listenerRegistry.addRegistration( prop, exec, { ...params, signal: controller.signal } );
-            receiver( event_s, ( isEvent || ( prevRegistration ? true : false ) )/* isEvent */, registrationNext );
-        } )( event_s );
-    }, { ...params, asEvent: true } );
+    function exec( descriptor_s, prevRegistration = null ) {
+        prevRegistration?.remove();
+        const registrationNext = listenerRegistry.addRegistration( prop, exec, params );
+        if ( !arguments.length ) return;
+        const flags = {
+            isEvent: params.isEvent || ( prevRegistration ? true : false ),
+            signal: registrationNext.signal,
+            abort: () => registrationNext.remove(),
+        }
+        receiver( descriptor_s, flags );
+    }
+    if ( params.eval ) {
+        get( target, prop, exec, { ...params, descripted: true } );
+    } else exec();
     return controller;
 }
 
 /**
- * Adds an event object to a target's registry.
+ * Adds an interceptor object to a target's registry.
  *
  * @param Array|Object	    target
  * @param Object	        traps
@@ -112,7 +125,7 @@ export function intercept( target, traps, params = {} ) {
 /* ---------------QUERY APIs--------------- */
 
 /**
- * Performs a "getOwnPropertyDescriptor" event.
+ * Performs a "getOwnPropertyDescriptor" operation.
  *
  * @param Array|Object	    target
  * @param String|Number	    prop
@@ -126,7 +139,7 @@ export function getOwnPropertyDescriptor( target, prop, receiver = x => x, param
 }
 
 /**
- * Performs a "getOwnPropertyDescriptors" event.
+ * Performs a "getOwnPropertyDescriptors" operation.
  * @note this isn't part of the standard Reflect API.
  *
  * @param Array|Object	    target
@@ -141,7 +154,7 @@ export function getOwnPropertyDescriptors( target, prop, receiver = x => x, para
 }
 
 /**
- * Performs a "getPrototypeOf" event.
+ * Performs a "getPrototypeOf" operation.
  *
  * @param Array|Object	    target
  * @param Function	        receiver
@@ -154,7 +167,7 @@ export function getPrototypeOf( target, receiver = x => x, params = {} ) {
 }
 
 /**
- * Performs a "isExtensible" event.
+ * Performs a "isExtensible" operation.
  *
  * @param Array|Object	    target
  * @param Function	        receiver
@@ -167,7 +180,7 @@ export function isExtensible( target, receiver = x => x, params = {} ) {
 }
 
 /**
- * Performs a "ownKeys" event.
+ * Performs a "ownKeys" operation.
  *
  * @param Array|Object	    target
  * @param Function	        receiver
@@ -180,7 +193,7 @@ export function ownKeys( target, receiver = x => x, params = {} ) {
 }
 
 /**
- * Performs an event of the given "type".
+ * Performs an operation of the given "type".
  *
  * @param Array|Object	    target
  * @param String|Number	    prop
@@ -194,7 +207,7 @@ export function has( target, prop, receiver = x => x, params = {} ) {
 }
 
 /**
- * Performs a get event.
+ * Performs a get operation.
  *
  * @param Array|Object	    target
  * @param String|Number	    prop
@@ -214,18 +227,18 @@ export function get( target, prop, receiver = x => x, params = {} ) {
             if ( !_props.length ) return _done( results );
             const prop = _props.shift();
             // ---------
-            function defaultGet( event, value = undefined ) {
-                const _next = value => ( event.value = value, next( results.concat( params.asEvent ? event : value ), _props, _done ) );
+            function defaultGet( descriptor, value = undefined ) {
+                const _next = value => ( descriptor.value = value, next( results.concat( params.descripted ? descriptor : value ), _props, _done ) );
                 if ( arguments.length > 1 ) return _next( value );
                 const accessorizedProps = _internals( target, 'accessorizedProps', false );
-                const accessorization = accessorizedProps && accessorizedProps.get( event.key );
+                const accessorization = accessorizedProps && accessorizedProps.get( descriptor.key );
                 if ( accessorization && accessorization.intact() ) {
                     return _next( accessorization.getValue() );
                 }
-                return _next( Reflect.get( target, event.key, ...( params.receiver ? [ params.receiver ] : [] ) ) );
+                return _next( Reflect.get( target, descriptor.key, ...( params.receiver ? [ params.receiver ] : [] ) ) );
             }
             // ---------
-            const event = new Event( target, {
+            const descriptor = new Descriptor( target, {
                 type: 'get',
                 key: prop,
                 value: undefined,
@@ -233,10 +246,10 @@ export function get( target, prop, receiver = x => x, params = {} ) {
             } );
             const listenerRegistry = TrapsRegistry.getInstance( target, false, params.namespace );
             if ( listenerRegistry ) {
-                return listenerRegistry.emit( event, defaultGet );
+                return listenerRegistry.emit( descriptor, defaultGet );
             }
-            return defaultGet( event );
-        } )( [], props, results => {
+            return defaultGet( descriptor );
+        } )( [], props.slice( 0 ), results => {
             return receiver( isPropsList( prop/*original*/ ) ? results : results[ 0 ] );
         } );
     } );
@@ -245,7 +258,7 @@ export function get( target, prop, receiver = x => x, params = {} ) {
 /* ---------------MUTATION APIs--------------- */
 
 /**
- * Performs a set event.
+ * Performs a set operation.
  * 
  * @param Object	        target
  * @param String|Number	    prop
@@ -267,28 +280,28 @@ export function set( target, prop, value, receiver = x => x, params = {}, def = 
     if ( _isObject( receiver ) ) { [ def, params, receiver ] = [ typeof params === 'boolean' ? params : false, receiver, x => x ]; }
     // ---------------
     const related = entries.map( ( [ prop ] ) => prop );
-    return ( function next( events, entries, _done ) {
-        if ( !entries.length ) return _done( events );
+    return ( function next( descriptors, entries, _done ) {
+        if ( !entries.length ) return _done( descriptors );
         const [ prop, value ] = entries.shift();
         // ---------
-        function defaultSet( event, status = undefined ) {
-            const _next = status => ( event.status = status, next( events.concat( event ), entries, _done ) );
-            if ( arguments.length > 1 ) return _next( event, status );
+        function defaultSet( descriptor, status = undefined ) {
+            const _next = status => ( descriptor.status = status, next( descriptors.concat( descriptor ), entries, _done ) );
+            if ( arguments.length > 1 ) return _next( descriptor, status );
             const accessorizedProps = _internals( target, 'accessorizedProps', false );
-            const accessorization = accessorizedProps && accessorizedProps.get( event.key );
-            if ( event.type === 'defineProperty' ) {
+            const accessorization = accessorizedProps && accessorizedProps.get( descriptor.key );
+            if ( descriptor.type === 'defineProperty' ) {
                 if ( accessorization && !accessorization.restore() ) _next( false );
-                Object.defineProperty( target, event.key, event.value );
+                Object.defineProperty( target, descriptor.key, descriptor.value );
                 return _next( true );
             }
             if ( accessorization && accessorization.intact() ) {
-                return _next( accessorization.setValue( event.value ) );
+                return _next( accessorization.setValue( descriptor.value ) );
             }
-            return _next( Reflect.set( target, event.key, event.value ) );
+            return _next( Reflect.set( target, descriptor.key, descriptor.value ) );
         }
         // ---------
         function exec( isUpdate, oldValue ) {
-            const event = new Event( target, {
+            const descriptor = new Descriptor( target, {
                 type: def ? 'defineProperty' : 'set',
                 key: prop,
                 value,
@@ -299,8 +312,8 @@ export function set( target, prop, value, receiver = x => x, params = {}, def = 
             } );
             const listenerRegistry = TrapsRegistry.getInstance( target, false, params.namespace );
             return listenerRegistry 
-                ? listenerRegistry.emit( event, defaultSet ) 
-                : defaultSet( event );
+                ? listenerRegistry.emit( descriptor, defaultSet ) 
+                : defaultSet( descriptor );
         }
         // ---------
         return has( target, prop, isUpdate => {
@@ -308,17 +321,17 @@ export function set( target, prop, value, receiver = x => x, params = {}, def = 
             return get( target, prop, oldValue => exec( isUpdate, oldValue ), params );
         }, params );
         // ---------
-    } )( [], entries.slice( 0 ), events => {
+    } )( [], entries.slice( 0 ), descriptors => {
         const listenerRegistry = ListenerRegistry.getInstance( target, false, params.namespace );
-        if ( listenerRegistry ) listenerRegistry.emit( events );
+        if ( listenerRegistry ) listenerRegistry.emit( descriptors );
         return receiver(
-            isPropsList( prop/*original*/ ) ? events.map( opr => opr.status ) : events[ 0 ].status
+            isPropsList( prop/*original*/ ) ? descriptors.map( opr => opr.status ) : descriptors[ 0 ].status
         );
     } );
 }
 
 /**
- * Performs a defineProperty event.
+ * Performs a defineProperty operation.
  * 
  * @param Object	        target
  * @param String|Number	    prop
@@ -333,7 +346,7 @@ export function defineProperty( target, prop, descriptor, receiver = x => x, par
 }
 
 /**
- * Performs a defineProperties event.
+ * Performs a defineProperties operation.
  * @note this isn't part of the standard Reflect API.
  * 
  * @param Object	        target
@@ -348,7 +361,7 @@ export function defineProperties( target, descriptors, receiver = x => x, params
 }
 
 /**
- * Performs a delete event.
+ * Performs a delete operation.
  * 
  * @param Object	        target
  * @param String|Number	    prop
@@ -363,21 +376,21 @@ export function deleteProperty( target, prop, receiver = x => x, params = {} ) {
     if ( _isObject( receiver ) ) { [ params, receiver ] = [ receiver, x => x ]; }
     // ---------------
     const props = _arrFrom( prop ), related = [ ...props ];
-    return ( function next( events, props, _done ) {
-        if ( !props.length ) return _done( events );
+    return ( function next( descriptors, props, _done ) {
+        if ( !props.length ) return _done( descriptors );
         const prop = props.shift();
         // ---------
-        function defaultDel( event, status = undefined ) {
-            const _next = status => ( event.status = status, next( events.concat( event ), props, _done ) );
-            if ( arguments.length > 1 ) return _next( event, status );
+        function defaultDel( descriptor, status = undefined ) {
+            const _next = status => ( descriptor.status = status, next( descriptors.concat( descriptor ), props, _done ) );
+            if ( arguments.length > 1 ) return _next( descriptor, status );
             const accessorizedProps = _internals( target, 'accessorizedProps', false );
-            const accessorization = accessorizedProps && accessorizedProps.get( event.key );
+            const accessorization = accessorizedProps && accessorizedProps.get( descriptor.key );
             if ( accessorization && !accessorization.restore() ) _next( false );
-            return _next( Reflect.deleteProperty( target, event.key ) );
+            return _next( Reflect.deleteProperty( target, descriptor.key ) );
         }
         // ---------
         function exec( oldValue ) {
-            const event = new Event( target, {
+            const descriptor = new Descriptor( target, {
                 type: 'deleteProperty',
                 key: prop,
                 oldValue,
@@ -386,18 +399,18 @@ export function deleteProperty( target, prop, receiver = x => x, params = {} ) {
             } );
             const listenerRegistry = TrapsRegistry.getInstance( target, false, params.namespace );
             return listenerRegistry 
-                ? listenerRegistry.emit( event, defaultDel ) 
-                : defaultDel( event );
+                ? listenerRegistry.emit( descriptor, defaultDel ) 
+                : defaultDel( descriptor );
         }
         // ---------
         if ( params.oldValue === false ) return exec();
         return get( target, prop, exec, params );
         // ---------
-    } )( [], props.slice( 0 ), events => {
+    } )( [], props.slice( 0 ), descriptors => {
         const listenerRegistry = ListenerRegistry.getInstance( target, false, params.namespace );
-        if ( listenerRegistry ) listenerRegistry.emit( events );
+        if ( listenerRegistry ) listenerRegistry.emit( descriptors );
         return receiver(
-            isPropsList( prop/*original*/ ) ? events.map( opr => opr.status ) : events[ 0 ].status
+            isPropsList( prop/*original*/ ) ? descriptors.map( opr => opr.status ) : descriptors[ 0 ].status
         );
     } );
 }
@@ -405,7 +418,7 @@ export function deleteProperty( target, prop, receiver = x => x, params = {} ) {
 /* ---------------EFFECT APIs--------------- */
 
 /**
- * Performs a "construct" event.
+ * Performs a "construct" operation.
  *
  * @param Array|Object	    target
  * @param Array			    argumentsList
@@ -420,7 +433,7 @@ export function construct( target, argumentsList, newTarget = null, receiver = x
 }
 
 /**
- * Performs a "apply" event.
+ * Performs an "apply" operation.
  *
  * @param Array|Object	    target
  * @param Any	            thisArgument
@@ -435,7 +448,7 @@ export function apply( target, thisArgument, argumentsList, receiver = x => x, p
 }
 
 /**
- * Performs a "setPrototypeOf" event.
+ * Performs a "setPrototypeOf" operation.
  *
  * @param Array|Object	    target
  * @param Anyr	            proto
@@ -449,7 +462,7 @@ export function setPrototypeOf( target, proto, receiver = x => x, params = {} ) 
 }
 
 /**
- * Performs a "preventExtension" event.
+ * Performs a "preventExtension" operation.
  *
  * @param Array|Object	    target
  * @param Function	        receiver
@@ -464,7 +477,7 @@ export function preventExtensions( target, receiver = x => x, params = {} ) {
 /* ---------------HELPER APIs--------------- */
 
 /**
- * Performs an event of the given "type".
+ * Performs an operation of the given "type".
  *
  * @param Array|Object	    target
  * @param String		    type
@@ -479,17 +492,17 @@ function exec( target, type, payload = {}, receiver = x => x, params = {} ) {
     target = resolveObj( target );
     if ( _isObject( receiver ) ) { [ params, receiver ] = [ receiver, x => x ]; }    
     // ---------
-    function defaultExec( event, result ) {
+    function defaultExec( descriptor, result ) {
         if ( arguments.length > 1 ) return receiver( result );
         return receiver( Reflect[ type ]( target, ...Object.values( payload ) ) );
     }
     // ---------
-    const event = new Event( target, { type, ...payload } );
+    const descriptor = new Descriptor( target, { type, ...payload } );
     const listenerRegistry = TrapsRegistry.getInstance( target, false, params.namespace );
     if ( listenerRegistry ) {
-        return listenerRegistry.emit( event, defaultExec );
+        return listenerRegistry.emit( descriptor, defaultExec );
     }
-    return defaultExec( event );
+    return defaultExec( descriptor );
 }
 
 // Asks if prop is a multi-result field
@@ -498,12 +511,12 @@ function isPropsList( prop ) {
 }
 
 // Resolves obj down to it's self
-function resolveObj( obj ) {
-	if ( !obj || !_isTypeObject( obj ) ) throw new Error('Object must be of type object or array!');
-    if ( obj instanceof Event ) {
+function resolveObj( obj, assert = true ) {
+	if ( ( !obj || !_isTypeObject( obj ) ) && assert ) throw new Error( `Object must be of type object or array! "${ _getType( obj ) }" given.` );
+    if ( obj instanceof Descriptor ) {
         obj = obj.value;
     }
-	return unproxy( obj );
+	return obj && unproxy( obj );
 }
 
 // Resolves prop down to actual keys

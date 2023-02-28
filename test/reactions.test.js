@@ -156,7 +156,7 @@ describe( `Test: .observe() + .set()`, function() {
             // -----
             Observer.deep( obj, [ 'key1', 'sub.key1' ], Observer.observe, change => {
                 _changes.push( change );
-            } );
+            }, { eval: true } );
             // -----
             Observer.set( obj, {
                 key1: {},
@@ -177,7 +177,7 @@ describe( `Test: .observe() + .set()`, function() {
             // -----
             Observer.observe( arr, 0, change => {
                 _changes.push( change );
-            } );
+            }, { eval: true } );
             // -----
             Observer.set( arr, 0, {} );
             // -----
@@ -191,7 +191,7 @@ describe( `Test: .observe() + .set()`, function() {
             // -----
             Observer.deep( arr, [ 0, 'key1' ], Observer.observe, change => {
                 _changes.push( change );
-            } );
+            }, { eval: true } );
             // -----
             Observer.set( arr, 0, {} );
             Observer.set( arr[ 0 ], 'key1', {} );
@@ -206,7 +206,7 @@ describe( `Test: .observe() + .set()`, function() {
             // -----
             Observer.deep( obj, [ 'key1', Infinity ], Observer.observe, change => {
                 _changes.push( change );
-            } );
+            }, { eval: true } );
             // -----
             Observer.set( obj, {
                 key1: {},
@@ -242,7 +242,7 @@ describe( `Test: .observe() + .set()`, function() {
             // -----
             expect( accessorizeFlag ).to.be.true;
             expect( unaccessorizeFlag ).to.be.true;
-            expect( _changes ).to.be.an( 'array' ).with.length( 2 );
+            expect( _changes ).to.be.an( 'array' ).with.length( 1 );
         } );
 
     } );
@@ -260,7 +260,7 @@ describe( `Test: .observe() + .set()`, function() {
             _obj.key1 = 'value1'; // Should fire event
             _obj.key2 = 'value2'; // Should fire event
             // -----
-            expect( _changes ).to.be.an( 'array' ).with.length( 3 );
+            expect( _changes ).to.be.an( 'array' ).with.length( 2 );
             expect( _obj === obj ).to.be.false;
             expect( Observer.unproxy( _obj ) === obj ).to.be.true;
         } );
@@ -281,7 +281,7 @@ describe( `Test: .observe() + .set()`, function() {
             // -----
             obj.key1 = 'value1-b'; // Should fire event
             // -----
-            expect( _changes ).to.be.an( 'array' ).with.length( 3 );
+            expect( _changes ).to.be.an( 'array' ).with.length( 2 );
         } );
 
         it( `Should report just a change on PROGRAMMATICALLY setting an already ACCESSORIZED prop of a PROXIED instance.`, function() {
@@ -297,7 +297,7 @@ describe( `Test: .observe() + .set()`, function() {
             // -----
             obj.key1 = 'value1-b'; // Should fire event
             // -----
-            expect( _changes ).to.be.an( 'array' ).with.length( 3 );
+            expect( _changes ).to.be.an( 'array' ).with.length( 2 );
         } );
 
     } );

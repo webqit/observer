@@ -1,11 +1,11 @@
 
 /**
  * ---------------------------
- * The Event class
+ * The Descriptor class
  * ---------------------------
  */
 
-export default class Event {
+export default class Descriptor {
 	
 	/**
 	 * Initializes the instance.
@@ -17,7 +17,7 @@ export default class Event {
 	 */
 	constructor( target, dfn ) {
 		this.target = target;
-		if ( !( dfn.type ) ) throw new Error( 'Event type must be given in definition!' );
+		if ( !( dfn.type ) ) throw new Error( 'Descriptor type must be given in definition!' );
 		Object.assign( this, dfn );
 	}
 }

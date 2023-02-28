@@ -18,9 +18,6 @@ export default class ListenerRegistration extends Registration {
 	 */
 	constructor() {
 		super( ...arguments );
-		if ( this.params.signal ) {
-			this.params.signal.addEventListener( 'abort', () => this.remove() );
-		}
 		Object.defineProperty( this, 'abortController', { value: new AbortController } );
 		Object.defineProperty( this, 'signal', { value: this.abortController.signal } );
 	}
