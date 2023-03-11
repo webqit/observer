@@ -2,7 +2,7 @@
 /**
  * @imports
  */
-import * as Observer from './index.js';
+import Observer from './index.js';
 
 // As globals
 if ( !window.wq ) { window.wq = {}; }
