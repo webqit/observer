@@ -20,21 +20,21 @@ import { unproxy } from './actors.js';
  * @param Function	        final
  * @param Object	        params
  * 
- * @example deep( object, [ segement1, segement2 ], observe, ( value, listener, isEvent ) => {}, params );
+ * @example deep( object, [ segement1, segement2 ], observe, ( value, flags ) => {}, params );
  *
  * @return Any
  */
 export function deep( target, path, receiver, final = x => x, params = {} ) {
-    const _final = ( ...args ) => {
-        if ( args.length > 1 && !args[ 1 ].isEvent && !params.eval ) return;
-        return final( ...args );
-    };
-    return ( function eat( target, _path, _params ) {
-        const segment = _path.shift();
+    return ( function eat( target, path, _params ) {
+        const segment = path[ _params.level ];
+        // ---------------
+        if ( _params.level < path.length - 1 ) { _params = { ..._params, preflight: true }; }
+        else { _params = { ..._params, preflight: /*reset*/params.preflight }; }
+        // ---------------
         return receiver( target, segment, ( result, ...args ) => {
             // -----------
-            const getParams = ( flags = {} ) => ( { ..._params, ...flags, level: _params.level + 1, } );
-            const addPath = desc => {
+            const paramsNext = ( flags = {} ) => ( { ..._params, ...flags, level: _params.level + 1, } );
+            const addTrail = desc => {
                 if ( !( desc instanceof Descriptor ) ) return;
                 desc.path = [ desc.key ];
                 if ( target instanceof Descriptor ) {
@@ -45,19 +45,19 @@ export function deep( target, path, receiver, final = x => x, params = {} ) {
             // -----------
             if ( isPropsList( segment ) && Array.isArray( result ) ) {
                 // -----------
-                result.forEach( addPath );
-                if ( !_path.length || ( !result.length && _params.midWayResults ) ) return _final( result, ...args );
-                return result.map( entry => eat( entry, _path.slice( 0 ), getParams( ...args ) ) )
+                result.forEach( addTrail );
+                if ( _params.level === path.length - 1 || ( !result.length && _params.midwayResults ) ) return final( result, ...args );
+                return result.map( entry => eat( entry, path, paramsNext( ...args ) ) )
                 // -----------
             }
             // -----------
-            addPath( result );
+            addTrail( result );
             const $isTypeObject = _isTypeObject( resolveObj( result, false ) );
-            if ( !_path.length || ( !$isTypeObject && _params.midWayResults ) ) return _final( result, ...args );
-            return $isTypeObject && eat( result, _path, getParams( ...args ) );
+            if ( _params.level === path.length - 1 || ( !$isTypeObject && _params.midwayResults ) ) return final( result, ...args );
+            return $isTypeObject && eat( result, path, paramsNext( ...args ) );
             // -----------
         }, _params );
-    } )( target, path.slice( 0 ), { ...params, eval: true, level: 0 } );
+    } )( target, path.slice( 0 ), { ...params, level: 0 } );
 }
 
 /**
@@ -68,7 +68,7 @@ export function deep( target, path, receiver, final = x => x, params = {} ) {
  * @param Function	        receiver
  * @param Object		    params
  *
- * @return ListenerRegistration|AbortController
+ * @return AbortController
  */
 export function observe( target, prop, receiver, params = {} ) {
     // ---------------
@@ -78,28 +78,14 @@ export function observe( target, prop, receiver, params = {} ) {
         prop = Infinity;
 	}
 	if ( !_isFunction( receiver ) ) throw new Error( `Handler must be a function; "${ _getType( receiver ) }" given!` );
-    let controller;
-    if ( !params.signal ) {
-        controller = new AbortController;
-        params = { ...params, signal: controller.signal };
-    }
     // ---------------
-    const listenerRegistry = ListenerRegistry.getInstance( target, true, params.namespace );
-    function exec( descriptor_s, prevRegistration = null ) {
-        prevRegistration?.remove();
-        const registrationNext = listenerRegistry.addRegistration( prop, exec, params );
-        if ( !arguments.length ) return;
-        const flags = {
-            isEvent: params.isEvent || ( prevRegistration ? true : false ),
-            signal: registrationNext.signal,
-            abort: () => registrationNext.remove(),
-        }
-        receiver( descriptor_s, flags );
+    const emit = bind( target, prop, receiver, params );
+    if ( params.preflight ) {
+        params = { ...params, descripted: true };
+        delete params.live;
+        return get( target, prop, emit, params );
     }
-    if ( params.eval ) {
-        get( target, prop, exec, { ...params, descripted: true } );
-    } else exec();
-    return controller;
+    return emit();
 }
 
 /**
@@ -218,8 +204,10 @@ export function has( target, prop, receiver = x => x, params = {} ) {
  */
 export function get( target, prop, receiver = x => x, params = {} ) {
     // ---------------
+    let isLive;
     target = resolveObj( target );
     if ( _isObject( receiver ) ) { [ params, receiver ] = [ receiver, x => x ]; }
+    else if ( params.live ) { isLive = true; }
     // ---------------
     return resolveProps( target, prop, props => {
         const related = [ ...props ];
@@ -228,7 +216,7 @@ export function get( target, prop, receiver = x => x, params = {} ) {
             const prop = _props.shift();
             // ---------
             function defaultGet( descriptor, value = undefined ) {
-                const _next = value => ( descriptor.value = value, next( results.concat( params.descripted ? descriptor : value ), _props, _done ) );
+                const _next = value => ( descriptor.value = value, next( results.concat( params.live || params.descripted ? descriptor : value ), _props, _done ) );
                 if ( arguments.length > 1 ) return _next( value );
                 const accessorizedProps = _internals( target, 'accessorizedProps', false );
                 const accessorization = accessorizedProps && accessorizedProps.get( descriptor.key );
@@ -250,7 +238,12 @@ export function get( target, prop, receiver = x => x, params = {} ) {
             }
             return defaultGet( descriptor );
         } )( [], props.slice( 0 ), results => {
-            return receiver( isPropsList( prop/*original*/ ) ? results : results[ 0 ] );
+            const result_s = isPropsList( prop/*original*/ ) ? results : results[ 0 ];
+            if ( isLive ) {
+                const emit = bind( target, prop, receiver, params );
+                return emit( result_s );
+            }
+            return receiver( result_s );
         } );
     } );
 }
@@ -475,6 +468,34 @@ export function preventExtensions( target, receiver = x => x, params = {} ) {
 }
 
 /* ---------------HELPER APIs--------------- */
+
+/**
+ * Adds an observer to a target's registry.
+ *
+ * @param Array|Object	    target
+ * @param String|Object	    prop
+ * @param Function	        receiver
+ * @param Object		    params
+ *
+ * @return Function: AbortController
+ */
+function bind( target, prop, receiver, params = {} ) {
+    let controller;
+    if ( !params.signal ) {
+        controller = new AbortController;
+        params = { ...params, signal: controller.signal };
+    }
+    const listenerRegistry = ListenerRegistry.getInstance( target, true, params.namespace );
+    return function emit( descriptor_s, prevRegistration = null ) {
+        prevRegistration?.remove();
+        const registrationNext = listenerRegistry.addRegistration( prop, emit, params );
+        const flags = { signal: registrationNext.signal, };
+        if ( arguments.length ) {
+            receiver( descriptor_s, flags );
+        }
+        return controller;
+    };
+}
 
 /**
  * Performs an operation of the given "type".

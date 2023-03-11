@@ -151,12 +151,33 @@ describe( `Test: .observe() + .set()`, function() {
             expect( _change ).to.be.an( 'object' ).that.includes( { key: 'key1', type: 'set', } );
         } );
 
-        it( `Observe a two-level path of an object.`, function() {
+        it( `Observe a two-level path of an object. (Using Observer.observe() with preflight option.)`, function() {
             let obj = {}, _changes = [];
             // -----
             Observer.deep( obj, [ 'key1', 'sub.key1' ], Observer.observe, change => {
                 _changes.push( change );
-            }, { eval: true } );
+            }, { preflight: true } );
+            // -----
+            Observer.set( obj, {
+                key1: {},
+                key2: {},
+            } );
+            Observer.set( obj.key1, {
+                'sub.key1': {},
+                subkey1: {},
+            } );
+            // -----
+            expect( _changes ).to.have.lengthOf( 2 );
+            expect( _changes[ 0 ] ).to.be.an( 'object' ).that.deep.includes( { key: 'sub.key1', path: [ 'key1', 'sub.key1' ], type: 'get', value: undefined, } );
+            expect( _changes[ 1 ] ).to.be.an( 'object' ).that.deep.includes( { key: 'sub.key1', path: [ 'key1', 'sub.key1' ], type: 'set', value: {}, } );
+        } );
+
+        it( `Observe a two-level path of an object. (Using Observer.get() with "live" option.)`, function() {
+            let obj = {}, _changes = [];
+            // -----
+            Observer.deep( obj, [ 'key1', 'sub.key1' ], Observer.get, change => {
+                _changes.push( change );
+            }, { live: true } );
             // -----
             Observer.set( obj, {
                 key1: {},
@@ -177,7 +198,7 @@ describe( `Test: .observe() + .set()`, function() {
             // -----
             Observer.observe( arr, 0, change => {
                 _changes.push( change );
-            }, { eval: true } );
+            }, { preflight: true } );
             // -----
             Observer.set( arr, 0, {} );
             // -----
@@ -191,7 +212,7 @@ describe( `Test: .observe() + .set()`, function() {
             // -----
             Observer.deep( arr, [ 0, 'key1' ], Observer.observe, change => {
                 _changes.push( change );
-            }, { eval: true } );
+            }, { preflight: true } );
             // -----
             Observer.set( arr, 0, {} );
             Observer.set( arr[ 0 ], 'key1', {} );
@@ -206,7 +227,7 @@ describe( `Test: .observe() + .set()`, function() {
             // -----
             Observer.deep( obj, [ 'key1', Infinity ], Observer.observe, change => {
                 _changes.push( change );
-            }, { eval: true } );
+            }, { preflight: true } );
             // -----
             Observer.set( obj, {
                 key1: {},
