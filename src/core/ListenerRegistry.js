@@ -60,10 +60,12 @@ export default class ListenerRegistry extends Registry {
 	 */
 	batch( callback ) {
 		this.batches.unshift( { entries: [ ...this.entries ], events: [] } );
-		callback();
+		const returnValue = callback();
 		const batch = this.batches.shift();
-		if ( !batch.events.length ) return;
-		batch.entries.forEach( listener => listener.fire( batch.events ) );
+		if ( batch.events.length ) {
+			batch.entries.forEach( listener => listener.fire( batch.events ) );
+		}
+		return returnValue;
 	}
 
 }
