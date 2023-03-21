@@ -45,12 +45,12 @@ export default class ListenerRegistry extends Registry {
 	 */
 	emit( events ) {
 		if ( this.batches.length ) {
-			this.batches[ 0 ].push( ...events );
+			this.batches[ 0 ].events.push( ...events );
 			return
 		}
 		this.entries.forEach( listener => listener.fire( events ) );
 	}
-	
+
 	/**
 	 * Fires all observers with the given evt (change).
 	 *
@@ -59,11 +59,11 @@ export default class ListenerRegistry extends Registry {
 	 * @return Void
 	 */
 	batch( callback ) {
-		this.batches.unshift( [] );
+		this.batches.unshift( { entries: [ ...this.entries ], events: [] } );
 		callback();
-		const events = this.batches.shift();
-		if ( !events.length ) return;
-		this.entries.forEach( listener => listener.fire( events ) );
+		const batch = this.batches.shift();
+		if ( !batch.events.length ) return;
+		batch.entries.forEach( listener => listener.fire( batch.events ) );
 	}
 
 }

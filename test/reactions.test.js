@@ -46,13 +46,17 @@ describe( `Test: .observe() + .set()`, function() {
     describe( `Observe batched changes.`, function() {
 
         it( `Should recieve multiple event of different mutation types.`, function() {
-            let obj = {}, _changes;
+            let obj = {}, _changes = [];
             // -----
             Observer.observe( obj, changes => {
-                _changes = changes;
+                _changes.push( ...changes );
             } );
             // -----
             Observer.batch( obj, () => {
+                // This call to observe will not recieve events from the batch
+                Observer.observe( obj, changes => {
+                    _changes.push( ...changes );
+                } );
                 Observer.set( obj, {
                     key1: 'value1',
                 } );
