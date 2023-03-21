@@ -251,6 +251,19 @@ export function get( target, prop, receiver = x => x, params = {} ) {
 /* ---------------MUTATION APIs--------------- */
 
 /**
+ * Performs a batch operation.
+ * 
+ * @param Object	        target
+ * @param Function	        callback
+ * @param Object	        params
+ *
+ * @return Void
+ */
+export function batch( target, callback, params = {} ) {
+    return ListenerRegistry.getInstance( target, true, params.namespace ).batch( callback );
+}
+
+/**
  * Performs a set operation.
  * 
  * @param Object	        target

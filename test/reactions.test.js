@@ -43,6 +43,26 @@ describe( `Test: .observe() + .set()`, function() {
 
     } );
 
+    describe( `Observe batched changes.`, function() {
+
+        it( `Should recieve multiple event of different mutation types.`, function() {
+            let obj = {}, _changes;
+            // -----
+            Observer.observe( obj, changes => {
+                _changes = changes;
+            } );
+            // -----
+            Observer.batch( obj, () => {
+                Observer.set( obj, {
+                    key1: 'value1',
+                } );
+                Observer.deleteProperty( obj, 'key1' );
+            } );
+            // -----
+            expect( _changes ).to.be.an( 'array' ).with.length( 2 );
+        } );
+    } );
+
     describe( `Observe with namespaces.`, function() {
 
         let obj = {},
