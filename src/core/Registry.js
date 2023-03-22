@@ -2,8 +2,9 @@
 /**
  * @imports
  */
-import { _isTypeObject, _getType, _internals } from '@webqit/util/js/index.js';
+import { _isTypeObject, _getType } from '@webqit/util/js/index.js';
 import { _from as _arrFrom, _intersect, _equals as _arrEquals } from '@webqit/util/arr/index.js';
+import { _ } from '../util.js';
 
 /**
  * ---------------------------
@@ -62,14 +63,14 @@ export default class Registry {
 	static _getInstance( type, target, createIfNotExists = true, namespace = this.__namespace ) {
 		if ( !_isTypeObject( target ) ) throw new Error( `Subject must be of type object; "${ _getType( target ) }" given!` );
 		let ImplementationClass = this;
-		if ( namespace && globalThis.WebQitObserverNamespaceRegistry.has( type + '-' + namespace ) ) {
-			ImplementationClass = globalThis.WebQitObserverNamespaceRegistry.get( type + '-' + namespace );
+		if ( namespace && _( 'namespaces' ).has( type + '-' + namespace ) ) {
+			ImplementationClass = _( 'namespaces' ).get( type + '-' + namespace );
 			type += '-' + namespace
 		}
-		if ( !_internals( target, 'observerApi' ).has( type ) && createIfNotExists ) {
-			_internals( target, 'observerApi' ).set( type, new ImplementationClass( target ) );
+		if ( !_( target, 'registry' ).has( type ) && createIfNotExists ) {
+			_( target, 'registry' ).set( type, new ImplementationClass( target ) );
 		}
-		return _internals( target, 'observerApi' ).get( type );
+		return _( target, 'registry' ).get( type );
 	}
 
 	/**
@@ -82,15 +83,11 @@ export default class Registry {
 	 */
 	static _namespace( type, namespace, ImplementationClass = null ) {
 		type += '-' + namespace;
-		if ( arguments.length === 2 ) return globalThis.WebQitObserverNamespaceRegistry.get( type );
+		if ( arguments.length === 2 ) return _( 'namespaces' ).get( type );
 		if ( !( ImplementationClass.prototype instanceof this ) ) {
 			throw new Error( `The implementation of the namespace ${ this.name }.${ namespace } must be a subclass of ${ this.name }.` );
 		}
-		globalThis.WebQitObserverNamespaceRegistry.set( type, ImplementationClass );
+		_( 'namespaces' ).set( type, ImplementationClass );
 		ImplementationClass.__namespace = namespace;
 	}
-}
-
-if ( !globalThis.WebQitObserverNamespaceRegistry ) {
-	globalThis.WebQitObserverNamespaceRegistry = new Map;
 }

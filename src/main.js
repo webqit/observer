@@ -2,12 +2,13 @@
 /**
  * @imports
  */
-import { _internals, _isObject, _isTypeObject, _isFunction, _getType } from '@webqit/util/js/index.js';
+import { _isObject, _isTypeObject, _isFunction, _getType } from '@webqit/util/js/index.js';
 import { _from as _arrFrom } from '@webqit/util/arr/index.js';
 import ListenerRegistry from './core/ListenerRegistry.js';
 import TrapsRegistry from './core/TrapsRegistry.js';
 import Descriptor from './core/Descriptor.js';
 import { unproxy } from './actors.js';
+import { _ } from './util.js';
 
 /* ---------------SPECIAL APIs--------------- */
 
@@ -218,7 +219,7 @@ export function get( target, prop, receiver = x => x, params = {} ) {
             function defaultGet( descriptor, value = undefined ) {
                 const _next = value => ( descriptor.value = value, next( results.concat( params.live || params.descripted ? descriptor : value ), _props, _done ) );
                 if ( arguments.length > 1 ) return _next( value );
-                const accessorizedProps = _internals( target, 'accessorizedProps', false );
+                const accessorizedProps = _( target, 'accessorizedProps', false );
                 const accessorization = accessorizedProps && accessorizedProps.get( descriptor.key );
                 if ( accessorization && accessorization.intact() ) {
                     return _next( accessorization.getValue() );
@@ -293,7 +294,7 @@ export function set( target, prop, value, receiver = x => x, params = {}, def = 
         function defaultSet( descriptor, status = undefined ) {
             const _next = status => ( descriptor.status = status, next( descriptors.concat( descriptor ), entries, _done ) );
             if ( arguments.length > 1 ) return _next( descriptor, status );
-            const accessorizedProps = _internals( target, 'accessorizedProps', false );
+            const accessorizedProps = _( target, 'accessorizedProps', false );
             const accessorization = accessorizedProps && accessorizedProps.get( descriptor.key );
             if ( descriptor.type === 'defineProperty' ) {
                 if ( accessorization && !accessorization.restore() ) _next( false );
@@ -389,7 +390,7 @@ export function deleteProperty( target, prop, receiver = x => x, params = {} ) {
         function defaultDel( descriptor, status = undefined ) {
             const _next = status => ( descriptor.status = status, next( descriptors.concat( descriptor ), props, _done ) );
             if ( arguments.length > 1 ) return _next( descriptor, status );
-            const accessorizedProps = _internals( target, 'accessorizedProps', false );
+            const accessorizedProps = _( target, 'accessorizedProps', false );
             const accessorization = accessorizedProps && accessorizedProps.get( descriptor.key );
             if ( accessorization && !accessorization.restore() ) _next( false );
             return _next( Reflect.deleteProperty( target, descriptor.key ) );

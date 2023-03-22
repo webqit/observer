@@ -3,9 +3,10 @@
  * @imports
  */
 import { _from as _arrFrom } from '@webqit/util/arr/index.js';
-import { _isClass, _isFunction, _isTypeObject, _getType, _internals } from '@webqit/util/js/index.js';
+import { _isClass, _isFunction, _isTypeObject, _getType } from '@webqit/util/js/index.js';
 import { set, deleteProperty, has, get, ownKeys, defineProperty, getOwnPropertyDescriptor } from "./main.js";
 import { apply, construct, getPrototypeOf, setPrototypeOf, isExtensible, preventExtensions } from "./main.js";
+import { _ } from './util.js';
 
 /* ---------------ACCESSORIZE METHODS--------------- */
 
@@ -20,7 +21,7 @@ import { apply, construct, getPrototypeOf, setPrototypeOf, isExtensible, prevent
  */
 export function accessorize( target, props, params = {} ) {
     target = resolveTarget( target );
-    const accessorizedProps = _internals( target, 'accessorizedProps' );
+    const accessorizedProps = _( target, 'accessorizedProps' );
     // ---------
     function getDescriptorDeep( prop ) {
         let descriptor, proto = target;
@@ -96,7 +97,7 @@ export function accessorize( target, props, params = {} ) {
  */
 export function unaccessorize( target, props, params = {} ) {
     target = resolveTarget( target );
-    const accessorizedProps = _internals( target, 'accessorizedProps' );
+    const accessorizedProps = _( target, 'accessorizedProps' );
     function unaccessorizeProp( prop ) {
         if ( !accessorizedProps.has( prop ) ) return true;
         return accessorizedProps.get( prop ).restore();
@@ -144,7 +145,7 @@ export function proxy( target, params = {} ) {
         set: ( target, propertyKey, value, receiver = null ) => set( target, propertyKey, value, { ...params, receiver } ),
         setPrototypeOf: ( target, prototype ) => setPrototypeOf( target, prototype, params ),
     });
-    _internals( proxy ).set( proxy, target );
+    _( proxy ).set( proxy, target );
 	return proxy;
 }
 
@@ -157,7 +158,7 @@ export function proxy( target, params = {} ) {
  */
 export function unproxy( target ) {
     // Proxy targets are mapped to their own instances internally
-    return _internals( target, false ).get( target ) || target;
+    return _( target ).get( target ) || target;
 }
 
 /* ---------------HELPERS--------------- */
