@@ -308,6 +308,7 @@ export function set( target, prop, value, receiver = x => x, params = {}, def = 
         }
         // ---------
         function exec( isUpdate, oldValue ) {
+            if ( params.diff && value === oldValue ) return next( descriptors, entries, _done );
             const descriptor = new Descriptor( target, {
                 type: def ? 'defineProperty' : 'set',
                 key: prop,
@@ -323,16 +324,16 @@ export function set( target, prop, value, receiver = x => x, params = {}, def = 
                 : defaultSet( descriptor );
         }
         // ---------
-        return has( target, prop, isUpdate => {
-            if ( !isUpdate || params.oldValue !== true ) return exec( isUpdate );
-            return get( target, prop, oldValue => exec( isUpdate, oldValue ), params );
+        return has( target, prop, exists => {
+            if ( ( !exists || params.oldValue !== true ) && !params.diff ) return exec( exists );
+            return get( target, prop, oldValue => exec( exists, oldValue ), params );
         }, params );
         // ---------
     } )( [], entries.slice( 0 ), descriptors => {
         const listenerRegistry = ListenerRegistry.getInstance( target, false, params.namespace );
         if ( listenerRegistry ) listenerRegistry.emit( descriptors );
         return receiver(
-            isPropsList( prop/*original*/ ) ? descriptors.map( opr => opr.status ) : descriptors[ 0 ].status
+            isPropsList( prop/*original*/ ) ? descriptors.map( opr => opr.status ) : descriptors[ 0 ]?.status
         );
     } );
 }

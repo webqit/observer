@@ -13,15 +13,18 @@ describe( `Test: .observe() + .set()`, function() {
     describe( `Observe all changes.`, function() {
 
         it( `Should recieve an event of one change on setting one prop.`, function() {
-            let obj = {}, _changes;
+            let obj = {}, _changes = [];
             // -----
             Observer.observe( obj, changes => {
-                _changes = changes;
+                _changes.push( ...changes );
             } );
             // -----
             Observer.set( obj, {
                 key1: 'value1',
             } );
+            Observer.set( obj, {
+                key1: 'value1',
+            }, { diff: true } );
             // -----
             expect( _changes ).to.be.an( 'array' ).with.length( 1 );
         } );
