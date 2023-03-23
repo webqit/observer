@@ -325,7 +325,7 @@ export function set( target, prop, value, receiver = x => x, params = {}, def = 
         }
         // ---------
         return has( target, prop, exists => {
-            if ( ( !exists || params.oldValue !== true ) && !params.diff ) return exec( exists );
+            if ( !exists ) return exec( exists );
             return get( target, prop, oldValue => exec( exists, oldValue ), params );
         }, params );
         // ---------
@@ -411,7 +411,6 @@ export function deleteProperty( target, prop, receiver = x => x, params = {} ) {
                 : defaultDel( descriptor );
         }
         // ---------
-        if ( params.oldValue === false ) return exec();
         return get( target, prop, exec, params );
         // ---------
     } )( [], props.slice( 0 ), descriptors => {

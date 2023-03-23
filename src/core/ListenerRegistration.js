@@ -45,6 +45,9 @@ export default class ListenerRegistration extends Registration {
 		if ( filter !== Infinity && ( filter = _arrFrom( filter ) ) ) {
 			matches = events.filter( event => filter.includes( event.key ) );
 		}
+		if ( this.params.diff ) {
+			matches = matches.filter( event => event.type !== 'set' || event.value !== event.oldValue );
+		}
 		if ( matches.length ) {
 			return this.filter === Infinity || Array.isArray( this.filter )
 				? this.handler( matches, this )
