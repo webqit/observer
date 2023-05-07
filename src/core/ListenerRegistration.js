@@ -42,7 +42,7 @@ export default class ListenerRegistration extends Registration {
 	 */
 	fire( events ) {
 		let matches = events, filter = this.filter;
-		if ( filter !== Infinity && ( filter = _arrFrom( filter ) ) ) {
+		if ( filter !== Infinity && ( filter = _arrFrom( filter, false ) ) ) {
 			matches = events.filter( event => filter.includes( event.key ) );
 		}
 		if ( this.params.diff ) {

@@ -383,7 +383,7 @@ export function deleteProperty( target, prop, receiver = x => x, params = {} ) {
     target = resolveObj( target );
     if ( _isObject( receiver ) ) { [ params, receiver ] = [ receiver, x => x ]; }
     // ---------------
-    const props = _arrFrom( prop ), related = [ ...props ];
+    const props = _arrFrom( prop, false ), related = [ ...props ];
     return ( function next( descriptors, props, _done ) {
         if ( !props.length ) return _done( descriptors );
         const prop = props.shift();
@@ -557,5 +557,5 @@ function resolveObj( obj, assert = true ) {
 // Resolves prop down to actual keys
 function resolveProps( obj, prop, receiver ) {
     if ( prop === Infinity )  return ownKeys( obj, receiver );
-    return receiver( _arrFrom( prop ) );
+    return receiver( _arrFrom( prop, false ) );
 }
