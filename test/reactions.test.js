@@ -215,9 +215,9 @@ describe( `Test: .observe() + .set()`, function() {
                 subkey1: {},
             } );
             // -----
-            expect( _changes ).to.have.lengthOf( 2 );
-            expect( _changes[ 0 ] ).to.be.an( 'object' ).that.deep.includes( { key: 'sub.key1', path: [ 'key1', 'sub.key1' ], type: 'get', value: undefined, } );
-            expect( _changes[ 1 ] ).to.be.an( 'object' ).that.deep.includes( { key: 'sub.key1', path: [ 'key1', 'sub.key1' ], type: 'set', value: {}, } );
+            expect( _changes ).to.have.lengthOf( 3 );
+            expect( _changes[ 1 ] ).to.be.an( 'object' ).that.deep.includes( { key: 'sub.key1', path: [ 'key1', 'sub.key1' ], type: 'get', value: undefined, } );
+            expect( _changes[ 2 ] ).to.be.an( 'object' ).that.deep.includes( { key: 'sub.key1', path: [ 'key1', 'sub.key1' ], type: 'set', value: {}, } );
         } );
 
         it( `Observe path 0 of an array.`, function() {
@@ -225,13 +225,12 @@ describe( `Test: .observe() + .set()`, function() {
             // -----
             Observer.observe( arr, 0, change => {
                 _changes.push( change );
-            }, { preflight: true } );
+            } );
             // -----
             Observer.set( arr, 0, {} );
             // -----
-            expect( _changes ).to.have.lengthOf( 2 );
-            expect( _changes[ 0 ] ).to.be.an( 'object' ).that.deep.includes( { key: 0, type: 'get', } );
-            expect( _changes[ 1 ] ).to.be.an( 'object' ).that.deep.includes( { key: 0, type: 'set', } );
+            expect( _changes ).to.have.lengthOf( 1 );
+            expect( _changes[ 0 ] ).to.be.an( 'object' ).that.deep.includes( { key: 0, type: 'set', } );
         } );
 
         it( `Observe path [ 0, 'key1' ] of an array.`, function() {
