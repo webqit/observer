@@ -41,6 +41,7 @@ export default class ListenerRegistration extends Registration {
 	 * @return Any
 	 */
 	fire( events ) {
+		if ( this.handler.firing ) return;
 		let matches = events, filter = this.filter;
 		if ( filter !== Infinity && ( filter = _arrFrom( filter ) ) ) {
 			matches = events.filter( event => filter.includes( event.key ) );
@@ -49,9 +50,12 @@ export default class ListenerRegistration extends Registration {
 			matches = matches.filter( event => event.type !== 'set' || event.value !== event.oldValue );
 		}
 		if ( matches.length ) {
-			return this.filter === Infinity || Array.isArray( this.filter )
+			this.handler.firing = true;
+			const ret = this.filter === Infinity || Array.isArray( this.filter )
 				? this.handler( matches, this )
 				: this.handler( matches[ 0 ], this );
+			this.handler.firing = false;
+			return ret;
 		}
 	}
 }

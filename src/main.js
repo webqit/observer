@@ -8,7 +8,7 @@ import ListenerRegistry from './core/ListenerRegistry.js';
 import TrapsRegistry from './core/TrapsRegistry.js';
 import Descriptor from './core/Descriptor.js';
 import { unproxy } from './actors.js';
-import { _ } from './util.js';
+import { _, _await } from './util.js';
 
 /* ---------------SPECIAL APIs--------------- */
 
@@ -26,38 +26,51 @@ import { _ } from './util.js';
  * @return Any
  */
 export function deep( target, path, receiver, final = x => x, params = {} ) {
-    return ( function eat( target, path, _params ) {
-        const segment = path[ _params.level ];
-        // ---------------
-        if ( _params.level < path.length - 1 ) { _params = { ..._params, preflight: true }; }
-        else { _params = { ..._params, preflight: /*reset*/params.preflight }; }
+    return ( function eat( target, path, $params ) {
+        const segment = path[ $params.level ];
+        const isLastSegment = $params.level === path.length - 1;
+        if ( target instanceof Descriptor && target.type !== 'get' ) {
+            // Always probe event-generated trees
+            $params = { ...$params, probe: 'always' };
+        } else if ( $params.probe !== 'always' ) {
+            // Probe until (before) last segment
+            $params = { ...$params, probe: !isLastSegment };
+        }
         // ---------------
         return receiver( target, segment, ( result, ...args ) => {
             // -----------
-            const paramsNext = ( flags = {} ) => ( { ..._params, ...flags, level: _params.level + 1, } );
             const addTrail = desc => {
                 if ( !( desc instanceof Descriptor ) ) return;
                 desc.path = [ desc.key ];
                 if ( target instanceof Descriptor ) {
                     desc.path = target.path.concat( desc.key );
-                    desc.context = target;
+                    Object.defineProperty( desc, 'context', { get: () => target } );
                 }
+            };
+            const advance = result => {
+                const $value = resolveObj( result/* a Descriptor who's value could be proxied */, false );
+                return _await( $value/* could be a promise */, $value => {
+                    if ( result instanceof Descriptor ) {
+                        result.value = $value; // Update to (fulfilled), unproxied, value
+                    } else {
+                        result = $value;
+                    }
+                    const flags = args[ 0 ] || {};
+                    return eat( result, path, { ...$params, ...flags, level: $params.level + 1, } );
+                } );
             };
             // -----------
             if ( isPropsList( segment ) && Array.isArray( result ) ) {
-                // -----------
                 result.forEach( addTrail );
-                if ( _params.level === path.length - 1 || ( !result.length && _params.midwayResults ) ) return final( result, ...args );
-                return result.map( entry => eat( entry, path, paramsNext( ...args ) ) )
-                // -----------
+                if ( isLastSegment ) return final( result, ...args );
+                return result.map( advance );
             }
             // -----------
             addTrail( result );
-            const $isTypeObject = _isTypeObject( resolveObj( result, false ) );
-            if ( _params.level === path.length - 1 || ( !$isTypeObject && _params.midwayResults ) ) return final( result, ...args );
-            return $isTypeObject && eat( result, path, paramsNext( ...args ) );
+            if ( isLastSegment ) return final( result, ...args );
+            return advance( result );
             // -----------
-        }, _params );
+        }, $params );
     } )( target, path.slice( 0 ), { ...params, level: 0 } );
 }
 
@@ -73,17 +86,19 @@ export function deep( target, path, receiver, final = x => x, params = {} ) {
  */
 export function observe( target, prop, receiver, params = {} ) {
     // ---------------
-    target = resolveObj( target );
+    target = resolveObj( target, !params.level );
 	if ( _isFunction( arguments[ 1 ] ) ) {
         [ , receiver, params = {} ] = arguments;
         prop = Infinity;
 	}
 	if ( !_isFunction( receiver ) ) throw new Error( `Handler must be a function; "${ _getType( receiver ) }" given!` );
     // ---------------
+    params = { ...params, descripted: true };
+    delete params.live;
+    if ( !_isTypeObject( target ) ) return params.probe && get( target, prop, receiver, params );
+    // ---------------
     const emit = bind( target, prop, receiver, params );
-    if ( params.preflight ) {
-        params = { ...params, descripted: true };
-        delete params.live;
+    if ( params.probe ) {
         return get( target, prop, emit, params );
     }
     return emit();
@@ -206,7 +221,7 @@ export function has( target, prop, receiver = x => x, params = {} ) {
 export function get( target, prop, receiver = x => x, params = {} ) {
     // ---------------
     let isLive;
-    target = resolveObj( target );
+    target = resolveObj( target, !params.level );
     if ( _isObject( receiver ) ) { [ params, receiver ] = [ receiver, x => x ]; }
     else if ( params.live ) { isLive = true; }
     // ---------------
@@ -220,7 +235,7 @@ export function get( target, prop, receiver = x => x, params = {} ) {
                 const _next = value => ( descriptor.value = value, next( results.concat( params.live || params.descripted ? descriptor : value ), _props, _done ) );
                 if ( arguments.length > 1 ) return _next( value );
                 const accessorizedProps = _( target, 'accessorizedProps', false );
-                const accessorization = accessorizedProps && accessorizedProps.get( descriptor.key );
+                const accessorization = accessorizedProps && accessorizedProps.get( descriptor.key + '' );
                 if ( accessorization && accessorization.intact() ) {
                     return _next( accessorization.getValue() );
                 }
@@ -233,6 +248,7 @@ export function get( target, prop, receiver = x => x, params = {} ) {
                 value: undefined,
                 related,
             } );
+            if ( !_isTypeObject( target ) ) return next( results.concat( params.live || params.descripted ? descriptor : undefined ), _props, _done );
             const listenerRegistry = TrapsRegistry.getInstance( target, false, params.namespace );
             if ( listenerRegistry ) {
                 return listenerRegistry.emit( descriptor, defaultGet );
@@ -240,7 +256,7 @@ export function get( target, prop, receiver = x => x, params = {} ) {
             return defaultGet( descriptor );
         } )( [], props.slice( 0 ), results => {
             const result_s = isPropsList( prop/*original*/ ) ? results : results[ 0 ];
-            if ( isLive ) {
+            if ( isLive && _isTypeObject( target ) ) {
                 const emit = bind( target, prop, receiver, params );
                 return emit( result_s );
             }
@@ -261,6 +277,7 @@ export function get( target, prop, receiver = x => x, params = {} ) {
  * @return Void
  */
 export function batch( target, callback, params = {} ) {
+    target = resolveObj( target );
     return ListenerRegistry.getInstance( target, true, params.namespace ).batch( callback );
 }
 
@@ -295,7 +312,7 @@ export function set( target, prop, value, receiver = x => x, params = {}, def = 
             const _next = status => ( descriptor.status = status, next( descriptors.concat( descriptor ), entries, _done ) );
             if ( arguments.length > 1 ) return _next( descriptor, status );
             const accessorizedProps = _( target, 'accessorizedProps', false );
-            const accessorization = accessorizedProps && accessorizedProps.get( descriptor.key );
+            const accessorization = accessorizedProps && accessorizedProps.get( descriptor.key + '' );
             if ( descriptor.type === 'defineProperty' ) {
                 if ( accessorization && !accessorization.restore() ) _next( false );
                 Object.defineProperty( target, descriptor.key, descriptor.value );
@@ -392,7 +409,7 @@ export function deleteProperty( target, prop, receiver = x => x, params = {} ) {
             const _next = status => ( descriptor.status = status, next( descriptors.concat( descriptor ), props, _done ) );
             if ( arguments.length > 1 ) return _next( descriptor, status );
             const accessorizedProps = _( target, 'accessorizedProps', false );
-            const accessorization = accessorizedProps && accessorizedProps.get( descriptor.key );
+            const accessorization = accessorizedProps && accessorizedProps.get( descriptor.key + '' );
             if ( accessorization && !accessorization.restore() ) _next( false );
             return _next( Reflect.deleteProperty( target, descriptor.key ) );
         }
@@ -420,6 +437,13 @@ export function deleteProperty( target, prop, receiver = x => x, params = {} ) {
             isPropsList( prop/*original*/ ) ? descriptors.map( opr => opr.status ) : descriptors[ 0 ].status
         );
     } );
+}
+
+/**
+ * @alias deleteProperty()
+ */
+export function deleteProperties( target, props, receiver = x => x, params = {} ) {
+    return deleteProperty( ...arguments );
 }
 
 /* ---------------EFFECT APIs--------------- */

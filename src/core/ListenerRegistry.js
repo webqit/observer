@@ -4,6 +4,7 @@
  */
 import ListenerRegistration from './ListenerRegistration.js';
 import Registry from './Registry.js';
+import { _await } from '../util.js';
 
 /**
  * ---------------------------
@@ -61,11 +62,13 @@ export default class ListenerRegistry extends Registry {
 	batch( callback ) {
 		this.batches.unshift( { entries: [ ...this.entries ], events: [] } );
 		const returnValue = callback();
-		const batch = this.batches.shift();
-		if ( batch.events.length ) {
-			batch.entries.forEach( listener => listener.fire( batch.events ) );
-		}
-		return returnValue;
+		return _await( returnValue, returnValue => {
+			const batch = this.batches.shift();
+			if ( batch.events.length ) {
+				batch.entries.forEach( listener => listener.fire( batch.events ) );
+			}
+			return returnValue;
+		} )
 	}
 
 }
