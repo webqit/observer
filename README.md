@@ -6,23 +6,27 @@
 
 <!-- /BADGES -->
 
-# Overview
+A web-native object observability API!
 
-> **Note**
-> <br>This is documentation for `Observer@2.x`. (Looking for [`Observer@1.x`](https://github.com/webqit/observer/tree/v1.7.6)?)
+Observe and intercept operations on any type of JavaScript objects and arrays, using a notably lightweight and predictable utility-first reactivity API!
+
+## Motivation
+
+
 
 ## Table of Contents
 
++ [Motivation](#motivation)
 + [Download Options](#download-options)
-+ [Overview](#overview)
-+ [Method: `Observer.observe()`](#method-observerobserve)
-  + [Concept: *Observers*](#concept-observers)
-  + [Concept: *Mutations*](#concept-mutations)
-  + [Concept: *Batch Mutations*](#concept-batch-mutations)
-  + [Concept: *Custom Details*](#concept-custom-details)
-  + [Concept: *Diffing*](#concept-diffing)
-+ [Method: `Observer.intercept()`](#method-observerintercept)
-  + [Concept: *Traps*](#concept-traps)
++ [An Overview](#an-overview)
+  + [Method: `Observer.observe()`](#method-observerobserve)
+    + [Concept: *Observers*](#concept-observers)
+    + [Concept: *Mutations*](#concept-mutations)
+    + [Concept: *Batch Mutations*](#concept-batch-mutations)
+    + [Concept: *Custom Details*](#concept-custom-details)
+    + [Concept: *Diffing*](#concept-diffing)
+  + [Method: `Observer.intercept()`](#method-observerintercept)
+    + [Concept: *Traps*](#concept-traps)
 + [Issues](#issues)
 + [License](#license)
 
@@ -50,7 +54,12 @@ import Observer from '@webqit/observer';;
 const Observer = window.webqit.Observer;
 ```
 
-## Method: `Observer.observe()`
+## An Overview
+
+> **Note**
+> <br>This is documentation for `Observer@2.x`. (Looking for [`Observer@1.x`](https://github.com/webqit/observer/tree/v1.7.6)?)
+
+### Method: `Observer.observe()`
 
 Observe mutations on any object or array!
 
@@ -64,7 +73,7 @@ Observer.observe( obj, callback[, options = {} ]);
 Observer.observe( obj, props, callback[, options = {} ]);
 ```
 
-### Concept: *Observers*
+#### Concept: *Observers*
 
 Observe arbitrary objects and arrays:
 
@@ -115,7 +124,7 @@ Observer.observe( obj, mutations => {
 abortController.abort();
 ```
 
-### Concept: *Mutations*
+#### Concept: *Mutations*
 
 Programmatically mutate properties of an object using the *[Reflect](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect#static_methods)-like* set of operators; each operation will be reported by observers:
 
@@ -233,7 +242,7 @@ _obj.prop1 = 'value1';
 Observer.set( _obj, 'prop1', 'value1' );
 ```
 
-**-->** "Restore" accessorized properties to normal by calling `unaccessorize()`:
+**-->** "Restore" accessorized properties to their normal state by using the `unaccessorize()` method:
 
 ```js
 Observer.unaccessorize( obj, [ 'prop1', 'prop6', 'prop10' ] );
@@ -245,7 +254,7 @@ Observer.unaccessorize( obj, [ 'prop1', 'prop6', 'prop10' ] );
 obj = Observer.unproxy( _obj );
 ```
 
-### Concept: *Batch Mutations*
+#### Concept: *Batch Mutations*
 
 Make multiple mutations at a go, and they'll be correctly delivered in batch to observers!
 
@@ -288,7 +297,7 @@ Observer.batch( arr, async () => {
 
 > Method calls on a proxied instance - e.g. `Object.proxy( arr ).splice( 0 )` - also follow this strategy.
 
-### Concept: *Custom Details*
+#### Concept: *Custom Details*
 
 Pass some custom detail - an arbitrary value - to observers via a `params.detail` property.
 
@@ -309,7 +318,7 @@ Observer.observe( obj, 'prop1', mutation => {
 } );
 ```
 
-### Concept: *Diffing*
+#### Concept: *Diffing*
 
 Receive notifications only for mutations that actually change property state, and ignore those that don't.
 
@@ -334,7 +343,7 @@ descripted
 namespace
 -->
 
-## Method: `Observer.intercept()`
+### Method: `Observer.intercept()`
 
 Intercept operations on any object or array before they happen!
 
@@ -348,7 +357,7 @@ Observer.intercept( obj, prop, handler[, options = {} ]);
 Observer.intercept( obj, traps[, options = {} ]);
 ```
 
-### Concept: *Traps*
+#### Concept: *Traps*
 
 Extend standard operations on an object - `Observer.set()`,  `Observer.deleteProperty()`, etc - with custom traps using the [`Observer.intercept()`](https://webqit.io/tooling/observer/docs/api/reactions/intercept) method!
 
