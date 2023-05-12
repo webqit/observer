@@ -6,7 +6,7 @@
 
 <!-- /BADGES -->
 
-A web-native object observability API!
+**[Motivation](#motivation) • [Overview](#an-overview) • [Polyfill](#download-options) • [Design Discussion](#design-discussion) • [Getting Involved](#getting-involved) • [License](#license)**
 
 Observe and intercept operations on arbitrary JavaScript objects and arrays using a utility-first, general-purpose reactivity API! This API re-explores the unique design of the [`Object.observe()`](https://web.dev/es7-observe/) API and extends it with the best of JavaScript's [reflection](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect) and interception APIs - *Proxies*, *accessors* - to support any kind of reactive programming model!
 
@@ -420,9 +420,14 @@ const Observer = window.webqit.Observer;
 
 *[TODO]*
 
-## Issues
+## Getting Involved
 
-To report bugs or request features, please submit an [issue](https://github.com/webqit/observer/issues).
+All forms of contributions are welcome at this time. For example, implementation details are all up for discussion. And here are specific links:
+
++ [Project](https://github.com/webqit/observer)
++ [Documentation](https://github.com/webqit/observer/wiki)
++ [Discusions](https://github.com/webqit/observer/discussions)
++ [Issues](https://github.com/webqit/observer/issues)
 
 ## License
 
