@@ -18,7 +18,7 @@ Tracking mutations on JavaScript objects has historically relied on "object wrap
 
 + **Programming model**: proxy traps and object accessors by design only interface with one listenining logic in the entire program. Objects are effectively open to multiple interactions on the outside but closed-off to one observer on the inside, enabling just a "many to one" model. This does not correctly reflect the most common usecases where the idea is to have any number of listeners per event; i.e. a "many to many" model! It takes yet a non-trivial effort to go from the default model to the one desired.
 
-Surprisingly, we at one time had an *object observability* primitive that checked all the boxes and touched the very pain points we have today: the [`Object.observe()`](https://web.dev/es7-observe/) API. How about an equivalent API that brings all of the good thinking from `Object.observe()` together with the idea of *Proxies* and *accessors* in one design, delivered as one utility for all things *reactivity*? This is the idea with the new **Observer API**!
+Surprisingly, we at one time had an *object observability* primitive that checked all the boxes and touched the very pain points we have today: the [`Object.observe()`](https://web.dev/es7-observe/) API. Now, how about an equivalent API that brings all of the good thinking from `Object.observe()` together with the idea of *Proxies*, *accessors*, and JavaScript's other [*reflection* API](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect) in one design, delivered as one utility for all things *reactivity*? This is the idea with the new **Observer API**!
 
 ## Table of Contents
 
