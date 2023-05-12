@@ -26,7 +26,7 @@ Interestingly, we at one time had an *object observability* primitive that check
 + [An Overview](#an-overview)
   + [Method: `Observer.observe()`](#method-observerobserve)
     + [Concept](#concept)
-    + [Concept: *Mutations*](#concept-mutations)
+    + [Concept: *Mutation APIs*](#concept-mutation-apis)
     + [Concept: *Batch Mutations*](#concept-batch-mutations)
     + [Concept: *Custom Details*](#concept-custom-details)
     + [Concept: *Diffing*](#concept-diffing)
@@ -107,7 +107,7 @@ Observer.observe( obj, mutations => {
 abortController.abort();
 ```
 
-#### Concept: *Mutations*
+#### Concept: *Mutation APIs*
 
 Programmatically mutate properties of an object using the *[Reflect](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect#static_methods)-like* set of operators; each operation will be reported by observers:
 
