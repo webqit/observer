@@ -8,7 +8,7 @@
 
 A web-native object observability API!
 
-Observe and intercept operations on any type of JavaScript objects and arrays, using a notably lightweight and predictable utility-first reactivity API!
+Observe and intercept operations on arbitrary JavaScript objects and arrays, using a notably lightweight and predictable utility-first reactivity API!
 
 ## Motivation
 
