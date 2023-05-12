@@ -23,7 +23,6 @@ Surprisingly, we at one time had an *object observability* primitive that checke
 ## Table of Contents
 
 + [Motivation](#motivation)
-+ [Download Options](#download-options)
 + [An Overview](#an-overview)
   + [Method: `Observer.observe()`](#method-observerobserve)
     + [Concept](#concept)
@@ -33,33 +32,10 @@ Surprisingly, we at one time had an *object observability* primitive that checke
     + [Concept: *Diffing*](#concept-diffing)
   + [Method: `Observer.intercept()`](#method-observerintercept)
     + [Concept](#concept)
++ [Download Options](#download-options)
 + [Design Discussion](#design-discussion)
 + [Issues](#issues)
 + [License](#license)
-
-## Download Options
-
-**_Use as an npm package:_**
-
-```bash
-npm i @webqit/observer
-```
-
-```js
-// Import
-import Observer from '@webqit/observer';;
-```
-
-**_Use as a script:_**
-
-```html
-<script src="https://unpkg.com/@webqit/observer/dist/main.js"></script>
-```
-
-```js
-// Obtain the APIs
-const Observer = window.webqit.Observer;
-```
 
 ## An Overview
 
@@ -414,6 +390,30 @@ Observer.intercept( obj, {
     has: hasTrap,
     // etc
 } );
+```
+
+## Download Options
+
+**_Use as an npm package:_**
+
+```bash
+npm i @webqit/observer
+```
+
+```js
+// Import
+import Observer from '@webqit/observer';;
+```
+
+**_Use as a script:_**
+
+```html
+<script src="https://unpkg.com/@webqit/observer/dist/main.js"></script>
+```
+
+```js
+// Obtain the APIs
+const Observer = window.webqit.Observer;
 ```
 
 ## Design Discussion
