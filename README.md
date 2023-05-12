@@ -12,7 +12,13 @@ Observe and intercept operations on any type of JavaScript objects and arrays, u
 
 ## Motivation
 
+Tracking mutations on JavaScript objects has historically relied on "object wrapping" with [ES6 Proxies](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) and "property mangling" with [getters and setters](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty). Besides the *object identity trade-off* problem of the first and the *property compromisal* problem of the second, there is also the "scalability" issue inherent to the techniques and much "inflexibility" in the programming model they enable:
 
++ **Scalability**: objects have to be created a certain way, or purpose-built for the specific technique, to participate in the reactive system; objects *you don't own* have to be altered in some way - where that's even possible - to be onboarded into the reactivity system. Scalability is hamstrung as we must fulfill the **implementation criteria** for as many objects as will be needed in the design - clamped to the finite number of objects that can be made to work this way!
+
++ **Programming model**: proxy traps and object accessors by design only interface with one listenining logic in the entire program. Objects are effectively open to multiple interactions on the outside but closed-off to one observer on the inside, enabling just a "many to one" model. This does not correctly reflect the most common usecases where the idea is to have any number of listeners per event; i.e. a "many to many" model! It takes yet a non-trivial effort to go from the default model to the one desired.
+
+Surprisingly, we at one time had an *object observability* primitive that checked all the boxes and touched the very pain points we have today: the [`Object.observe()`](https://web.dev/es7-observe/) API. How about an equivalent API that brings all of the good thinking from `Object.observe()` together with the idea of *Proxies* and *accessors* in one design, delivered as one utility for all things *reactivity*? This is the idea with the new **Observer API**!
 
 ## Table of Contents
 
@@ -20,13 +26,14 @@ Observe and intercept operations on any type of JavaScript objects and arrays, u
 + [Download Options](#download-options)
 + [An Overview](#an-overview)
   + [Method: `Observer.observe()`](#method-observerobserve)
-    + [Concept: *Observers*](#concept-observers)
+    + [Concept](#concept)
     + [Concept: *Mutations*](#concept-mutations)
     + [Concept: *Batch Mutations*](#concept-batch-mutations)
     + [Concept: *Custom Details*](#concept-custom-details)
     + [Concept: *Diffing*](#concept-diffing)
   + [Method: `Observer.intercept()`](#method-observerintercept)
-    + [Concept: *Traps*](#concept-traps)
+    + [Concept](#concept)
++ [Design Discussion](#design-discussion)
 + [Issues](#issues)
 + [License](#license)
 
@@ -73,7 +80,7 @@ Observer.observe( obj, callback[, options = {} ]);
 Observer.observe( obj, props, callback[, options = {} ]);
 ```
 
-#### Concept: *Observers*
+#### Concept
 
 Observe arbitrary objects and arrays:
 
@@ -109,7 +116,7 @@ function handleChanges( mutations ) {
 abortController.abort();
 ```
 
-...or by using an [Abort Signal](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal) instance:
+...or you can provide your own [Abort Signal](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal) instance:
 
 ```js
 // Providing an AbortSignal
@@ -144,7 +151,7 @@ Observer.deleteProperty( arr, 0 ); // Array [ <1 empty slot> ]
 *Beware non-reactive operations*:
 
 ```js
-// Literal object accessors
+// Literal object operators
 delete obj.prop0;
 obj.prop3 = 'value3';
 ```
@@ -158,7 +165,7 @@ arr.pop();
 **-->** Enable reactivity on *specific* properties with literal *object accessors* - using the `Observer.accessorize()` method:
 
 ```js
-// Accessorize all (existing) properties
+// Accessorize all current enumerable properties
 Observer.accessorize( obj );
 // Accessorize specific properties (existing or new)
 Observer.accessorize( obj, [ 'prop0', 'prop1', 'prop2' ] );
@@ -170,7 +177,7 @@ obj.prop2 = 'value2';
 ```
 
 ```js
-// Accessorize all (existing) indexes
+// Accessorize all current indexes
 Observer.accessorize( arr );
 // Accessorize specific indexes (existing or new)
 Observer.accessorize( arr, [ 0, 1, 2 ] );
@@ -180,7 +187,7 @@ arr[ 0 ] = 'item0';
 arr[ 1 ] = 'item1';
 arr[ 2 ] = 'item2';
 
-// Bonus reactivity: array methods that re-index existing items
+// Bonus reactivity with array methods that re-index existing items
 arr.unshift( 'new-item0' );
 arr.shift();
 ```
@@ -203,28 +210,28 @@ arr.pop();
 
 ```js
 // Obtain a reactive Proxy for an object
-const _obj = Observer.proxy( obj );
+const $obj = Observer.proxy( obj );
 
 // Make reactive operations
-_obj.prop1 = 'value1';
-_obj.prop4 = 'value4';
-_obj.prop8 = 'value8';
+$obj.prop1 = 'value1';
+$obj.prop4 = 'value4';
+$obj.prop8 = 'value8';
 
 // With the delete operator
-delete _obj.prop0;
+delete $obj.prop0;
 ```
 
 ```js
 // Obtain a reactive Proxy for an array
-const _arr = Observer.proxy( arr );
+const $arr = Observer.proxy( arr );
 
 // Make reactive operations
-_arr[ 0 ] = 'item0';
-_arr[ 1 ] = 'item1';
-_arr[ 2 ] = 'item2';
+$arr[ 0 ] = 'item0';
+$arr[ 1 ] = 'item1';
+$arr[ 2 ] = 'item2';
 
 // With an instance method
-_arr.push( 'item3' );
+$arr.push( 'item3' );
 ```
 
 *And no problem if you end up nesting the approaches.*
@@ -234,24 +241,24 @@ _arr.push( 'item3' );
 Observer.accessorize( obj, [ 'prop0', 'prop1', 'prop2', ] );
 obj.prop1 = 'value1';
 
-// 'value1'-->_obj-->obj
-let _obj = Observer.proxy( obj );
-_obj.prop1 = 'value1';
+// 'value1'-->$obj-->obj
+let $obj = Observer.proxy( obj );
+$obj.prop1 = 'value1';
 
-// 'value1'-->set()-->_obj-->obj
-Observer.set( _obj, 'prop1', 'value1' );
+// 'value1'-->set()-->$obj-->obj
+Observer.set( $obj, 'prop1', 'value1' );
 ```
 
-**-->** "Restore" accessorized properties to their normal state by using the `unaccessorize()` method:
+**-->** "Restore" accessorized properties to their normal state by calling the `unaccessorize()` method:
 
 ```js
 Observer.unaccessorize( obj, [ 'prop1', 'prop6', 'prop10' ] );
 ```
 
-**-->** "Reproduce" original objects from Proxies obtained via `Observer.proxy()` by using the `unproxy()` method:
+**-->** "Reproduce" original objects from Proxies obtained via `Observer.proxy()` by calling the `unproxy()` method:
 
 ```js
-obj = Observer.unproxy( _obj );
+obj = Observer.unproxy( $obj );
 ```
 
 #### Concept: *Batch Mutations*
@@ -357,7 +364,7 @@ Observer.intercept( obj, prop, handler[, options = {} ]);
 Observer.intercept( obj, traps[, options = {} ]);
 ```
 
-#### Concept: *Traps*
+#### Concept
 
 Extend standard operations on an object - `Observer.set()`,  `Observer.deleteProperty()`, etc - with custom traps using the [`Observer.intercept()`](https://webqit.io/tooling/observer/docs/api/reactions/intercept) method!
 
@@ -409,12 +416,9 @@ Observer.intercept( obj, {
 } );
 ```
 
-## The End?
+## Design Discussion
 
-Certainly not! But this rundown should be a good start. Next:
-
-+ Visit the [download](https://webqit.io/tooling/observer/docs/getting-started/download) page to obtain the Observer API.
-+ Explore the [API Reference](https://webqit.io/tooling/observer/docs/api).
+*[TODO]*
 
 ## Issues
 
