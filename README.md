@@ -31,7 +31,7 @@ Surprisingly, we at one time had an *object observability* primitive that checke
     + [Concept: *Custom Details*](#concept-custom-details)
     + [Concept: *Diffing*](#concept-diffing)
   + [Method: `Observer.intercept()`](#method-observerintercept)
-    + [Concept](#concept)
+    + [Concept](#concept-1)
 + [Download Options](#download-options)
 + [Design Discussion](#design-discussion)
 + [Issues](#issues)
