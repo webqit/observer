@@ -8,7 +8,7 @@
 
 A web-native object observability API!
 
-Observe and intercept operations on arbitrary JavaScript objects and arrays, using a notably lightweight and predictable utility-first reactivity API!
+Observe and intercept operations on arbitrary JavaScript objects and arrays using a utility-first, general-purpose reactivity API! This API re-explores the unique design of the [`Object.observe()`](https://web.dev/es7-observe/) API and extends with the best of JavaScript's [reflection](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect) and interception APIs - *Proxies*, *accessors* - to support any kind of reactive programming model!
 
 ## Motivation
 
