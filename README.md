@@ -10,6 +10,8 @@
 
 Observe and intercept operations on arbitrary JavaScript objects and arrays using a utility-first, general-purpose reactivity API! This API re-explores the unique design of the [`Object.observe()`](https://web.dev/es7-observe/) API and extends it with the best of JavaScript's [reflection](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect) and interception APIs - *Proxies*, *accessors* - to support any kind of reactive programming model!
 
+Observer API is an upcoming proposal!
+
 ## Motivation
 
 Tracking mutations on JavaScript objects has historically relied on "object wrapping" with [ES6 Proxies](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) and "property mangling" with [getters and setters](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty). Besides the *object identity trade-off* problem of the first and the *property compromisal* problem of the second, there is also the "scalability" issue inherent to the techniques and much "inflexibility" in the programming model they enable:
@@ -20,24 +22,16 @@ Tracking mutations on JavaScript objects has historically relied on "object wrap
 
 Interestingly, we at one time had an *object observability* primitive that checked all the boxes and touched the very pain points we have today: the [`Object.observe()`](https://web.dev/es7-observe/) API. So, how about an equivalent API that brings all of the good thinking from `Object.observe()` together with the idea of *Proxies*, *accessors*, and JavaScript's other [*reflection* API](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect) in one design, delivered as one utility for all things *reactivity*? This is the idea with the new **Observer API**!
 
-## Table of Contents
-
-+ [Motivation](#motivation)
-+ [An Overview](#an-overview)
-  + [Method: `Observer.observe()`](#method-observerobserve)
-    + [Concept](#concept)
-    + [Concept: *Mutation APIs*](#concept-mutation-apis)
-    + [Concept: *Batch Mutations*](#concept-batch-mutations)
-    + [Concept: *Custom Details*](#concept-custom-details)
-    + [Concept: *Diffing*](#concept-diffing)
-  + [Method: `Observer.intercept()`](#method-observerintercept)
-    + [Concept](#concept-1)
-+ [Download Options](#download-options)
-+ [Design Discussion](#design-discussion)
-+ [Issues](#issues)
-+ [License](#license)
-
 ## An Overview
+
++ [Method: `Observer.observe()`](#method-observerobserve)
+  + [Concept](#concept)
+  + [Concept: *Mutation APIs*](#concept-mutation-apis)
+  + [Concept: *Batch Mutations*](#concept-batch-mutations)
+  + [Concept: *Custom Details*](#concept-custom-details)
+  + [Concept: *Diffing*](#concept-diffing)
++ [Method: `Observer.intercept()`](#method-observerintercept)
+  + [Concept](#concept-1)
 
 > **Note**
 > <br>This is documentation for `Observer@2.x`. (Looking for [`Observer@1.x`](https://github.com/webqit/observer/tree/v1.7.6)?)
