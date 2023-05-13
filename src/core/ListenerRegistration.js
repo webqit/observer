@@ -4,6 +4,7 @@
  */
 import { _from as _arrFrom } from '@webqit/util/arr/index.js';
 import Registration from './Registration.js';
+import { _await } from '../util.js';
 
 /**
  * ---------------------------
@@ -41,7 +42,7 @@ export default class ListenerRegistration extends Registration {
 	 * @return Any
 	 */
 	fire( events ) {
-		if ( this.handler.firing ) return;
+		if ( this.handler.recursionTarget && ![ 'inject', 'force-async', 'force-sync' ].includes( this.params.recursions ) ) return;
 		let matches = events, filter = this.filter;
 		if ( filter !== Infinity && ( filter = _arrFrom( filter, false ) ) ) {
 			matches = events.filter( event => filter.includes( event.key ) );
@@ -50,12 +51,22 @@ export default class ListenerRegistration extends Registration {
 			matches = matches.filter( event => event.type !== 'set' || event.value !== event.oldValue );
 		}
 		if ( matches.length ) {
-			this.handler.firing = true;
-			const ret = this.filter === Infinity || Array.isArray( this.filter )
+			if ( this.handler.recursionTarget && this.params.recursions !== 'force-sync' ) {
+				this.handler.recursionTarget.push( ...matches );
+				return;
+			}
+			this.handler.recursionTarget = this.params.recursions === 'inject' ? matches : [];
+			const $ret = this.filter === Infinity || Array.isArray( this.filter )
 				? this.handler( matches, this )
 				: this.handler( matches[ 0 ], this );
-			this.handler.firing = false;
-			return ret;
+			return _await( $ret, ret => {
+				const recursions = this.handler.recursionTarget;
+				delete this.handler.recursionTarget;
+				if ( this.params.recursions === 'force-async' ) {
+					if ( recursions.length ) return this.fire( recursions );
+				}
+				return ret;
+			} );
 		}
 	}
 }

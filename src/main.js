@@ -26,6 +26,7 @@ import { _, _await } from './util.js';
  * @return Any
  */
 export function deep( target, path, receiver, final = x => x, params = {} ) {
+    if ( !path.length ) return;
     return ( function eat( target, path, $params ) {
         const segment = path[ $params.level ];
         const isLastSegment = $params.level === path.length - 1;
@@ -44,7 +45,7 @@ export function deep( target, path, receiver, final = x => x, params = {} ) {
                 desc.path = [ desc.key ];
                 if ( target instanceof Descriptor ) {
                     desc.path = target.path.concat( desc.key );
-                    Object.defineProperty( desc, 'context', { get: () => target } );
+                    Object.defineProperty( desc, 'context', { get: () => target, configurable: true } );
                 }
             };
             const advance = result => {
@@ -232,7 +233,7 @@ export function get( target, prop, receiver = x => x, params = {} ) {
             const prop = _props.shift();
             // ---------
             function defaultGet( descriptor, value = undefined ) {
-                const _next = value => ( descriptor.value = value, next( results.concat( params.live || params.descripted ? descriptor : value ), _props, _done ) );
+                const _next = value => ( descriptor.value = value, next( [ ...results, params.live || params.descripted ? descriptor : value ]/** not using concat() as value may be an array */, _props, _done ) );
                 if ( arguments.length > 1 ) return _next( value );
                 const accessorizedProps = _( target, 'accessorizedProps', false );
                 const accessorization = accessorizedProps && accessorizedProps.get( descriptor.key + '' );
@@ -248,7 +249,7 @@ export function get( target, prop, receiver = x => x, params = {} ) {
                 value: undefined,
                 related,
             } );
-            if ( !_isTypeObject( target ) ) return next( results.concat( params.live || params.descripted ? descriptor : undefined ), _props, _done );
+            if ( !_isTypeObject( target ) ) return next( [ ...results, params.live || params.descripted ? descriptor : undefined ], _props, _done );
             const listenerRegistry = TrapsRegistry.getInstance( target, false, params.namespace );
             if ( listenerRegistry ) {
                 return listenerRegistry.emit( descriptor, defaultGet );
@@ -262,7 +263,7 @@ export function get( target, prop, receiver = x => x, params = {} ) {
             }
             return receiver( result_s );
         } );
-    } );
+    }, params );
 }
 
 /* ---------------MUTATION APIs--------------- */
@@ -529,7 +530,8 @@ function bind( target, prop, receiver, params = {} ) {
         const registrationNext = listenerRegistry.addRegistration( prop, emit, params );
         const flags = { signal: registrationNext.signal, };
         if ( arguments.length ) {
-            receiver( descriptor_s, flags );
+            const handlerReturnValue = receiver( descriptor_s, flags );
+            if ( arguments.length > 1 ) return handlerReturnValue;
         }
         return controller;
     };
@@ -579,7 +581,10 @@ function resolveObj( obj, assert = true ) {
 }
 
 // Resolves prop down to actual keys
-function resolveProps( obj, prop, receiver ) {
-    if ( prop === Infinity )  return ownKeys( obj, receiver );
+function resolveProps( obj, prop, receiver, params = {} ) {
+    if ( prop === Infinity ) {
+        if ( params.level && !_isTypeObject( obj ) ) return receiver( [] );
+        return ownKeys( obj, receiver, params );
+    }
     return receiver( _arrFrom( prop, false ) );
 }
