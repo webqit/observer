@@ -6,7 +6,7 @@
 
 <!-- /BADGES -->
 
-**[Motivation](#motivation) • [Overview](#an-overview) • [Polyfill](#download-options) • [Design Discussion](#design-discussion) • [Getting Involved](#getting-involved) • [License](#license)**
+**[Motivation](#motivation) • [Overview](#an-overview) • [Polyfill](#the-polyfill) • [Design Discussion](#design-discussion) • [Getting Involved](#getting-involved) • [License](#license)**
 
 Observe and intercept operations on arbitrary JavaScript objects and arrays using a utility-first, general-purpose reactivity API! This API re-explores the unique design of the [`Object.observe()`](https://web.dev/es7-observe/) API and extends it with the best of JavaScript's [reflection](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect) and interception APIs - *Proxies*, *accessors* - to support any kind of reactive programming model!
 
@@ -23,6 +23,8 @@ Tracking mutations on JavaScript objects has historically relied on "object wrap
 Interestingly, we at one time had an *object observability* primitive that checked all the boxes and touched the very pain points we have today: the [`Object.observe()`](https://web.dev/es7-observe/) API. So, how about an equivalent API that brings all of the good thinking from `Object.observe()` together with the idea of *Proxies*, *accessors*, and JavaScript's other [*reflection* API](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect) in one design, delivered as one utility for all things *reactivity*? This is the idea with the new **Observer API**!
 
 ## An Overview
+
+The Observer API comes as a set of utility functions.
 
 + [Method: `Observer.observe()`](#method-observerobserve)
   + [Concept](#concept)
@@ -386,7 +388,7 @@ Observer.intercept( obj, {
 } );
 ```
 
-## Download Options
+## The Polyfill
 
 **_Use as an npm package:_**
 
