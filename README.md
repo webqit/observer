@@ -14,7 +14,7 @@ Observer API is an upcoming proposal!
 
 ## Motivation
 
-Tracking mutations on JavaScript objects has historically relied on "object wrapping" with [ES6 Proxies](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) and "property mangling" with [getters and setters](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty). Besides the *object identity trade-off* problem of the first and the *property compromisal* problem of the second, there is also the "scalability" issue inherent to the techniques and much "inflexibility" in the programming model they enable:
+Tracking mutations on JavaScript objects has historically relied on "object wrapping" techniques with [ES6 Proxies](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy), and on "property mangling" techniques with [getters and setters](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty). Besides the *object identity trade-off* problem of the first and the *property compromisal* problem of the second, there is also the "scalability" issue inherent to the techniques and much "inflexibility" in the programming model they enable:
 
 + **Scalability**: objects have to be created a certain way, or be purpose-built for the specific technique, to participate in the reactivity system; objects *you don't own* have to be altered in some way - where that's even possible - to be onboarded into the reactivity system. Scalability is hamstrung as we must fulfill the **implementation criteria** for as many objects as will be needed in the design - clamped to the finite number of objects that can be made to work this way!
 
@@ -406,6 +406,8 @@ import Observer from '@webqit/observer';;
 ```html
 <script src="https://unpkg.com/@webqit/observer/dist/main.js"></script>
 ```
+
+> 4.54 KB min+compressed | 12.85 KB min
 
 ```js
 // Obtain the APIs
