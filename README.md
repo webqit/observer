@@ -22,6 +22,8 @@ Tracking mutations on JavaScript objects has historically relied on "object wrap
 
 Interestingly, we at one time had an *object observability* primitive that checked all the boxes and touched the very pain points we have today: the [`Object.observe()`](https://web.dev/es7-observe/) API. So, how about an equivalent API that brings all of the good thinking from `Object.observe()` together with the idea of *Proxies*, *accessors*, and JavaScript's other [*reflection* API](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect) in one design, delivered as one utility for all things *reactivity*? This is the idea with the new **Observer API**!
 
+└ [See more in the introductory blog post](https://dev.to/oxharris/reinvestigating-reactivity-22e0-temp-slug-5973064?preview=8afd0f8b156bf0b0b1c08058837fe4986054e52a7450f0a28adbaf07dcb7f5659b724166f553fb98ceab3d080748e86b244684f515d579bcd0f48cbb)<sup>draft</sup>
+
 ## An Overview
 
 The Observer API comes as a set of utility functions.
