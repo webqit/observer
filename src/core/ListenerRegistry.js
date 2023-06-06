@@ -33,8 +33,8 @@ export default class ListenerRegistry extends Registry {
 	/**
 	 * @addRegistration
 	 */
-	addRegistration( filter, handler, params ) {
-		return super.addRegistration( new ListenerRegistration( this, { filter, handler, params } ) );
+	addRegistration( filter, emit, params ) {
+		return super.addRegistration( new ListenerRegistration( this, { filter, emit, params } ) );
 	}
 	
 	/**

@@ -13,6 +13,18 @@ import { _, _await } from './util.js';
 /* ---------------SPECIAL APIs--------------- */
 
 /**
+ * Creates a Path array instance from arguments.
+ * 
+ * @param Array	            ...segments
+ *
+ * @return Path
+ */
+class Path extends Array {}
+export function path( ...segments ) {
+    return new Path( ...segments );
+}
+
+/**
  * Reduces a path array against handler.
  * 
  * @param Array|Object	    target
@@ -21,11 +33,11 @@ import { _, _await } from './util.js';
  * @param Function	        final
  * @param Object	        params
  * 
- * @example deep( object, [ segement1, segement2 ], observe, ( value, flags ) => {}, params );
+ * @example reduce( object, [ segement1, segement2 ], observe, ( value, flags ) => {}, params );
  *
  * @return Any
  */
-export function deep( target, path, receiver, final = x => x, params = {} ) {
+export function reduce( target, path, receiver, final = x => x, params = {} ) {
     if ( !path.length ) return;
     return ( function eat( target, path, $params ) {
         const segment = path[ $params.level ];
@@ -93,6 +105,7 @@ export function observe( target, prop, receiver, params = {} ) {
         prop = Infinity;
 	}
 	if ( !_isFunction( receiver ) ) throw new Error( `Handler must be a function; "${ _getType( receiver ) }" given!` );
+    if ( prop instanceof Path ) return reduce( target, prop, observe, receiver, params );
     // ---------------
     params = { ...params, descripted: true };
     delete params.live;
@@ -225,12 +238,16 @@ export function get( target, prop, receiver = x => x, params = {} ) {
     target = resolveObj( target, !params.level );
     if ( _isObject( receiver ) ) { [ params, receiver ] = [ receiver, x => x ]; }
     else if ( params.live ) { isLive = true; }
+    if ( prop instanceof Path ) return reduce( target, prop, get, receiver, params );
     // ---------------
     return resolveProps( target, prop, props => {
         const related = [ ...props ];
         return ( function next( results, _props, _done ) {
             if ( !_props.length ) return _done( results );
             const prop = _props.shift();
+            if ( ![ 'string', 'number', 'symbol' ].includes( typeof prop ) ) {
+                throw new Error( `Property name/key ${ prop } invalid.` );
+            }
             // ---------
             function defaultGet( descriptor, value = undefined ) {
                 const _next = value => ( descriptor.value = value, next( [ ...results, params.live || params.descripted ? descriptor : value ]/** not using concat() as value may be an array */, _props, _done ) );
