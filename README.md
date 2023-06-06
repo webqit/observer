@@ -455,7 +455,7 @@ Intercept operations on any object or array before they happen!
 
 ```js
 // Signature 1
-Observer.intercept( obj, prop, handler[, options = {} ]);
+Observer.intercept( obj, type, handler[, options = {} ]);
 ```
 
 ```js
@@ -573,7 +573,7 @@ const Observer = window.webqit.Observer;
 | Observer API | Reflect API | Trap |
 | -------------- | ------------ | ----------- |
 | `apply()` [↗](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/apply)   | ✓    | `apply() {}` |
-| `batch()` [↗](https://github.com/webqit/observer#:~:text=use%20the%20observer.batch()%20to%20batch%20multiple%20arbitrary%20mutations%20-%20whether%20related%20or%20not)   | `×`   | `-` |
+| `batch()` [↗](https://github.com/webqit/observer#concept-batch-mutations)   | `×`   | `-` |
 | `construct()`  [↗](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/construct)  | ✓    | `construct() {}` |
 | `defineProperty()` [↗](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/defineProperty)   | ✓    | `defineProperty() {}` |
 | `deleteProperty()` [↗](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/deleteProperty)   | ✓    | `deleteProperty() {}` |
@@ -585,7 +585,7 @@ const Observer = window.webqit.Observer;
 | `isExtensible()` [↗](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/isExtensible)   | ✓    | `isExtensible() {}` |
 | `observe()` [↗](https://github.com/webqit/observer#method-observerobserve)   | `×`  | `-` |
 | `ownKeys()` [↗](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/ownKeys)   | ✓    | `ownKeys() {}` |
-| `path()` [↗](#featuring-path-observability)   | `×`   | `-` |
+| `path()` [↗](https://github.com/webqit/observer#concept-paths)   | `×`   | `-` |
 | `preventExtensions()` [↗](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/preventExtensions)   | ✓    | `preventExtensions() {}` |
 | `set()` [↗](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/set)   | ✓    | `set() {}` |
 | `setPrototypeOf()` [↗](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/setPrototypeOf)   | ✓    | `setPrototypeOf() {}` |
