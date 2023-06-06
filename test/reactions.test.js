@@ -181,7 +181,7 @@ describe( `Test: .observe() + .set()`, function() {
         it( `Observe a two-level path of an object. (Using Observer.observe() with preflight option.)`, function() {
             let obj = {}, _changes = [];
             // -----
-            Observer.deep( obj, [ 'key1', 'sub.key1' ], Observer.observe, change => {
+            Observer.reduce( obj, [ 'key1', 'sub.key1' ], Observer.observe, change => {
                 _changes.push( change );
             }, { preflight: true } );
             // -----
@@ -202,7 +202,7 @@ describe( `Test: .observe() + .set()`, function() {
         it( `Observe a two-level path of an object. (Using Observer.get() with "live" option.)`, function() {
             let obj = {}, _changes = [];
             // -----
-            Observer.deep( obj, [ 'key1', 'sub.key1' ], Observer.get, change => {
+            Observer.reduce( obj, [ 'key1', 'sub.key1' ], Observer.get, change => {
                 _changes.push( change );
             }, { live: true } );
             // -----
@@ -236,7 +236,7 @@ describe( `Test: .observe() + .set()`, function() {
         it( `Observe path [ 0, 'key1' ] of an array.`, function() {
             let arr = [], _changes = [];
             // -----
-            Observer.deep( arr, [ 0, 'key1' ], Observer.observe, change => {
+            Observer.reduce( arr, [ 0, 'key1' ], Observer.observe, change => {
                 _changes.push( change );
             }, { preflight: true } );
             // -----
@@ -251,7 +251,7 @@ describe( `Test: .observe() + .set()`, function() {
         it( `Observe wildcard paths.`, function() {
             let obj = {}, _changes = [];
             // -----
-            Observer.deep( obj, [ 'key1', Infinity ], Observer.observe, change => {
+            Observer.reduce( obj, [ 'key1', Infinity ], Observer.observe, change => {
                 _changes.push( change );
             }, { preflight: true } );
             // -----
