@@ -110,7 +110,7 @@ Observer.observe( obj, handleChanges, { signal: abortController.signal } );
 abortController.abort();
 ```
 
-**-->** Where listeners initiate child observers, leverage "AbortSignal-cascading" to tie child observers to parent observer's lifecycle:
+**-->** Where listeners initiate nested observers (child observers), leverage "AbortSignal-cascading" to tie child observers to parent observer's lifecycle:
 
 ```js
 // Parent - 
@@ -269,7 +269,6 @@ obj = Observer.unproxy( $obj );
 Observe "the value" at a path in a given tree:
 
 ```js
-// A tree structure that satisfies the path above
 const obj = {
   level1: {
     level2: 'level2-value',
