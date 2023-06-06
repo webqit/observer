@@ -8,7 +8,7 @@
 
 **[Motivation](#motivation) • [Overview](#an-overview) • [Polyfill](#the-polyfill) • [Design Discussion](#design-discussion) • [Getting Involved](#getting-involved) • [License](#license)**
 
-Observe and intercept operations on arbitrary JavaScript objects and arrays using a utility-first, general-purpose reactivity API! This API re-explores the unique design of the [`Object.observe()`](https://web.dev/es7-observe/) API and extends it with the best of JavaScript's other [reflection](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect) and interception APIs - *Proxies*, *accessors* - to support any kind of reactive programming model!
+Observe and intercept operations on arbitrary JavaScript objects and arrays using a utility-first, general-purpose reactivity API! This API re-explores the unique design of the [`Object.observe()`](https://web.dev/es7-observe/) API and takes a stab at what could be **a unifying API** over *related but disparate* things like `Object.observe()`, [Reflect](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect) APIs, and the "traps" API (proxy traps)!
 
 Observer API is an upcoming proposal!
 
@@ -20,13 +20,13 @@ Tracking mutations on JavaScript objects has historically relied on "object wrap
 
 + **Programming model**: proxy traps and object accessors only lend themselves to being wired to *one* underlying listenining logic in the entire program. Objects are effectively open to multiple interactions on the outside but "locked" to one observer on the inside, enabling just a "many to one" communication model. This does not correctly reflect the most common usecases where the idea is to have any number of listeners per event, to enable a "many to many" model! It takes yet a non-trivial amount of effort to go from the default model to the one desired.
 
-Interestingly, we at one time had an *object observability* primitive that checked all the boxes and touched the very pain points we have today: the [`Object.observe()`](https://web.dev/es7-observe/) API. So, how about an equivalent API that brings all of the good thinking from `Object.observe()` together with the idea of *Proxies*, *accessors*, and JavaScript's other [*reflection* API](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect) in one design, delivered as one utility for all things *reactivity*? This is the idea with the new **Observer API**!
+We find a design precedent to object observability in the [`Object.observe()`](https://web.dev/es7-observe/) API, which at one time checked all the boxes and touched the very pain points we have today! This is the idea with the new **Observer API**!
 
-└ [See more in the introductory blog post](https://dev.to/oxharris/reinvestigating-reactivity-22e0-temp-slug-5973064?preview=8afd0f8b156bf0b0b1c08058837fe4986054e52a7450f0a28adbaf07dcb7f5659b724166f553fb98ceab3d080748e86b244684f515d579bcd0f48cbb)<sup>draft</sup>
+└ [See more in the introductory blog post](https://dev.to/oxharris/reinvestigating-reactivity-22e0-temp-slug-5973064?preview=8afd0f8b156bf0b0b1c08058837fe4986054e52a7450f0a28adbaf07dcb7f5659b724166f553fb98ceab3d080748e86b244684f515d579bcd0f48cbb#introducing-the-observer-api)<sup>draft</sup>
 
 ## An Overview
 
-The Observer API comes as a set of utility functions.
+The Observer API is a set of utility functions.
 
 + [Method: `Observer.observe()`](#method-observerobserve)
   + [Usage](#usage)
@@ -53,7 +53,12 @@ Observer.observe( obj, callback[, options = {} ]);
 
 ```js
 // Signature 2
-Observer.observe( obj, props, callback[, options = {} ]);
+Observer.observe( obj, [ prop, prop, ... ], callback[, options = {} ]);
+```
+
+```js
+// Signature 3
+Observer.observe( obj, prop, callback[, options = {} ]);
 ```
 
 #### Usage
@@ -74,7 +79,7 @@ const arr = [];
 const abortController = Observer.observe( arr, handleChanges );
 ```
 
-*Now changes will be delivered **synchronously** - as they happen. (The *sync* design is discussed shortly.)*
+└ *Changes are delivered [**synchronously**](https://dev.to/oxharris/reinvestigating-reactivity-22e0-temp-slug-5973064?preview=8afd0f8b156bf0b0b1c08058837fe4986054e52a7450f0a28adbaf07dcb7f5659b724166f553fb98ceab3d080748e86b244684f515d579bcd0f48cbb#timing-and-batching) - as they happen.*
 
 ```js
 // The change handler
@@ -85,27 +90,39 @@ function handleChanges( mutations ) {
 }
 ```
 
-**-->** Stop observing at any time by calling `abort()` on the returned *abortController*...
+**-->** Stop observing at any time by calling `abort()` on the returned *abortController*:
 
 ```js
 // Remove listener
 abortController.abort();
 ```
 
-...or you can provide your own [Abort Signal](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal) instance:
+└ And you can provide your own [Abort Signal](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal) instance:
 
 ```js
 // Providing an AbortSignal
 const abortController = new AbortController;
-Observer.observe( obj, mutations => {
-    // Handle...
-}, { signal: abortController.signal } );
+Observer.observe( obj, handleChanges, { signal: abortController.signal } );
 ```
 
 ```js
 // Abort at any time
 abortController.abort();
 ```
+
+**-->** Where listeners initiate child observers, leverage "AbortSignal-cascading" to tie child observers to parent observer's lifecycle:
+
+```js
+// Parent - 
+const abortController = Observer.observe( obj, ( mutations, flags ) => {
+
+    // Child
+    Observer.observe( obj, handleChanges, { signal: flags.signal } ); // <<<---- AbortSignal-cascading
+
+} );
+```
+
+└ *"Child" gets automatically aborted at parent's "next turn", and at parent's own abortion!*
 
 #### Concept: *Mutation APIs*
 
@@ -220,7 +237,7 @@ $arr[ 2 ] = 'item2';
 $arr.push( 'item3' );
 ```
 
-*And no problem if you end up nesting the approaches.*
+└ *And no problem if you end up nesting the approaches.*
 
 ```js
 // 'value1'-->obj
@@ -249,7 +266,7 @@ obj = Observer.unproxy( $obj );
 
 #### Concept: *Paths*
 
-Observe "a value at a path" on a given tree:
+Observe "the value" at a path in a given tree:
 
 ```js
 // A tree structure that satisfies the path above
@@ -280,7 +297,7 @@ Observer.set( obj.level1, 'level2', 'level2-new-value' );
 
 </details>
 
-And well, the initial tree structure can be whatever:
+└ *And the initial tree structure can be whatever*:
 
 ```js
 // A tree structure that is yet to be built
@@ -294,7 +311,7 @@ Observer.observe( obj, path, m => {
 } );
 ```
 
-Now, any operation that "modifies" the observed tree - either by extension or truncation - will fire our listener:
+└ *Now, any operation that "modifies" the observed tree - either by extension or truncation - will fire our listener*:
 
 ```js
 Observer.set( obj, 'level1', { level2: {}, } );
@@ -309,7 +326,7 @@ Observer.set( obj, 'level1', { level2: {}, } );
 
 </details>
 
-Meanwhile, this next one completes the tree, and the listener reports a value at its observed path:
+└ *Meanwhile, this next one completes the tree, and the listener reports a value at its observed path*:
 
 ```js
 Observer.set( obj.level1, 'level2', { level3: { level4: 'level4-value', }, } );
@@ -324,19 +341,21 @@ Observer.set( obj.level1, 'level2', { level3: { level4: 'level4-value', }, } );
 
 </details>
 
-If you were to find the exact point of mutation in the path in an audit trail, you could inspect the event's `context` property, which itself returns the parent event...
+**-->** Use the event's `context` property to inspect the parent event if you were to find the exact point at which mutation happened in the path in an audit trail:
 
 ```js
 let context = m.context;
+console.log(context);
 ```
 
-...allowing you to go up one more level until the root event:
+└ *And up again one level until the root event*:
 
 ```js
 let parentContext = context.context;
+console.log(parentContext);
 ```
 
-Where a promise is encountered along the path, further access is paused until promise resolves:
+**-->** Observe trees that are built *asynchronously*! Where a promise is encountered along the path, further access is paused until promise resolves:
 
 ```js
 Observer.set( obj.level1, 'level2', Promise.resolve( { level3: { level4: 'level4-value', }, } ) );
@@ -344,7 +363,7 @@ Observer.set( obj.level1, 'level2', Promise.resolve( { level3: { level4: 'level4
 
 #### Concept: *Batch Mutations*
 
-Make multiple mutations at a go, and they'll be correctly delivered in batch to observers!
+Make multiple mutations at a go, and they'll be correctly delivered as a batch to observers!
 
 ```js
 // Batch operations on an object
@@ -397,7 +416,7 @@ Observer.set( obj, {
 }, { detail: 'Certain detail' } );
 ```
 
-*Observers recieve this value on their `mutation.detail` property.*
+└ *Observers recieve this value on their `mutation.detail` property.*
 
 ```js
 // An observer with detail
@@ -449,7 +468,7 @@ Observer.intercept( obj, traps[, options = {} ]);
 
 Extend standard operations on an object - `Observer.set()`,  `Observer.deleteProperty()`, etc - with custom traps using the [`Observer.intercept()`](https://webqit.io/tooling/observer/docs/api/reactions/intercept) method!
 
-*Below, we intercept all "set" operations for an HTTP URL then transform it to an HTTPS URL.*
+└ *Below, we intercept all "set" operations for an HTTP URL then transform it to an HTTPS URL.*
 
 ```js
 const setTrap = ( operation, previous, next ) => {
@@ -461,7 +480,7 @@ const setTrap = ( operation, previous, next ) => {
 Observer.intercept( obj, 'set', setTrap );
 ```
 
-*Now, only the first of the following will fly as-is.*
+└ *Now, only the first of the following will fly as-is.*
 
 ```js
 // Not transformed
@@ -471,7 +490,7 @@ Observer.set( obj, 'url', 'https://webqit.io' );
 Observer.set( obj, 'url', 'http://webqit.io' );
 ```
 
-*And below, we intercept all "get" operations for a certain value to trigger a network fetch behind the scenes.*
+└ *And below, we intercept all "get" operations for a certain value to trigger a network fetch behind the scenes.*
 
 ```js
 const getTrap = ( operation, previous, next ) => {
@@ -483,7 +502,7 @@ const getTrap = ( operation, previous, next ) => {
 Observer.intercept( obj, 'get', getTrap );
 ```
 
-*And all of that can go into one "traps" object:*
+└ *And all of that can go into one "traps" object:*
 
 ```js
 Observer.intercept( obj, {
@@ -525,7 +544,32 @@ const Observer = window.webqit.Observer;
 
 ## API Reference
 
-**A unifying API** over *related but disparate* things like `Object.observe()`, [Reflect](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect) APIs, and the "traps" API!
+<!--
+
+| Observer API | Reflect API | Description | Trap |
+| -------------- | ------------ | ----------- | --------------- |
+| `apply()`   | ✓    | Invokes a  function [↗](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/apply) | `apply() {}` |
+| `batch()`   | `×`   | Creates a batching context [↗](https://github.com/webqit/observer#:~:text=use%20the%20observer.batch()%20to%20batch%20multiple%20arbitrary%20mutations%20-%20whether%20related%20or%20not) | `-` |
+| `construct()`   | ✓    | Initializes a constructor [↗](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/construct) | `construct() {}` |
+| `defineProperty()`   | ✓    | Defines a property [↗](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/defineProperty) | `defineProperty() {}` |
+| `deleteProperty()`   | ✓    | Deletes a property [↗](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/deleteProperty) | `deleteProperty() {}` |
+| `get()`   | ✓    | Reads a property [↗](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/get) | `get() {}` |
+| `getOwnPropertyDescriptor()`        | ✓    | Obtains property descriptor [↗](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/getOwnPropertyDescriptor) | `getOwnPropertyDescriptor() {}`     |
+| `getPrototypeOf()`  | ✓    | Obtains object prototype [↗](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/getPrototypeOf) | `getPrototypeOf() {}` |
+| `has()`   | ✓    | Checks property existence [↗](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/has) | `has() {}` |
+| `intercept()`   | `×`   | Binds a "traps" object [↗](https://github.com/webqit/observer#method-observerintercept) | `-` |
+| `isExtensible()`   | ✓    | Checks object extensibility [↗](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/isExtensible) | `isExtensible() {}` |
+| `observe()`   | `×`  | Binds a mutation observer [↗](https://github.com/webqit/observer#method-observerobserve) | `-` |
+| `ownKeys()`   | ✓    | Obtains object keys [↗](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/ownKeys) | `ownKeys() {}` |
+| `path()`   | `×`   | Evaluates a path [↗](#) | `-` |
+| `preventExtensions()`   | ✓    | Prevents object extensibility [↗](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/preventExtensions) | `preventExtensions() {}` |
+| `set()`   | ✓    | Sets a property [↗](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/set) | `set() {}` |
+| `setPrototypeOf()`   | ✓    | Sets object prototype [↗](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/setPrototypeOf) | `setPrototypeOf() {}` |
+| . | . | . | . |
+| `accessorize()`   | `×`  | Applies pre-intercepted getters/setters to properties [↗](https://github.com/webqit/observer#:~:text=enable%20reactivity%20on%20specific%20properties%20with%20literal%20object%20accessors%20-%20using%20the%20observer.accessorize()%20method) | `-` |
+| `proxy()`   | `×`  | Creates a pre-intercepted proxy object [↗](https://github.com/webqit/observer#:~:text=enable%20reactivity%20on%20arbitray%20properties%20with%20proxies%20-%20using%20the%20observer.proxy()%20method) | `-` |
+
+-->
 
 | Observer API | Reflect API | Trap |
 | -------------- | ------------ | ----------- |
@@ -552,7 +596,7 @@ const Observer = window.webqit.Observer;
 
 ## Design Discussion
 
-*[TODO]*
+[See more in the introductory blog post](https://dev.to/oxharris/reinvestigating-reactivity-22e0-temp-slug-5973064?preview=8afd0f8b156bf0b0b1c08058837fe4986054e52a7450f0a28adbaf07dcb7f5659b724166f553fb98ceab3d080748e86b244684f515d579bcd0f48cbb#introducing-the-observer-api)<sup>draft</sup>
 
 ## Getting Involved
 
