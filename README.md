@@ -14,15 +14,11 @@ Observer API is an upcoming proposal!
 
 ## Motivation
 
-Tracking mutations on JavaScript objects has historically relied on "object wrapping" techniques with [ES6 Proxies](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy), and on "property mangling" techniques with [getters and setters](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty). Besides the *object identity* problem of the first and the *object compromissory* nature of the second, there is also the "scalability" issue inherent to the techniques and much "inflexibility" in the programming model they enable:
+Tracking mutations on JavaScript objects has historically relied on "object wrapping" techniques with [ES6 Proxies](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy), and on "property mangling" techniques with [getters and setters](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty). Besides the *object identity* problem of the first and the *object compromissory* nature of the second, there is also the "scalability" issue inherent to the techniques and much "inflexibility" in the programming model they enable!
 
-+ **Scalability**: objects have to be created a certain way, or be purpose-built for the specific technique, to participate in the reactivity system; objects *you don't own* have to be altered in some way - where that's even possible - to be onboarded into the reactivity system. Scalability is inhibited as we must fulfill the **implementation criteria** for as many objects as will be needed in the design - clamped to the finite number of objects that can be made to work this way! 
+This is discussed extensively in [the introductory blog post](https://dev.to/oxharris/reinvestigating-reactivity-22e0-temp-slug-5973064?preview=8afd0f8b156bf0b0b1c08058837fe4986054e52a7450f0a28adbaf07dcb7f5659b724166f553fb98ceab3d080748e86b244684f515d579bcd0f48cbb#introducing-the-observer-api)<sup>draft</sup>
 
-+ **Programming model**: proxy traps and object accessors only lend themselves to being wired to *one* underlying listenining logic in the entire program. Objects are effectively open to multiple interactions on the outside but "locked" to one observer on the inside, enabling just a "many to one" communication model. This does not correctly reflect the most common usecases where the idea is to have any number of listeners per event, to enable a "many to many" model! It takes yet a non-trivial amount of effort to go from the default model to the one desired.
-
-We find a design precedent to object observability in the [`Object.observe()`](https://web.dev/es7-observe/) API, which at one time checked all the boxes and touched the very pain points we have today! This is the idea with the new **Observer API**!
-
-└ [See more in the introductory blog post](https://dev.to/oxharris/reinvestigating-reactivity-22e0-temp-slug-5973064?preview=8afd0f8b156bf0b0b1c08058837fe4986054e52a7450f0a28adbaf07dcb7f5659b724166f553fb98ceab3d080748e86b244684f515d579bcd0f48cbb#introducing-the-observer-api)<sup>draft</sup>
+We find a design precedent to object observability in the [`Object.observe()`](https://web.dev/es7-observe/) API, which at one time checked all the boxes and touched the very pain points we have today! The idea with the new **Observer API** is to re-explore that unique design with a more wholistic approach that considers the broader subject of Reactive Programming in JavaScript!
 
 ## An Overview
 
@@ -310,7 +306,7 @@ Observer.observe( obj, path, m => {
 } );
 ```
 
-└ *Now, any operation that "modifies" the observed tree - either by extension or truncation - will fire our listener*:
+└ *Now, any operation that changes what "the value" at the path resolves to - either by tree extension or tree truncation - will fire our listener*:
 
 ```js
 Observer.set( obj, 'level1', { level2: {}, } );
@@ -550,7 +546,9 @@ const Observer = window.webqit.Observer;
 | `apply()`   | ✓    | Invokes a  function [↗](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/apply) | `apply() {}` |
 | `batch()`   | `×`   | Creates a batching context [↗](https://github.com/webqit/observer#:~:text=use%20the%20observer.batch()%20to%20batch%20multiple%20arbitrary%20mutations%20-%20whether%20related%20or%20not) | `-` |
 | `construct()`   | ✓    | Initializes a constructor [↗](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/construct) | `construct() {}` |
+| `defineProperties()` [↗]()   | `×`    | `defineProperty() {}` |
 | `defineProperty()`   | ✓    | Defines a property [↗](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/defineProperty) | `defineProperty() {}` |
+| `deleteProperties()` [↗]()   | `×`    | `deleteProperty() {}` |
 | `deleteProperty()`   | ✓    | Deletes a property [↗](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/deleteProperty) | `deleteProperty() {}` |
 | `get()`   | ✓    | Reads a property [↗](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/get) | `get() {}` |
 | `getOwnPropertyDescriptor()`        | ✓    | Obtains property descriptor [↗](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/getOwnPropertyDescriptor) | `getOwnPropertyDescriptor() {}`     |
@@ -575,7 +573,9 @@ const Observer = window.webqit.Observer;
 | `apply()` [↗](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/apply)   | ✓    | `apply() {}` |
 | `batch()` [↗](https://github.com/webqit/observer#concept-batch-mutations)   | `×`   | `-` |
 | `construct()`  [↗](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/construct)  | ✓    | `construct() {}` |
+| `defineProperties()` [↗]()   | `×`    | `defineProperty() {}` |
 | `defineProperty()` [↗](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/defineProperty)   | ✓    | `defineProperty() {}` |
+| `deleteProperties()` [↗]()   | `×`    | `deleteProperty() {}` |
 | `deleteProperty()` [↗](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/deleteProperty)   | ✓    | `deleteProperty() {}` |
 | `get()` [↗](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/get)   | ✓    | `get() {}` |
 | `getOwnPropertyDescriptor()` [↗](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/getOwnPropertyDescriptor)        | ✓    | `getOwnPropertyDescriptor() {}`     |
