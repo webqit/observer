@@ -24,6 +24,9 @@ We find a design precedent to object observability in the [`Object.observe()`](h
 
 The Observer API is a set of utility functions.
 
+<details>
+<summary><b>Show Outline</b></summary>
+
 + [Method: `Observer.observe()`](#method-observerobserve)
   + [Usage](#usage)
   + [Concept: *Mutation APIs*](#concept-mutation-apis)
@@ -34,6 +37,8 @@ The Observer API is a set of utility functions.
 + [Method: `Observer.intercept()`](#method-observerintercept)
   + [Usage](#usage-1)
 + [API Reference](#api-reference)
+
+</details>
 
 > **Note**
 > <br>This is documentation for `Observer@2.x`. (Looking for [`Observer@1.x`](https://github.com/webqit/observer/tree/v1.7.6)?)
