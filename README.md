@@ -14,7 +14,7 @@ Observer API is an upcoming proposal!
 
 ## Motivation
 
-Tracking mutations on JavaScript objects has historically relied on "object wrapping" techniques with [ES6 Proxies](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy), and on "property mangling" techniques with [getters and setters](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty). Besides how the first poses an *object identity* problem and the second, an *interoperability* problem, there is also much inflexibility in the programming model they enable!
+Tracking mutations on JavaScript objects has historically relied on "object wrapping" techniques with [ES6 Proxies](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy), and on "property mangling" techniques with [getters and setters](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty). Besides how the first poses an *object identity* problem and the second, an *interoperability* problem, there is also much inflexibility in the programming model that the two technique enable!
 
 This is discussed extensively in [the introductory blog post](https://dev.to/oxharris/reinvestigating-reactivity-22e0-temp-slug-5973064?preview=8afd0f8b156bf0b0b1c08058837fe4986054e52a7450f0a28adbaf07dcb7f5659b724166f553fb98ceab3d080748e86b244684f515d579bcd0f48cbb#introducing-the-observer-api)<sup>draft</sup>
 
@@ -22,33 +22,17 @@ We find a design precedent to object observability in the [`Object.observe()`](h
 
 ## An Overview
 
-The Observer API is a set of utility functions.
+The Observer API is a set of utility functions for all things object observability - notably, the `Observer.observe()` and `Observer.intercept()` methods.
 
-> **Note**
-> <br>This is documentation for `Observer@2.x`. (Looking for [`Observer@1.x`](https://github.com/webqit/observer/tree/v1.7.6)?)
+<details><summary>This is documentation for `Observer@2.x`</summary>
 
+Looking for [`Observer@1.x`](https://github.com/webqit/observer/tree/v1.7.6)?)
+
+</details>
+    
 ### Method: `Observer.observe()`
 
-Observe mutations on any object or array!
-
-```js
-// Signature 1
-Observer.observe( obj, callback[, options = {} ]);
-```
-
-```js
-// Signature 2
-Observer.observe( obj, [ prop, prop, ... ], callback[, options = {} ]);
-```
-
-```js
-// Signature 3
-Observer.observe( obj, prop, callback[, options = {} ]);
-```
-
-#### Usage
-
-Observe arbitrary objects and arrays:
+Observe mutations on arbitrary object or array!
 
 ```js
 // An object
@@ -393,27 +377,6 @@ Observer.batch( arr, async () => {
 ```
 
 > Method calls on a proxied instance - e.g. `Object.proxy( arr ).splice( 0 )` - also follow this strategy.
-
-#### Concept: *Custom Details*
-
-Pass some custom detail - an arbitrary value - to observers via a `params.detail` property.
-
-```js
-// A set operation with detail
-Observer.set( obj, {
-    prop2: 'value2',
-    prop3: 'value3',
-}, { detail: 'Certain detail' } );
-```
-
-└ *Observers recieve this value on their `mutation.detail` property.*
-
-```js
-// An observer with detail
-Observer.observe( obj, 'prop1', mutation => {
-    console.log( 'A mutation has been made with detail:' + mutation.detail );
-} );
-```
 
 ### Method: `Observer.intercept()`
 
