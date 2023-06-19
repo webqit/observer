@@ -26,13 +26,13 @@ The Observer API is a set of utility functions for all things object observabili
 
 <details><summary>This is documentation for `Observer@2.x`</summary>
 
-Looking for [`Observer@1.x`](https://github.com/webqit/observer/tree/v1.7.6)?)
+Looking for [`Observer@1.x`](https://github.com/webqit/observer/tree/v1.7.6)?
 
 </details>
     
 ### Method: `Observer.observe()`
 
-Observe mutations on arbitrary object or array!
+Observe mutations on arbitrary objects or arrays!
 
 ```js
 // An object
