@@ -380,21 +380,7 @@ Observer.batch( arr, async () => {
 
 ### Method: `Observer.intercept()`
 
-Intercept operations on any object or array before they happen!
-
-```js
-// Signature 1
-Observer.intercept( obj, type, handler[, options = {} ]);
-```
-
-```js
-// Signature 2
-Observer.intercept( obj, traps[, options = {} ]);
-```
-
-#### Usage
-
-Extend standard operations on an object - `Observer.set()`,  `Observer.deleteProperty()`, etc - with custom traps using the [`Observer.intercept()`](https://webqit.io/tooling/observer/docs/api/reactions/intercept) method!
+Intercept operations on any object or array before they happen! This helps you extend standard operations on an object - `Observer.set()`,  `Observer.deleteProperty()`, etc - using Proxy-like traps.
 
 └ *Below, we intercept all "set" operations for an HTTP URL then transform it to an HTTPS URL.*
 
