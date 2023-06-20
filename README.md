@@ -236,7 +236,7 @@ obj = Observer.unproxy( $obj );
 
 #### Concept: *Paths*
 
-Observe "a property" at a path in a given tree:
+Observe "a property" at a path in an object tree:
 
 ```js
 const obj = {
