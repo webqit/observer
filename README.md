@@ -24,7 +24,7 @@ We find a design precedent to object observability in the [`Object.observe()`](h
 
 The Observer API is a set of utility functions for all things object observability - notably, the `Observer.observe()` and `Observer.intercept()` methods.
 
-<details><summary>This is documentation for `Observer@2.x`</summary>
+<details><summary>This is documentation for Observer@2.x</summary>
 
 Looking for [`Observer@1.x`](https://github.com/webqit/observer/tree/v1.7.6)?
 
@@ -94,10 +94,6 @@ const abortController = Observer.observe( obj, ( mutations, flags ) => {
 } );
 ```
 
-> **Note**
-> <br>This is documentation for `Observer@2.x`. (Looking for [`Observer@1.x`](https://github.com/webqit/observer/tree/v1.7.6)?)
-
-
 └ *"Child" observers get automatically aborted at parent's "next turn", and at parent's own abortion!*
 
 #### Concept: *Mutation APIs*
@@ -117,10 +113,9 @@ Observer.set( arr, 0, 'item0' ); // Array [ 'item0' ]
 Observer.deleteProperty( arr, 0 ); // Array [ <1 empty slot> ]
 ```
 
-<details>
-<summary>Polyfill limitations</summary>
+<details><summary>Polyfill limitations</summary>
 
-*Beware non-reactive operations:*
+In the polyfill, object observability doesn't work with literal operations. **Beware non-reactive operations**:
 
 ```js
 // Literal object operators
@@ -166,10 +161,9 @@ arr.unshift( 'new-item0' );
 arr.shift();
 ```
 
-<details>
-<summary>Polyfill limitations</summary>
+<details><summary>Polyfill limitations</summary>
 
-*Beware non-reactive operations*:
+In the polyfill, object observability doesn't work with literal operations. **Beware non-reactive operations**:
 
 ```js
 // The delete operator and object properties that haven't been accessorized
@@ -263,8 +257,7 @@ Observer.observe( obj, path, m => {
 Observer.set( obj.level1, 'level2', 'level2-new-value' );
 ```
 
-<details>
-<summary>Console</summary>
+<details><summary>Console</summary>
 
 | type | path | value | isUpdate |
 | ---- | ---- | ----- | -------- |
