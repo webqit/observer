@@ -16,7 +16,7 @@ Observer API is an upcoming proposal!
 
 Tracking mutations on JavaScript objects has historically relied on "object wrapping" techniques with [ES6 Proxies](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy), and on "property mangling" techniques with [getters and setters](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty). Besides how the first poses an *object identity* problem and the second, an *interoperability* problem, there is also much inflexibility in the programming model that each enables!
 
-This is discussed extensively in [the introductory blog post](https://dev.to/oxharris/-5a24-temp-slug-8418045?preview=40453d84038ac67aca691a16751f213cad6de732edbe94192e859edb94cd8e137a1e5520efe344a7d8630692c68848e3a48220e0695c8a206fef921e)<sup>draft</sup>
+This is discussed extensively in [the introductory blog post](https://dev.to/oxharris/re-exploring-reactivity-and-introducing-the-observer-api-and-reflex-functions-4h70)
 
 We find a design precedent to object observability in the [`Object.observe()`](https://web.dev/es7-observe/) API, which at one time checked all the boxes and touched the very pain points we have today! The idea with the new **Observer API** is to re-explore that unique design with a more wholistic approach that considers the broader subject of Reactive Programming in JavaScript!
 
