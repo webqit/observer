@@ -96,9 +96,28 @@ const abortController = Observer.observe( obj, ( mutations, flags ) => {
 
 └ *"Child" observers get automatically aborted at parent's "next turn", and at parent's own abortion!*
 
+**-->** Use the `options.diff` parameter to ignore mutation events whose current value is same as previous value:
+
+```js
+// Parent - 
+const abortController = Observer.observe( obj, mutations => {
+  console.log( m.type, m.value, m.oldValue );
+}, { diff: true } );
+```
+
+```js
+obj.property = 'Same value';
+```
+
+```js
+obj.property = 'Same value';
+```
+
+└ *Observer is called only on the first update!*
+
 #### Concept: *Mutation APIs*
 
-Programmatically mutate properties of an object using the *[Reflect](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect#static_methods)-like* set of operators; each operation will be reported by observers:
+In addition to making literal operations, you can also programmatically mutate properties of an object using the *[Reflect](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect#static_methods)-like* set of operators; each operation will be reported by observers:
 
 ```js
 // A single "set" operation on an object
@@ -426,7 +445,7 @@ Observer.intercept( obj, {
 
 ## Documentation
 
-Visit the [docs](https://github.com/webqit/observer/wiki) for full details - including [Reflect APIs](https://github.com/webqit/observer/wiki#featuring-reflect-apis-extended), [Timing and Batching](https://github.com/webqit/observer/wiki#timing-and-batching), [API Reference](https://github.com/webqit/observer/wiki#putting-it-all-together), etc.
+Visit the [docs](https://github.com/webqit/observer/wiki) for full details - including [Reflect API Supersets](https://github.com/webqit/observer/wiki#featuring-reflect-api-supersets), [Timing and Batching](https://github.com/webqit/observer/wiki#timing-and-batching), [API Reference](https://github.com/webqit/observer/wiki#putting-it-all-together), etc.
 
 ## The Polyfill
 
