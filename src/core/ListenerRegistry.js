@@ -5,6 +5,7 @@
 import ListenerRegistration from './ListenerRegistration.js';
 import Registry from './Registry.js';
 import { _await } from '../util.js';
+import Descriptor from './Descriptor.js';
 
 /**
  * ---------------------------
@@ -44,12 +45,25 @@ export default class ListenerRegistry extends Registry {
 	 *
 	 * @return Void
 	 */
-	emit( events ) {
+	emit( events, isPropertyDescriptors = false ) {
 		if ( this.batches.length ) {
 			this.batches[ 0 ].events.push( ...events );
 			return
 		}
-		this.entries.forEach( listener => listener.fire( events ) );
+		let eventsWithValues;
+		this.entries.forEach( listener => {
+			if ( isPropertyDescriptors && !listener.params.propertyDescriptors ) {
+				eventsWithValues = eventsWithValues || events.map( e => {
+					let { target, value, oldValue, type, ...details } = e;
+					value = value.get ? value.get() : value.value;
+					oldValue = oldValue?.get ? oldValue.get() : oldValue?.value;
+					return new Descriptor( target, { type: 'set', value, oldValue, ...details } );
+				} );
+				listener.fire( eventsWithValues );
+				return;
+			}
+			listener.fire( events );
+		} );
 	}
 
 	/**

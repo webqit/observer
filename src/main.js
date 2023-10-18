@@ -4,11 +4,11 @@
  */
 import { _isObject, _isTypeObject, _isFunction, _getType } from '@webqit/util/js/index.js';
 import { _from as _arrFrom } from '@webqit/util/arr/index.js';
+import { _, _await, other as otherUtil } from './util.js';
 import ListenerRegistry from './core/ListenerRegistry.js';
 import TrapsRegistry from './core/TrapsRegistry.js';
 import Descriptor from './core/Descriptor.js';
 import { unproxy } from './actors.js';
-import { _, _await } from './util.js';
 
 /* ---------------SPECIAL APIs--------------- */
 
@@ -235,12 +235,12 @@ export function has( target, prop, receiver = x => x, params = {} ) {
 export function get( target, prop, receiver = x => x, params = {} ) {
     // ---------------
     let isLive;
-    target = resolveObj( target, !params.level );
+    const originalTarget = resolveObj( target, !params.level );
     if ( _isObject( receiver ) ) { [ params, receiver ] = [ receiver, x => x ]; }
     else if ( params.live ) { isLive = true; }
-    if ( prop instanceof Path ) return reduce( target, prop, get, receiver, params );
+    if ( prop instanceof Path ) return reduce( originalTarget, prop, get, receiver, params );
     // ---------------
-    return resolveProps( target, prop, props => {
+    return resolveProps( originalTarget, prop, props => {
         const related = [ ...props ];
         return ( function next( results, _props, _done ) {
             if ( !_props.length ) return _done( results );
@@ -252,30 +252,36 @@ export function get( target, prop, receiver = x => x, params = {} ) {
             function defaultGet( descriptor, value = undefined ) {
                 const _next = value => ( descriptor.value = value, next( [ ...results, params.live || params.descripted ? descriptor : value ]/** not using concat() as value may be an array */, _props, _done ) );
                 if ( arguments.length > 1 ) return _next( value );
-                const accessorizedProps = _( target, 'accessorizedProps', false );
+                const accessorizedProps = _( originalTarget, 'accessorizedProps', false );
                 const accessorization = accessorizedProps && accessorizedProps.get( descriptor.key + '' );
                 if ( accessorization && accessorization.intact() ) {
-                    return _next( accessorization.getValue() );
+                    return _next( accessorization.getValue( params.propertyDescriptor ) );
                 }
-                return _next( Reflect.get( target, descriptor.key, ...( params.receiver ? [ params.receiver ] : [] ) ) );
+                if ( params.propertyDescriptor ) {
+                    const desc = Object.getOwnPropertyDescriptor( originalTarget, descriptor.key );
+                    if ( 'forceValue' in params &&  'value' in desc ) { desc.value = params.forceValue; }
+                    return _next( desc );
+                }
+                if ( 'forceValue' in params ) { return _next( params.forceValue ); }
+                return _next( Reflect.get( originalTarget, descriptor.key, ...( params.receiver ? [ params.receiver ] : [] ) ) );
             }
             // ---------
-            const descriptor = new Descriptor( target, {
+            const descriptor = new Descriptor( originalTarget, {
                 type: 'get',
                 key: prop,
                 value: undefined,
                 related,
             } );
-            if ( !_isTypeObject( target ) ) return next( [ ...results, params.live || params.descripted ? descriptor : undefined ], _props, _done );
-            const listenerRegistry = TrapsRegistry.getInstance( target, false, params.namespace );
+            if ( !_isTypeObject( originalTarget ) ) return next( [ ...results, params.live || params.descripted ? descriptor : undefined ], _props, _done );
+            const listenerRegistry = TrapsRegistry.getInstance( originalTarget, false, params.namespace );
             if ( listenerRegistry ) {
                 return listenerRegistry.emit( descriptor, defaultGet );
             }
             return defaultGet( descriptor );
         } )( [], props.slice( 0 ), results => {
             const result_s = isPropsList( prop/*original*/ ) ? results : results[ 0 ];
-            if ( isLive && _isTypeObject( target ) ) {
-                const emit = bind( target, prop, receiver, params );
+            if ( isLive && _isTypeObject( originalTarget ) ) {
+                const emit = bind( originalTarget, prop, receiver, params );
                 return emit( result_s );
             }
             return receiver( result_s );
@@ -313,7 +319,7 @@ export function batch( target, callback, params = {} ) {
  */
 export function set( target, prop, value, receiver = x => x, params = {}, def = false ) {
     // ---------------
-    target = resolveObj( target );
+    const originalTarget = resolveObj( target );
     let entries = [ [ prop, value ] ];
     if ( _isObject( prop ) ) {
         [ /*target*/, /*hash*/, receiver = x => x, params = {}, def = false ] = arguments;
@@ -329,22 +335,22 @@ export function set( target, prop, value, receiver = x => x, params = {}, def = 
         function defaultSet( descriptor, status = undefined ) {
             const _next = status => ( descriptor.status = status, next( descriptors.concat( descriptor ), entries, _done ) );
             if ( arguments.length > 1 ) return _next( descriptor, status );
-            const accessorizedProps = _( target, 'accessorizedProps', false );
+            const accessorizedProps = _( originalTarget, 'accessorizedProps', false );
             const accessorization = accessorizedProps && accessorizedProps.get( descriptor.key + '' );
             if ( descriptor.type === 'defineProperty' ) {
                 if ( accessorization && !accessorization.restore() ) _next( false );
-                Object.defineProperty( target, descriptor.key, descriptor.value );
+                Object.defineProperty( originalTarget, descriptor.key, descriptor.value );
                 return _next( true );
             }
             if ( accessorization && accessorization.intact() ) {
                 return _next( accessorization.setValue( descriptor.value ) );
             }
-            return _next( Reflect.set( target, descriptor.key, descriptor.value ) );
+            return _next( Reflect.set( originalTarget, descriptor.key, descriptor.value ) );
         }
         // ---------
         function exec( isUpdate, oldValue ) {
             if ( params.diff && value === oldValue ) return next( descriptors, entries, _done );
-            const descriptor = new Descriptor( target, {
+            const descriptor = new Descriptor( originalTarget, {
                 type: def ? 'defineProperty' : 'set',
                 key: prop,
                 value,
@@ -353,20 +359,22 @@ export function set( target, prop, value, receiver = x => x, params = {}, def = 
                 related: [ ...related ],
                 detail: params.detail,
             } );
-            const listenerRegistry = TrapsRegistry.getInstance( target, false, params.namespace );
+            const listenerRegistry = TrapsRegistry.getInstance( originalTarget, false, params.namespace );
             return listenerRegistry 
                 ? listenerRegistry.emit( descriptor, defaultSet ) 
                 : defaultSet( descriptor );
         }
         // ---------
-        return has( target, prop, exists => {
+        return has( originalTarget, prop, exists => {
             if ( !exists ) return exec( exists );
-            return get( target, prop, oldValue => exec( exists, oldValue ), params );
+            const $params = { ...params, propertyDescriptor: def };
+            if ( 'forceOldValue' in params ) { $params.forceValue = params.forceOldValue; }
+            return get( originalTarget, prop, oldValue => exec( exists, oldValue ), $params );
         }, params );
         // ---------
     } )( [], entries.slice( 0 ), descriptors => {
-        const listenerRegistry = ListenerRegistry.getInstance( target, false, params.namespace );
-        if ( listenerRegistry ) listenerRegistry.emit( descriptors );
+        const listenerRegistry = ListenerRegistry.getInstance( originalTarget, false, params.namespace );
+        if ( listenerRegistry ) listenerRegistry.emit( descriptors, def );
         return receiver(
             isPropsList( prop/*original*/ ) ? descriptors.map( opr => opr.status ) : descriptors[ 0 ]?.status
         );
@@ -540,6 +548,7 @@ function bind( target, prop, receiver, params = {} ) {
     if ( !params.signal ) {
         controller = new AbortController;
         params = { ...params, signal: controller.signal };
+        otherUtil.setMaxListeners?.( 0, controller.signal );
     }
     const listenerRegistry = ListenerRegistry.getInstance( target, true, params.namespace );
     return function emit( descriptor_s, prevRegistration = null ) {
