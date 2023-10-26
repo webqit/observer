@@ -252,6 +252,7 @@ export function get( target, prop, receiver = x => x, params = {} ) {
             function defaultGet( descriptor, value = undefined ) {
                 const _next = value => ( descriptor.value = value, next( [ ...results, params.live || params.descripted ? descriptor : value ]/** not using concat() as value may be an array */, _props, _done ) );
                 if ( arguments.length > 1 ) return _next( value );
+                if ( !_isTypeObject( originalTarget ) ) return _next( originalTarget?.[ descriptor.key ] );
                 const accessorizedProps = _( originalTarget, 'accessorizedProps', false );
                 const accessorization = accessorizedProps && accessorizedProps.get( descriptor.key + '' );
                 if ( accessorization && accessorization.intact() ) {
@@ -273,10 +274,10 @@ export function get( target, prop, receiver = x => x, params = {} ) {
                 operation: 'get',
                 related,
             } );
-            if ( !_isTypeObject( originalTarget ) ) return next( [ ...results, params.live || params.descripted ? descriptor : undefined ], _props, _done );
-            const listenerRegistry = TrapsRegistry.getInstance( originalTarget, false, params.namespace );
-            if ( listenerRegistry ) {
-                return listenerRegistry.emit( descriptor, defaultGet );
+            if ( !_isTypeObject( originalTarget ) ) return defaultGet( descriptor );
+            const trapsRegistry = TrapsRegistry.getInstance( originalTarget, false, params.namespace );
+            if ( trapsRegistry ) {
+                return trapsRegistry.emit( descriptor, defaultGet );
             }
             return defaultGet( descriptor );
         } )( [], props.slice( 0 ), results => {
