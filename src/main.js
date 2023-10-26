@@ -256,9 +256,9 @@ export function get( target, prop, receiver = x => x, params = {} ) {
                 const accessorizedProps = _( originalTarget, 'accessorizedProps', false );
                 const accessorization = accessorizedProps && accessorizedProps.get( descriptor.key + '' );
                 if ( accessorization && accessorization.intact() ) {
-                    return _next( accessorization.getValue( params.propertyDescriptor ) );
+                    return _next( accessorization.getValue( params.withPropertyDescriptors ) );
                 }
-                if ( params.propertyDescriptor ) {
+                if ( params.withPropertyDescriptors ) {
                     const desc = Object.getOwnPropertyDescriptor( originalTarget, descriptor.key );
                     if ( 'forceValue' in params &&  'value' in desc ) { desc.value = params.forceValue; }
                     return _next( desc );
@@ -308,6 +308,39 @@ export function batch( target, callback, params = {} ) {
 }
 
 /**
+ * Performs a mirror operation.
+ * 
+ * @param Object	        target
+ * @param Object	        source
+ * @param Object	        params
+ *
+ * @return Void
+ */
+export function assign( target, source, params = {} ) {
+    target = resolveObj( target );
+    source = resolveObj( source );
+    const sourceKeys = ownKeys( source );
+    const filteredKeys = params.only?.length ? params.only.filter( k => sourceKeys.includes( k ) ) : sourceKeys.filter( k => !params.except?.includes( k ) );
+    batch( target, () => {
+        filteredKeys.forEach( key => {
+            const descriptor = getOwnPropertyDescriptor( source, key, params );
+            if ( ( 'value' in descriptor ) && descriptor.writable && descriptor.enumerable && descriptor.configurable ) {
+                set( target, key, descriptor.value, params );
+            } else { defineProperty( target, key, descriptor, params ); }
+        } );
+    } );
+    return observe( source, mutations => {
+        //batch( target, () => {
+            mutations.filter( m => params.only?.length ? params.only.includes( m.key ) : !params.except?.includes( m.key ) ).forEach( m => {
+                if ( m.operation === 'deleteProperty' ) return deleteProperty( target, m.key, params );
+                if ( m.operation === 'defineProperty' ) return defineProperty( target, m.key, m.value, params );
+                set( target, m.key, m.value, params );
+            } );
+        //}, params );
+    }, { ...params, withPropertyDescriptors: true } );
+}
+
+/**
  * Performs a set operation.
  * 
  * @param Object	        target
@@ -327,7 +360,7 @@ export function set( target, prop, value, receiver = x => x, params = {}, def = 
         [ /*target*/, /*hash*/, receiver = x => x, params = {}, def = false ] = arguments;
         entries = Object.entries( prop );
     }
-    if ( _isObject( receiver ) ) { [ def, params, receiver ] = [ typeof params === 'boolean' ? params : false, receiver, x => x ]; }
+    if ( _isObject( receiver ) ) { [ def, params, receiver ] = [ typeof params === 'boolean' ? params : def, receiver, x => x ]; }
     // ---------------
     const related = entries.map( ( [ prop ] ) => prop );
     return ( function next( descriptors, entries, _done ) {
@@ -362,15 +395,15 @@ export function set( target, prop, value, receiver = x => x, params = {}, def = 
                 operation: def ? 'defineProperty' : 'set',
                 detail: params.detail,
             } );
-            const listenerRegistry = TrapsRegistry.getInstance( originalTarget, false, params.namespace );
-            return listenerRegistry 
-                ? listenerRegistry.emit( descriptor, defaultSet ) 
+            const trapsRegistry = TrapsRegistry.getInstance( originalTarget, false, params.namespace );
+            return trapsRegistry 
+                ? trapsRegistry.emit( descriptor, defaultSet ) 
                 : defaultSet( descriptor );
         }
         // ---------
         return has( originalTarget, prop, exists => {
             if ( !exists ) return exec( exists );
-            const $params = { ...params, propertyDescriptor: def };
+            const $params = { ...params, withPropertyDescriptors: def };
             if ( 'forceOldValue' in params ) { $params.forceValue = params.forceOldValue; }
             return get( originalTarget, prop, oldValue => exec( exists, oldValue ), $params );
         }, params );
@@ -585,7 +618,7 @@ function exec( target, operation, payload = {}, receiver = x => x, params = {} )
     // ---------
     function defaultExec( descriptor, result ) {
         if ( arguments.length > 1 ) return receiver( result );
-        return receiver( Reflect[ operation ]( target, ...Object.values( payload ) ) );
+        return receiver( ( Reflect[ operation ] || Object[ operation ] )( target, ...Object.values( payload ) ) );
     }
     // ---------
     const descriptor = new Descriptor( target, { operation, ...payload } );

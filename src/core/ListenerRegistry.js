@@ -47,22 +47,35 @@ export default class ListenerRegistry extends Registry {
 	 */
 	emit( events, isPropertyDescriptors = false ) {
 		if ( this.batches.length ) {
-			this.batches[ 0 ].events.push( ...events );
+			this.batches[ 0 ].snapshots.push( { events: [ ...events ], isPropertyDescriptors } );
 			return
 		}
-		let eventsWithValues;
-		this.entries.forEach( listener => {
-			if ( isPropertyDescriptors && !listener.params.propertyDescriptors ) {
-				eventsWithValues = eventsWithValues || events.map( e => {
-					let { target, value, oldValue, type, ...details } = e;
-					value = value.get ? value.get() : value.value;
-					oldValue = oldValue?.get ? oldValue.get() : oldValue?.value;
-					return new Descriptor( target, { type: 'set', value, oldValue, ...details } );
-				} );
-				listener.fire( eventsWithValues );
-				return;
+		this.$emit( this.entries, [ { events, isPropertyDescriptors } ] );
+	}
+
+	$emit( entries, snapshots ) {
+		const needsEventsWithDescriptors = entries.filter( listener => listener.params.withPropertyDescriptors ).length;
+		const hasEventsToTransform = snapshots.some( snapshot => snapshot.isPropertyDescriptors );
+		const eventsAsIs = [], eventsTransformed = [], entriesLength = entries.length;
+		snapshots.forEach( snapshot => {
+			// Some need it untransformed (as-is)
+			if ( needsEventsWithDescriptors || !hasEventsToTransform ) { eventsAsIs.push( ...snapshot.events ); }
+			// It might not be all that need it untransformed, and there might be events to transform
+			if ( needsEventsWithDescriptors !== entriesLength && hasEventsToTransform ) {
+				if ( snapshot.isPropertyDescriptors ) {
+					eventsTransformed.push( ...snapshot.events.map( e => {
+						let { target, value, oldValue, type, ...details } = e;
+						value = value.get ? value.get() : value.value;
+						oldValue = oldValue?.get ? oldValue.get() : oldValue?.value;
+						return new Descriptor( target, { type: 'set', value, oldValue, ...details } );
+					} ) );
+				} else { eventsTransformed.push( ...snapshot.events ); }
 			}
-			listener.fire( events );
+		} );
+		entries.forEach( listener => {
+			if ( listener.params.withPropertyDescriptors ) {
+				listener.fire( eventsAsIs.length ? eventsAsIs : eventsTransformed );
+			} else { listener.fire( eventsTransformed.length ? eventsTransformed : eventsAsIs ); }
 		} );
 	}
 
@@ -74,13 +87,12 @@ export default class ListenerRegistry extends Registry {
 	 * @return Void
 	 */
 	batch( callback ) {
-		this.batches.unshift( { entries: [ ...this.entries ], events: [] } );
+		this.batches.unshift( { entries: [ ...this.entries ], snapshots: [] } );
 		const returnValue = callback();
 		return _await( returnValue, returnValue => {
 			const batch = this.batches.shift();
-			if ( batch.events.length ) {
-				batch.entries.forEach( listener => listener.fire( batch.events ) );
-			}
+			if ( !batch.snapshots.length ) return returnValue;
+			this.$emit( batch.entries, batch.snapshots );
 			return returnValue;
 		} )
 	}

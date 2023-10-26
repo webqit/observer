@@ -38,13 +38,13 @@ export function accessorize( target, props, params = {} ) {
         // ------------------
         // Current Descriptor Record
         const currentDescriptorRecord = getDescriptorDeep( prop );
-        currentDescriptorRecord.getValue = function( propertyDescriptor = false ) {
-            if ( propertyDescriptor ) return this.descriptor;
+        currentDescriptorRecord.getValue = function( withPropertyDescriptors = false ) {
+            if ( withPropertyDescriptors ) return this.descriptor;
             return this.descriptor.get ? this.descriptor.get() : this.descriptor.value;
         };
-        currentDescriptorRecord.setValue = function( value, propertyDescriptor = false ) {
+        currentDescriptorRecord.setValue = function( value, withPropertyDescriptors = false ) {
             this.dirty = true;
-            if ( propertyDescriptor ) { this.descriptor = value; return; }
+            if ( withPropertyDescriptors ) { this.descriptor = value; return; }
             return this.descriptor.set ? this.descriptor.set( value ) !== false : ( this.descriptor.value = value, true );
         };
         currentDescriptorRecord.intact = function() {

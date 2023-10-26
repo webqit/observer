@@ -7,7 +7,6 @@ import Observer from '../src/index.js';
 import TrapsRegistry from '../src/core/TrapsRegistry.js';
 import ListenerRegistry from '../src/core/ListenerRegistry.js';
 
-
 describe( `Test: .observe() + .set()`, function() {
 
     describe( `Observe all changes.`, function() {
