@@ -329,6 +329,7 @@ export function assign( target, source, params = {} ) {
             } else { defineProperty( target, key, descriptor, params ); }
         } );
     } );
+    if ( !params.live ) return target;
     return observe( source, mutations => {
         //batch( target, () => {
             mutations.filter( m => params.only?.length ? params.only.includes( m.key ) : !params.except?.includes( m.key ) ).forEach( m => {
