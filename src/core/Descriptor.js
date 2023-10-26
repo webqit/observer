@@ -17,7 +17,7 @@ export default class Descriptor {
 	 */
 	constructor( target, dfn ) {
 		this.target = target;
-		if ( !( dfn.type ) ) throw new Error( 'Descriptor type must be given in definition!' );
+		if ( !( dfn.operation ) ) throw new Error( 'Descriptor operation must be given in definition!' );
 		Object.assign( this, dfn );
 	}
 }

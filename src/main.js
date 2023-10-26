@@ -42,7 +42,7 @@ export function reduce( target, path, receiver, final = x => x, params = {} ) {
     return ( function eat( target, path, $params ) {
         const segment = path[ $params.level ];
         const isLastSegment = $params.level === path.length - 1;
-        if ( target instanceof Descriptor && target.type !== 'get' ) {
+        if ( target instanceof Descriptor && target.operation !== 'get' ) {
             // Always probe event-generated trees
             $params = { ...$params, probe: 'always' };
         } else if ( $params.probe !== 'always' ) {
@@ -131,7 +131,7 @@ export function intercept( target, traps, params = {} ) {
     // ---------------
     target = resolveObj( target );
     if ( !_isObject( traps ) ) {
-        [ /*target*/, /*type*/, /*handler*/, params = {} ] = arguments;
+        [ /*target*/, /*operation*/, /*handler*/, params = {} ] = arguments;
         traps = { [ arguments[ 1 ] ]: arguments[ 2 ] };
     }
     // ---------------
@@ -270,6 +270,7 @@ export function get( target, prop, receiver = x => x, params = {} ) {
                 type: 'get',
                 key: prop,
                 value: undefined,
+                operation: 'get',
                 related,
             } );
             if ( !_isTypeObject( originalTarget ) ) return next( [ ...results, params.live || params.descripted ? descriptor : undefined ], _props, _done );
@@ -337,7 +338,7 @@ export function set( target, prop, value, receiver = x => x, params = {}, def = 
             if ( arguments.length > 1 ) return _next( descriptor, status );
             const accessorizedProps = _( originalTarget, 'accessorizedProps', false );
             const accessorization = accessorizedProps && accessorizedProps.get( descriptor.key + '' );
-            if ( descriptor.type === 'defineProperty' ) {
+            if ( descriptor.operation === 'defineProperty' ) {
                 if ( accessorization && !accessorization.restore() ) _next( false );
                 Object.defineProperty( originalTarget, descriptor.key, descriptor.value );
                 return _next( true );
@@ -351,12 +352,13 @@ export function set( target, prop, value, receiver = x => x, params = {}, def = 
         function exec( isUpdate, oldValue ) {
             if ( params.diff && value === oldValue ) return next( descriptors, entries, _done );
             const descriptor = new Descriptor( originalTarget, {
-                type: def ? 'defineProperty' : 'set',
+                type: def ? 'def' : 'set',
                 key: prop,
                 value,
                 isUpdate,
                 oldValue,
                 related: [ ...related ],
+                operation: def ? 'defineProperty' : 'set',
                 detail: params.detail,
             } );
             const listenerRegistry = TrapsRegistry.getInstance( originalTarget, false, params.namespace );
@@ -442,10 +444,11 @@ export function deleteProperty( target, prop, receiver = x => x, params = {} ) {
         // ---------
         function exec( oldValue ) {
             const descriptor = new Descriptor( target, {
-                type: 'deleteProperty',
+                type: 'delete',
                 key: prop,
                 oldValue,
                 related: [ ...related ],
+                operation: 'deleteProperty',
                 detail: params.detail,
             } );
             const listenerRegistry = TrapsRegistry.getInstance( target, false, params.namespace );
@@ -567,24 +570,24 @@ function bind( target, prop, receiver, params = {} ) {
  * Performs an operation of the given "type".
  *
  * @param Array|Object	    target
- * @param String		    type
+ * @param String		    operation
  * @param Object		    payload
  * @param Function	        receiver
  * @param Object		    params
  *
  * @return Any
  */
-function exec( target, type, payload = {}, receiver = x => x, params = {} ) {
+function exec( target, operation, payload = {}, receiver = x => x, params = {} ) {
     // ---------
     target = resolveObj( target );
     if ( _isObject( receiver ) ) { [ params, receiver ] = [ receiver, x => x ]; }    
     // ---------
     function defaultExec( descriptor, result ) {
         if ( arguments.length > 1 ) return receiver( result );
-        return receiver( Reflect[ type ]( target, ...Object.values( payload ) ) );
+        return receiver( Reflect[ operation ]( target, ...Object.values( payload ) ) );
     }
     // ---------
-    const descriptor = new Descriptor( target, { type, ...payload } );
+    const descriptor = new Descriptor( target, { operation, ...payload } );
     const listenerRegistry = TrapsRegistry.getInstance( target, false, params.namespace );
     if ( listenerRegistry ) {
         return listenerRegistry.emit( descriptor, defaultExec );

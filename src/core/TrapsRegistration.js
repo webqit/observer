@@ -23,11 +23,11 @@ export default class TrapsRegistration extends Registration {
 	 * @return void
 	 */
 	exec( descriptor, next, recieved ) {
-		if ( this.running || !this.traps[ descriptor.type ] ) {
+		if ( this.running || !this.traps[ descriptor.operation ] ) {
 			return next( ...Array.prototype.slice.call( arguments, 2 ) );
 		}
 		this.running = true;
-		return this.traps[ descriptor.type ]( descriptor, recieved, ( ...args ) => {
+		return this.traps[ descriptor.operation ]( descriptor, recieved, ( ...args ) => {
 			this.running = false;
 			return next( ...args );
 		} );
