@@ -324,17 +324,17 @@ export function read( source, target, params = {} ) {
     const filteredKeys = only.length ? only.filter( k => sourceKeys.includes( k ) ) : sourceKeys.filter( k => !except.includes( k ) );
     const resolveKey = k => {
         if ( !Array.isArray( target ) || isNaN( k ) ) return k;
-        return k - ( params.except || [] ).filter( i => i < k ).length;
+        return k - except.filter( i => i < k ).length;
+    };
+    const doSet = key => {
+        const descriptor = getOwnPropertyDescriptor( source, key, params );
+        if ( ( 'value' in descriptor ) && descriptor.writable && descriptor.enumerable && descriptor.configurable ) {
+            set( target, resolveKey( key ), descriptor.value, params );
+        } else if ( descriptor.enumerable || params.onlyEnumerable === false ) { defineProperty( target, key, { ...descriptor, configurable: true }, params ); }
     };
     batch( target, () => {
-        filteredKeys.forEach( key => {
-            const descriptor = getOwnPropertyDescriptor( source, key, params );
-            if ( ( 'value' in descriptor ) && descriptor.writable && descriptor.enumerable && descriptor.configurable ) {
-                set( target, resolveKey( key ), descriptor.value, params );
-            } else if ( descriptor.enumerable || params.onlyEnumerable === false ) { defineProperty( target, key, { ...descriptor, configurable: true }, params ); }
-        } );
+        filteredKeys.forEach( doSet );
     } );
-    if ( Array.isArray( target ) && !only.includes( 'length' ) ) { except.push( 'length' ); }
     return observe( source, mutations => {
         //batch( target, () => {
             mutations.filter( m => only.length ? only.includes( m.key ) : !except.includes( m.key ) ).forEach( m => {
@@ -345,7 +345,7 @@ export function read( source, target, params = {} ) {
                     }
                     return;
                 }
-                set( target, resolveKey( m.key ), m.value, params );
+                doSet( m.key );
             } );
         //}, params );
     }, { ...params, withPropertyDescriptors: true } );

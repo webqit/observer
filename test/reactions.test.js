@@ -7,6 +7,18 @@ import Observer from '../src/index.js';
 import TrapsRegistry from '../src/core/TrapsRegistry.js';
 import ListenerRegistry from '../src/core/ListenerRegistry.js';
 
+/*
+const a = { one: 'val-one', two: 'val-two', three: 'val-three', four: 'val-four', five: 'val-five' }, b = {};
+Observer.observe( b, m => {
+    console.log( '----\\\\\\\\\\\\\\\----', m[0] );
+} );
+Observer.read( a, b, { only: ['one', 'two', 'seven'] } );
+Observer.set( a, 'six', 'six' );
+Observer.deleteProperty( a, 'two' );
+Observer.defineProperty( a, 'seven', { get: () => 'seven', enumerable: true } );
+console.log( '--------', b );
+*/
+
 describe( `Test: .observe() + .set()`, function() {
 
     describe( `Observe all changes.`, function() {

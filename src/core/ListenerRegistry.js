@@ -64,10 +64,13 @@ export default class ListenerRegistry extends Registry {
 			if ( needsEventsWithDescriptors !== entriesLength && hasEventsToTransform ) {
 				if ( snapshot.isPropertyDescriptors ) {
 					eventsTransformed.push( ...snapshot.events.map( e => {
-						let { target, value, oldValue, type, ...details } = e;
-						value = value.get ? value.get() : value.value;
-						oldValue = oldValue?.get ? oldValue.get() : oldValue?.value;
-						return new Descriptor( target, { type: 'set', value, oldValue, ...details } );
+						let { target, type, ...details } = e;
+						const desc = new Descriptor( target, { type: 'set', ...details } );
+						Object.defineProperty( desc, 'value', 'get' in details.value ? { get: () => details.value.get() } : { value: details.value.value } )
+						if ( details.oldValue ) {
+							Object.defineProperty( desc, 'oldValue', 'get' in details.oldValue ? { get: () => details.oldValue.get() } : { value: details.oldValue.value } )
+						}
+						return desc;
 					} ) );
 				} else { eventsTransformed.push( ...snapshot.events ); }
 			}
