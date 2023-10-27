@@ -319,27 +319,33 @@ export function batch( target, callback, params = {} ) {
 export function read( source, target, params = {} ) {
     target = resolveObj( target );
     source = resolveObj( source );
-    const sourceKeys = ownKeys( source );
-    const filteredKeys = params.only?.length ? params.only.filter( k => sourceKeys.includes( k ) ) : sourceKeys.filter( k => !params.except?.includes( k ) );
+    const only = ( params.only || [] ).slice( 0 ), except = ( params.except || [] ).slice( 0 );
+    const sourceKeys = ownKeys( params.spread ? [ ...source ] : source ).map( k => !isNaN( k ) ? parseInt( k ) : k );
+    const filteredKeys = only.length ? only.filter( k => sourceKeys.includes( k ) ) : sourceKeys.filter( k => !except.includes( k ) );
+    const resolveKey = k => {
+        if ( !Array.isArray( target ) || isNaN( k ) ) return k;
+        return k - ( params.except || [] ).filter( i => i < k ).length;
+    };
     batch( target, () => {
         filteredKeys.forEach( key => {
             const descriptor = getOwnPropertyDescriptor( source, key, params );
             if ( ( 'value' in descriptor ) && descriptor.writable && descriptor.enumerable && descriptor.configurable ) {
-                set( target, key, descriptor.value, params );
-            } else if ( params.onlyEnumerable !== false || descriptor.enumerable ) { defineProperty( target, key, { ...descriptor, configurable: true }, params ); }
+                set( target, resolveKey( key ), descriptor.value, params );
+            } else if ( descriptor.enumerable || params.onlyEnumerable === false ) { defineProperty( target, key, { ...descriptor, configurable: true }, params ); }
         } );
     } );
+    if ( Array.isArray( target ) && !only.includes( 'length' ) ) { except.push( 'length' ); }
     return observe( source, mutations => {
         //batch( target, () => {
-            mutations.filter( m => params.only?.length ? params.only.includes( m.key ) : !params.except?.includes( m.key ) ).forEach( m => {
-                if ( m.operation === 'deleteProperty' ) return deleteProperty( target, m.key, params );
+            mutations.filter( m => only.length ? only.includes( m.key ) : !except.includes( m.key ) ).forEach( m => {
+                if ( m.operation === 'deleteProperty' ) return deleteProperty( target, resolveKey( m.key ), params );
                 if ( m.operation === 'defineProperty' ) {
-                    if ( params.onlyEnumerable !== false || m.value.enumerable ) {
-                        defineProperty( target, m.key, { ...m.value, configurable: true }, params );
+                    if ( m.value.enumerable || params.onlyEnumerable === false ) {
+                        defineProperty( target, resolveKey( m.key ), { ...m.value, configurable: true }, params );
                     }
                     return;
                 }
-                set( target, m.key, m.value, params );
+                set( target, resolveKey( m.key ), m.value, params );
             } );
         //}, params );
     }, { ...params, withPropertyDescriptors: true } );
