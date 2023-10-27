@@ -310,13 +310,13 @@ export function batch( target, callback, params = {} ) {
 /**
  * Performs a mirror operation.
  * 
- * @param Object	        target
  * @param Object	        source
+ * @param Object	        target
  * @param Object	        params
  *
  * @return Void
  */
-export function assign( target, source, params = {} ) {
+export function read( source, target, params = {} ) {
     target = resolveObj( target );
     source = resolveObj( source );
     const sourceKeys = ownKeys( source );
@@ -326,15 +326,19 @@ export function assign( target, source, params = {} ) {
             const descriptor = getOwnPropertyDescriptor( source, key, params );
             if ( ( 'value' in descriptor ) && descriptor.writable && descriptor.enumerable && descriptor.configurable ) {
                 set( target, key, descriptor.value, params );
-            } else { defineProperty( target, key, descriptor, params ); }
+            } else if ( params.onlyEnumerable !== false || descriptor.enumerable ) { defineProperty( target, key, { ...descriptor, configurable: true }, params ); }
         } );
     } );
-    if ( !params.live ) return target;
     return observe( source, mutations => {
         //batch( target, () => {
             mutations.filter( m => params.only?.length ? params.only.includes( m.key ) : !params.except?.includes( m.key ) ).forEach( m => {
                 if ( m.operation === 'deleteProperty' ) return deleteProperty( target, m.key, params );
-                if ( m.operation === 'defineProperty' ) return defineProperty( target, m.key, m.value, params );
+                if ( m.operation === 'defineProperty' ) {
+                    if ( params.onlyEnumerable !== false || m.value.enumerable ) {
+                        defineProperty( target, m.key, { ...m.value, configurable: true }, params );
+                    }
+                    return;
+                }
                 set( target, m.key, m.value, params );
             } );
         //}, params );
