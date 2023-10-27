@@ -60,7 +60,7 @@ export function accessorize( target, props, params = {} ) {
             accessorizedProps.delete( prop + '' );
             return true;
         };
-        accessorizedProps.set( prop + '', currentDescriptorRecord );
+        accessorizedProps.set( !isNaN( prop ) ? parseInt( prop ) : prop, currentDescriptorRecord );
         // ------------------
         // enumerable, configurable
         const { enumerable = true } = currentDescriptorRecord.descriptor;

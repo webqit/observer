@@ -254,7 +254,7 @@ export function get( target, prop, receiver = x => x, params = {} ) {
                 if ( arguments.length > 1 ) return _next( value );
                 if ( !_isTypeObject( originalTarget ) ) return _next( originalTarget?.[ descriptor.key ] );
                 const accessorizedProps = _( originalTarget, 'accessorizedProps', false );
-                const accessorization = accessorizedProps && accessorizedProps.get( descriptor.key + '' );
+                const accessorization = accessorizedProps && accessorizedProps.get( descriptor.key );
                 if ( accessorization && accessorization.intact() ) {
                     return _next( accessorization.getValue( params.withPropertyDescriptors ) );
                 }
@@ -376,7 +376,7 @@ export function set( target, prop, value, receiver = x => x, params = {}, def = 
             const _next = status => ( descriptor.status = status, next( descriptors.concat( descriptor ), entries, _done ) );
             if ( arguments.length > 1 ) return _next( descriptor, status );
             const accessorizedProps = _( originalTarget, 'accessorizedProps', false );
-            const accessorization = accessorizedProps && accessorizedProps.get( descriptor.key + '' );
+            const accessorization = accessorizedProps && accessorizedProps.get( descriptor.key );
             if ( descriptor.operation === 'defineProperty' ) {
                 if ( accessorization && !accessorization.restore() ) _next( false );
                 Object.defineProperty( originalTarget, descriptor.key, descriptor.value );
@@ -476,7 +476,7 @@ export function deleteProperty( target, prop, receiver = x => x, params = {} ) {
             const _next = status => ( descriptor.status = status, next( descriptors.concat( descriptor ), props, _done ) );
             if ( arguments.length > 1 ) return _next( descriptor, status );
             const accessorizedProps = _( target, 'accessorizedProps', false );
-            const accessorization = accessorizedProps && accessorizedProps.get( descriptor.key + '' );
+            const accessorization = accessorizedProps && accessorizedProps.get( descriptor.key );
             if ( accessorization && !accessorization.restore() ) _next( false );
             return _next( Reflect.deleteProperty( target, descriptor.key ) );
         }
