@@ -141,7 +141,7 @@ export function proxy( target, params = {}, extendCallback = undefined ) {
                 // And array methods have their operations batched
                 return batch( originalThis, () =>  apply( target, thisArgument, argumentsList ) );
             }
-            return apply( target, thisArgument, argumentsList );
+            return apply( target, unproxy( thisArgument ), argumentsList );
         },
         construct:  ( target, argumentsList, newTarget = null ) => construct( target, argumentsList, newTarget, params ),
         defineProperty:  ( target, propertyKey, attributes ) => defineProperty( target, propertyKey, attributes, params ),
