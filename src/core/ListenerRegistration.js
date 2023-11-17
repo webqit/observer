@@ -4,7 +4,7 @@
  */
 import { _from as _arrFrom } from '@webqit/util/arr/index.js';
 import Registration from './Registration.js';
-import { _await, other as otherUtil } from '../util.js';
+import { _await, env } from '../util.js';
 
 /**
  * ---------------------------
@@ -22,7 +22,7 @@ export default class ListenerRegistration extends Registration {
 		this.emit.currentRegistration = this;
 		Object.defineProperty( this, 'abortController', { value: new AbortController } );
 		Object.defineProperty( this, 'signal', { value: this.abortController.signal } );
-		otherUtil.setMaxListeners?.( 0, this.signal );
+		env.setMaxListeners?.( 0, this.signal );
 	}
 
 	/**

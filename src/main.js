@@ -4,7 +4,7 @@
  */
 import { _isObject, _isTypeObject, _isFunction, _getType } from '@webqit/util/js/index.js';
 import { _from as _arrFrom } from '@webqit/util/arr/index.js';
-import { _, _await, other as otherUtil } from './util.js';
+import { _, _await, env } from './util.js';
 import ListenerRegistry from './core/ListenerRegistry.js';
 import TrapsRegistry from './core/TrapsRegistry.js';
 import Descriptor from './core/Descriptor.js';
@@ -596,7 +596,7 @@ function bind( target, prop, receiver, params = {} ) {
     if ( !params.signal ) {
         controller = new AbortController;
         params = { ...params, signal: controller.signal };
-        otherUtil.setMaxListeners?.( 0, controller.signal );
+        env.setMaxListeners?.( 0, controller.signal );
     }
     const listenerRegistry = ListenerRegistry.getInstance( target, true, params.namespace );
     return function emit( descriptor_s, prevRegistration = null ) {

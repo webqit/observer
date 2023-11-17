@@ -8,4 +8,4 @@ export const _ = ( ...args ) => _internals( 'observer-api', ...args );
 
 export const _await = ( value, callback ) => value instanceof Promise ? value.then( callback ) : callback( value );
 
-export const other = {};
+export const env = {};
