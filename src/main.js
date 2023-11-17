@@ -264,7 +264,7 @@ export function get( target, prop, receiver = x => x, params = {} ) {
                     return _next( desc );
                 }
                 if ( 'forceValue' in params ) { return _next( params.forceValue ); }
-                return _next( Reflect.get( originalTarget, descriptor.key, ...( params.receiver ? [ params.receiver ] : [] ) ) );
+                return _next( Reflect.get( originalTarget, descriptor.key/*, ...( params.receiver ? [ params.receiver ] : [] )*//*Throws Illegal invocation error ffor DOM nodes, e.g.*/ ) );
             }
             // ---------
             const descriptor = new Descriptor( originalTarget, {
