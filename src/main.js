@@ -316,7 +316,7 @@ export function batch( target, callback, params = {} ) {
  *
  * @return Void
  */
-export function read( source, target, params = {} ) {
+export function map( source, target, params = {} ) {
     target = resolveObj( target );
     source = resolveObj( source );
     const only = ( params.only || [] ).slice( 0 ), except = ( params.except || [] ).slice( 0 );

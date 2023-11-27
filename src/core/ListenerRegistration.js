@@ -52,24 +52,25 @@ export default class ListenerRegistration extends Registration {
 		if ( this.params.diff ) {
 			matches = matches.filter( event => event.type !== 'set' || event.value !== event.oldValue );
 		}
-		if ( matches.length ) {
-			if ( this.emit.recursionTarget && this.params.recursions !== 'force-sync' ) {
+		if ( !matches.length ) return;
+		if ( [ 'inject', 'defer' ].includes( this.params.recursions ) ) {
+			if ( this.emit.recursionTarget ) {
 				this.emit.recursionTarget.push( ...matches );
 				return;
 			}
 			this.emit.recursionTarget = this.params.recursions === 'inject' ? matches : [];
-			const $ret = this.filter === Infinity || Array.isArray( this.filter )
-				? this.emit( matches, this )
-				: this.emit( matches[ 0 ], this );
-			// NOTEL: on calling emit(), this registration has expired and a new one active!!!
-			return _await( $ret, ret => {
-				const recursions = this.emit.recursionTarget;
-				delete this.emit.recursionTarget;
-				if ( this.params.recursions === 'force-async' ) {
-					if ( recursions.length ) return this.emit.currentRegistration.fire( recursions );
-				}
-				return ret;
-			} );
 		}
+		const $ret = this.filter === Infinity || Array.isArray( this.filter )
+			? this.emit( matches, this )
+			: this.emit( matches[ 0 ], this );
+		// NOTEL: on calling emit(), this registration has expired and a new one active!!!
+		return _await( $ret, ret => {
+			const recursions = this.emit.recursionTarget;
+			delete this.emit.recursionTarget;
+			if ( this.params.recursions === 'defer' ) {
+				if ( recursions?.length ) return this.emit.currentRegistration.fire( recursions );
+			}
+			return ret;
+		} );
 	}
 }

@@ -12,7 +12,7 @@ const a = { one: 'val-one', two: 'val-two', three: 'val-three', four: 'val-four'
 Observer.observe( b, m => {
     console.log( '----\\\\\\\\\\\\\\\----', m[0] );
 } );
-Observer.read( a, b, { only: ['one', 'two', 'seven'] } );
+Observer.map( a, b, { only: ['one', 'two', 'seven'] } );
 Observer.set( a, 'six', 'six' );
 Observer.deleteProperty( a, 'two' );
 Observer.defineProperty( a, 'seven', { get: () => 'seven', enumerable: true } );
