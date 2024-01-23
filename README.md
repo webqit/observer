@@ -20,6 +20,13 @@ This is discussed extensively in [the introductory blog post](https://dev.to/oxh
 
 We find a design precedent to object observability in the [`Object.observe()`](https://web.dev/es7-observe/) API, which at one time checked all the boxes and touched the very pain points we have today! The idea with the new **Observer API** is to re-explore that unique design with a more wholistic approach that considers the broader subject of Reactive Programming in JavaScript!
 
+## Status
+
++ Working implementation via a polyfill
++ Integral to the [Quantum JS project](https://github.com/webqit/quantum-js)
++ Actively developed
++ Open to contributions
+
 ## An Overview
 
 The Observer API is a set of utility functions - notably, the `Observer.observe()` and `Observer.intercept()` methods - for all things object observability.
