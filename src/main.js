@@ -593,11 +593,10 @@ export function preventExtensions( target, receiver = x => x, params = {} ) {
  */
 function bind( target, prop, receiver, params = {} ) {
     const controller = new AbortController;
-    if ( params.signal ) {
-        params.signal.addEventListener( 'abort', () => controller.abort() );
-        params = { ...params, signal: controller.signal };
-        env.setMaxListeners?.( 0, controller.signal );
-    }
+    env.setMaxListeners?.( 0, controller.signal );
+    if ( params.signal ) { params.signal.addEventListener( 'abort', () => controller.abort() ); }
+    params = { ...params, signal: controller.signal };
+    
     const listenerRegistry = ListenerRegistry.getInstance( target, true, params.namespace );
     return function emit( descriptor_s, prevRegistration = null ) {
         prevRegistration?.remove();
