@@ -592,9 +592,9 @@ export function preventExtensions( target, receiver = x => x, params = {} ) {
  * @return Function: AbortController
  */
 function bind( target, prop, receiver, params = {} ) {
-    let controller;
-    if ( !params.signal ) {
-        controller = new AbortController;
+    const controller = new AbortController;
+    if ( params.signal ) {
+        params.signal.addEventListener( 'abort', () => controller.abort() );
         params = { ...params, signal: controller.signal };
         env.setMaxListeners?.( 0, controller.signal );
     }
