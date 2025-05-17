@@ -320,7 +320,7 @@ export function map( source, target, params = {} ) {
     const only = ( params.only || [] ).slice( 0 ), except = ( params.except || [] ).slice( 0 );
     const sourceKeys = ownKeys( params.spread ? [ ...source ] : source ).map( k => !isNaN( k ) ? parseInt( k ) : k );
     const filteredKeys = only.length ? only.filter( k => sourceKeys.includes( k ) ) : sourceKeys.filter( k => !except.includes( k ) );
-    const resolveKey = k => {
+    const resolveKey = k => { 
         if ( !Array.isArray( target ) || isNaN( k ) ) return k;
         return k - except.filter( i => i < k ).length;
     };
