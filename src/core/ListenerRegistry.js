@@ -45,41 +45,97 @@ export default class ListenerRegistry extends Registry {
 	 *
 	 * @return Void
 	 */
-	emit( events, isPropertyDescriptors = false ) {
+	emit( events, { eventsArePropertyDescriptors = false, eventIsArrayMethodDescriptor = false } = {} ) {
 		if ( this.batches.length ) {
-			this.batches[ 0 ].snapshots.push( { events: [ ...events ], isPropertyDescriptors } );
+			this.batches[ 0 ].snapshots.push( {
+				events: [ ...events ],
+				arrayMethodName: this.batches[ 0 ].params.arrayMethodName, // Typically from child events firing from array method operations
+				eventsArePropertyDescriptors, // Typically from defineProperty() operations
+				eventIsArrayMethodDescriptor // Typically from array method operations
+			} );
 			return
 		}
-		this.$emit( this.entries, [ { events, isPropertyDescriptors } ] );
+		this.$emit( this.entries, [ {
+			events, 
+			eventsArePropertyDescriptors, // Typically from defineProperty() operations
+			eventIsArrayMethodDescriptor // Typically from array method operations
+		} ] );
 	}
 
-	$emit( entries, snapshots ) {
-		const needsEventsWithDescriptors = entries.filter( listener => listener.params.withPropertyDescriptors ).length;
-		const hasEventsToTransform = snapshots.some( snapshot => snapshot.isPropertyDescriptors );
-		const eventsAsIs = [], eventsTransformed = [], entriesLength = entries.length;
-		snapshots.forEach( snapshot => {
-			// Some need it untransformed (as-is)
-			if ( needsEventsWithDescriptors || !hasEventsToTransform ) { eventsAsIs.push( ...snapshot.events ); }
-			// It might not be all that need it untransformed, and there might be events to transform
-			if ( needsEventsWithDescriptors !== entriesLength && hasEventsToTransform ) {
-				if ( snapshot.isPropertyDescriptors ) {
-					eventsTransformed.push( ...snapshot.events.map( e => {
-						let { target, type, ...details } = e;
-						const desc = new Descriptor( target, { type: 'set', ...details } );
-						Object.defineProperty( desc, 'value', 'get' in details.value ? { get: () => details.value.get() } : { value: details.value.value } )
-						if ( details.oldValue ) {
-							Object.defineProperty( desc, 'oldValue', 'get' in details.oldValue ? { get: () => details.oldValue.get() } : { value: details.oldValue.value } )
-						}
-						return desc;
-					} ) );
-				} else { eventsTransformed.push( ...snapshot.events ); }
-			}
-		} );
-		entries.forEach( listener => {
+	$emit( listeners, snapshots ) {
+		// Analyse listener modes
+		let listenersLength = 0,
+		listenersAskingEventsWithPropertyDescriptors = 0,
+		listenersAskingArrayMethodDescriptors = 0;
+		for ( const listener of listeners ) {
+			listenersLength += 1;
 			if ( listener.params.withPropertyDescriptors ) {
-				listener.fire( eventsAsIs.length ? eventsAsIs : eventsTransformed );
-			} else { listener.fire( eventsTransformed.length ? eventsTransformed : eventsAsIs ); }
-		} );
+				listenersAskingEventsWithPropertyDescriptors += 1;
+			}
+			if ( listener.params.withArrayMethodDescriptors ) {
+				listenersAskingArrayMethodDescriptors += 1;
+			}
+		}
+		// Sort events
+		const events_with_PropertyDescriptors_with_ArrayMethodDescriptors = [], events_with_PropertyDescriptors_without_ArrayMethodDescriptors = [];
+		const events_without_PropertyDescriptors_with_ArrayMethodDescriptors = [], events_without_PropertyDescriptors_without_ArrayMethodDescriptors = [];
+		for ( const snapshot of snapshots ) {
+			const arrayMethodName = snapshot.arrayMethodName;
+			const eventsArePropertyDescriptors = snapshot.eventsArePropertyDescriptors;
+			const eventIsArrayMethodDescriptor = snapshot.eventIsArrayMethodDescriptor;
+			for ( const event of snapshot.events ) {
+				if ( arrayMethodName ) {
+					event.arrayMethodName = arrayMethodName;
+				}
+				// Some opting in to PropertyDescriptors
+				if ( listenersAskingEventsWithPropertyDescriptors ) {
+					if ( !arrayMethodName || eventIsArrayMethodDescriptor ) {
+						listenersAskingArrayMethodDescriptors && // Some opting in to ArrayMethodDescriptors
+						events_with_PropertyDescriptors_with_ArrayMethodDescriptors.push( event );
+					}
+					if ( !eventIsArrayMethodDescriptor ) {
+						listenersAskingArrayMethodDescriptors !== listenersLength && // Some opting out of ArrayMethodDescriptors
+						events_with_PropertyDescriptors_without_ArrayMethodDescriptors.push( event );
+					}
+				}
+				// Some opting out of PropertyDescriptors
+				if ( listenersAskingEventsWithPropertyDescriptors !== listenersLength ) {
+					let $event = event;
+					if ( eventsArePropertyDescriptors ) {
+						const { target, type, ...details } = event;
+						$event = new Descriptor( target, { type: 'set', ...details } );
+						Object.defineProperty( $event, 'value', 'get' in details.value ? { get: () => details.value.get() } : { value: details.value.value } )
+						if ( details.oldValue ) {
+							Object.defineProperty( $event, 'oldValue', 'get' in details.oldValue ? { get: () => details.oldValue.get() } : { value: details.oldValue.value } )
+						}
+					}
+					if ( !arrayMethodName || eventIsArrayMethodDescriptor/*Although eedless as is typically mutually exclusive to eventsArePropertyDescriptors*/ ) {
+						listenersAskingArrayMethodDescriptors && // Some opting in to ArrayMethodDescriptors
+						events_without_PropertyDescriptors_with_ArrayMethodDescriptors.push( $event );
+					}
+					if ( !eventIsArrayMethodDescriptor ) { // Although eedless as is typically already implied by eventsArePropertyDescriptors
+						listenersAskingArrayMethodDescriptors !== listenersLength && // Some opting out of ArrayMethodDescriptors
+						events_without_PropertyDescriptors_without_ArrayMethodDescriptors.push( $event );
+					}
+				}
+			}
+		}
+		// Dispatch
+		for ( const listener of listeners ) {
+			if ( listener.params.withPropertyDescriptors ) {
+				if ( listener.params.withArrayMethodDescriptors ) {
+					listener.fire( events_with_PropertyDescriptors_with_ArrayMethodDescriptors );
+				} else {
+					listener.fire( events_with_PropertyDescriptors_without_ArrayMethodDescriptors );
+				}
+			} else {
+				if ( listener.params.withArrayMethodDescriptors ) {
+					listener.fire( events_without_PropertyDescriptors_with_ArrayMethodDescriptors );
+				} else {
+					listener.fire( events_without_PropertyDescriptors_without_ArrayMethodDescriptors );
+				}
+			}
+		}
 	}
 
 	/**
@@ -89,15 +145,15 @@ export default class ListenerRegistry extends Registry {
 	 *
 	 * @return Void
 	 */
-	batch( callback ) {
-		this.batches.unshift( { entries: [ ...this.entries ], snapshots: [] } );
+	batch( callback, params = {} ) {
+		this.batches.unshift( { entries: [ ...this.entries ], snapshots: [], params } );
 		const returnValue = callback();
 		return _await( returnValue, returnValue => {
 			const batch = this.batches.shift();
 			if ( !batch.snapshots.length ) return returnValue;
 			this.$emit( batch.entries, batch.snapshots );
 			return returnValue;
-		} )
+		} );
 	}
 
 }

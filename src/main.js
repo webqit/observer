@@ -260,10 +260,8 @@ export function get( target, prop, receiver = x => x, params = {} ) {
                 }
                 if ( params.withPropertyDescriptors ) {
                     const desc = Object.getOwnPropertyDescriptor( originalTarget, descriptor.key );
-                    if ( 'forceValue' in params &&  'value' in desc ) { desc.value = params.forceValue; }
                     return _next( desc );
                 }
-                if ( 'forceValue' in params ) { return _next( params.forceValue ); }
                 return _next( Reflect.get( originalTarget, descriptor.key/*, ...( params.receiver ? [ params.receiver ] : [] )*//*Throws Illegal invocation error ffor DOM nodes, e.g.*/ ) );
             }
             // ---------
@@ -304,7 +302,7 @@ export function get( target, prop, receiver = x => x, params = {} ) {
  */
 export function batch( target, callback, params = {} ) {
     target = resolveObj( target );
-    return ListenerRegistry.getInstance( target, true, params.namespace ).batch( callback );
+    return ListenerRegistry.getInstance( target, true, params.namespace ).batch( callback, params );
 }
 
 /**
@@ -414,14 +412,16 @@ export function set( target, prop, value, receiver = x => x, params = {}, def = 
         // ---------
         return has( originalTarget, prop, exists => {
             if ( !exists ) return exec( exists );
+            if ( prop === 'length' && Array.isArray( originalTarget ) && _( originalTarget ).has( '$length' ) ) {
+                return exec( true, _( originalTarget ).get( '$length' ) );
+            }
             const $params = { ...params, withPropertyDescriptors: def };
-            if ( 'forceOldValue' in params ) { $params.forceValue = params.forceOldValue; }
             return get( originalTarget, prop, oldValue => exec( exists, oldValue ), $params );
         }, params );
         // ---------
     } )( [], entries.slice( 0 ), descriptors => {
         const listenerRegistry = ListenerRegistry.getInstance( originalTarget, false, params.namespace );
-        if ( listenerRegistry ) listenerRegistry.emit( descriptors, def );
+        if ( listenerRegistry ) listenerRegistry.emit( descriptors, { eventsArePropertyDescriptors: !!def } );
         return receiver(
             isPropsList( prop/*original*/ ) ? descriptors.map( opr => opr.status ) : descriptors[ 0 ]?.status
         );
@@ -496,9 +496,9 @@ export function deleteProperty( target, prop, receiver = x => x, params = {} ) {
                 operation: 'deleteProperty',
                 detail: params.detail,
             } );
-            const listenerRegistry = TrapsRegistry.getInstance( target, false, params.namespace );
-            return listenerRegistry 
-                ? listenerRegistry.emit( descriptor, defaultDel ) 
+            const trapsRegistry = TrapsRegistry.getInstance( target, false, params.namespace );
+            return trapsRegistry 
+                ? trapsRegistry.emit( descriptor, defaultDel ) 
                 : defaultDel( descriptor );
         }
         // ---------
@@ -549,7 +549,28 @@ export function construct( target, argumentsList, newTarget = null, receiver = x
  * @return Any
  */
 export function apply( target, thisArgument, argumentsList, receiver = x => x, params = {} ) {
-    return exec( target, 'apply', { thisArgument, argumentsList }, receiver, params );
+    const originalThis = unproxy( thisArgument );
+    let returnValue;
+    if ( Array.isArray( thisArgument ) ) {
+        if ( params.arrayMethodName ) {
+            const descriptor = new Descriptor( originalThis, {
+                operation: params.arrayMethodName,
+                argumentsList
+            } );
+            const listenerRegistry = ListenerRegistry.getInstance( originalThis, false, params.namespace );
+            listenerRegistry?.emit( [ descriptor ], { eventIsArrayMethodDescriptor: true } );
+        }
+        _( originalThis ).set( '$length', originalThis.length );
+        returnValue = batch(
+            originalThis,
+            () => exec( target, 'apply', { thisArgument/*proxy wrappers allowed; in fact is why it works*/, argumentsList }, receiver, params ),
+            params
+        );
+        _( originalThis ).delete( '$length' );
+    } else {
+        returnValue = exec( target, 'apply', { thisArgument: originalThis, argumentsList }, receiver, params );
+    }
+    return returnValue;
 }
 
 /**
@@ -632,9 +653,9 @@ function exec( target, operation, payload = {}, receiver = x => x, params = {} )
     }
     // ---------
     const descriptor = new Descriptor( target, { operation, ...payload } );
-    const listenerRegistry = TrapsRegistry.getInstance( target, false, params.namespace );
-    if ( listenerRegistry ) {
-        return listenerRegistry.emit( descriptor, defaultExec );
+    const trapsRegistry = TrapsRegistry.getInstance( target, false, params.namespace );
+    if ( trapsRegistry ) {
+        return trapsRegistry.emit( descriptor, defaultExec );
     }
     return defaultExec( descriptor );
 }
