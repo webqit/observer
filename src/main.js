@@ -349,7 +349,7 @@ export function map( source, target, params = {} ) {
     target = resolveObj( target );
     source = resolveObj( source );
     const only = ( params.only || [] ).slice( 0 ), except = ( params.except || [] ).slice( 0 );
-    const sourceKeys = ownKeys( params.spread ? [ ...source ] : source ).map( k => !isNaN( k ) ? parseInt( k ) : k );
+    const sourceKeys = Object.keys( params.spread ? [ ...source ] : source ).map( k => !isNaN( k ) ? parseInt( k ) : k );
     const filteredKeys = only.length ? only.filter( k => sourceKeys.includes( k ) ) : sourceKeys.filter( k => !except.includes( k ) );
     const resolveKey = k => { 
         if ( !Array.isArray( target ) || isNaN( k ) ) return k;
@@ -733,7 +733,7 @@ function resolveObj( obj, assert = true, probePropertyDescriptors = true ) {
 function resolveProps( obj, prop, receiver, params = {} ) {
     if ( prop === Infinity ) {
         if ( params.level && !_isTypeObject( obj ) ) return receiver( [] );
-        return ownKeys( obj, receiver, params );
+        return receiver( Object.keys( obj ) );
     }
     return receiver( _arrFrom( prop, false ) );
 }

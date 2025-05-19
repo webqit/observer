@@ -262,8 +262,8 @@ describe( `Test: .observe() + .set()`, function() {
         it( `Observe wildcard paths.`, function() {
             let obj = {}, _changes = [];
             // -----
-            Observer.reduce( obj, [ 'key1', Infinity ], Observer.observe, change => {
-                _changes.push( change );
+            Observer.reduce( obj, [ 'key1', Infinity ], Observer.observe, changes => {
+                _changes.push( changes );
             }, { preflight: true } );
             // -----
             Observer.set( obj, {
