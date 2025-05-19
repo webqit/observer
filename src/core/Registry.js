@@ -63,8 +63,8 @@ export default class Registry {
 	static _getInstance( type, target, createIfNotExists = true, namespace = this.__namespace ) {
 		if ( !_isTypeObject( target ) ) throw new Error( `Subject must be of type object; "${ _getType( target ) }" given!` );
 		let ImplementationClass = this;
-		if ( namespace && _wq( Registry, 'namespaces' ).has( type + '-' + namespace ) ) {
-			ImplementationClass = _wq( Registry, 'namespaces' ).get( type + '-' + namespace );
+		if ( namespace && _wq( globalThis, 'observerAPI', 'namespaces' ).has( type + '-' + namespace ) ) {
+			ImplementationClass = _wq( globalThis, 'observerAPI', 'namespaces' ).get( type + '-' + namespace );
 			type += '-' + namespace
 		}
 		if ( !_wq( target, 'registry' ).has( type ) && createIfNotExists ) {
@@ -83,11 +83,11 @@ export default class Registry {
 	 */
 	static _namespace( type, namespace, ImplementationClass = null ) {
 		type += '-' + namespace;
-		if ( arguments.length === 2 ) return _wq( Registry, 'namespaces' ).get( type );
+		if ( arguments.length === 2 ) return _wq( globalThis, 'observerAPI', 'namespaces' ).get( type );
 		if ( !( ImplementationClass.prototype instanceof this ) ) {
 			throw new Error( `The implementation of the namespace ${ this.name }.${ namespace } must be a subclass of ${ this.name }.` );
 		}
-		_wq( Registry, 'namespaces' ).set( type, ImplementationClass );
+		_wq( globalThis, 'observerAPI', 'namespaces' ).set( type, ImplementationClass );
 		ImplementationClass.__namespace = namespace;
 	}
 }
