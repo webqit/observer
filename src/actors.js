@@ -5,7 +5,7 @@
 import { _from as _arrFrom } from '@webqit/util/arr/index.js';
 import { _isClass, _isFunction, _isTypeObject, _getType } from '@webqit/util/js/index.js';
 import { set, deleteProperty, has, get, ownKeys, defineProperty, getOwnPropertyDescriptor } from "./main.js";
-import { batch, apply, construct, getPrototypeOf, setPrototypeOf, isExtensible, preventExtensions } from "./main.js";
+import { apply, construct, getPrototypeOf, setPrototypeOf, isExtensible, preventExtensions } from "./main.js";
 import { _wq } from './util.js';
 
 /* ---------------ACCESSORIZE METHODS--------------- */
@@ -19,6 +19,7 @@ import { _wq } from './util.js';
  *
  * @return Array
  */
+const symWQOriginal = Symbol('wqOriginal');
 export function accessorize( target, props, params = {} ) {
     target = resolveTarget( target );
     const accessorizedProps = _wq( target, 'accessorizedProps' );
@@ -138,6 +139,9 @@ export function proxy( target, params = {}, extendCallback = undefined ) {
         defineProperty:  ( target, propertyKey, attributes ) => defineProperty( target, propertyKey, attributes, params ),
         deleteProperty: ( target, propertyKey ) => deleteProperty( target, propertyKey, params ),
         get: ( target, propertyKey, receiver = null ) => {
+            if ( propertyKey === symWQOriginal ) {
+                return originalTarget;
+            }
             const $params = { ...params, receiver };
             const returnValue = get( target, propertyKey, $params );
             if ( Array.isArray( target ) && typeof returnValue === 'function' ) {
@@ -160,7 +164,6 @@ export function proxy( target, params = {}, extendCallback = undefined ) {
     // Create proxy
     const $proxy = new Proxy( originalTarget, $traps );
     if ( params.membrane ) { _wq( originalTarget, 'membraneRef' ).set( params.membrane, $proxy ); }
-    _wq( $proxy ).set( $proxy, originalTarget );
 	return $proxy;
 }
 
@@ -173,7 +176,7 @@ export function proxy( target, params = {}, extendCallback = undefined ) {
  */
 export function unproxy( target ) {
     // Proxy targets are mapped to their own instances internally
-    return _wq( target ).get( target ) || target;
+    return target && target[ symWQOriginal ] || target;
 }
 
 /* ---------------HELPERS--------------- */
