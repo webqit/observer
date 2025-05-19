@@ -144,9 +144,13 @@ export function proxy( target, params = {}, extendCallback = undefined ) {
             }
             const $params = { ...params, receiver };
             const returnValue = get( target, propertyKey, $params );
+            // Auto-wrap array methods
             if ( Array.isArray( target ) && typeof returnValue === 'function' ) {
-                // Return a proxy, but in terms of a membrane. 
-                return proxy( returnValue, { ...params, arrayMethodName: propertyKey, membrane: receiver/* the instance obj that will be the thisArgument at apply(). Much like function.bind() */ } );
+                return proxy( returnValue, { ...params, arrayMethodName: propertyKey, membrane: receiver/* the instance obj that will be the thisArgument at apply(). Much like function.bind() */ }, extendCallback );
+            }
+            // Auto-wrap others if so specified
+            if ( params.chainable && _isTypeObject( returnValue ) ) {
+                return proxy( returnValue, params, extendCallback );
             }
             return returnValue;
         },
