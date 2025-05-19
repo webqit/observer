@@ -47,9 +47,10 @@ export default class ListenerRegistry extends Registry {
 	 */
 	emit( events, { eventsArePropertyDescriptors = false, eventIsArrayMethodDescriptor = false } = {} ) {
 		if ( this.batches.length ) {
+			const arrayMethodName = this.batches[ 0 ].params.arrayMethodName;
 			this.batches[ 0 ].snapshots.push( {
 				events: [ ...events ],
-				arrayMethodName: this.batches[ 0 ].params.arrayMethodName, // Typically from child events firing from array method operations
+				arrayMethodName, // Typically from array operations
 				eventsArePropertyDescriptors, // Typically from defineProperty() operations
 				eventIsArrayMethodDescriptor // Typically from array method operations
 			} );
@@ -85,14 +86,13 @@ export default class ListenerRegistry extends Registry {
 			const eventIsArrayMethodDescriptor = snapshot.eventIsArrayMethodDescriptor;
 			for ( const event of snapshot.events ) {
 				if ( arrayMethodName ) {
-					event.arrayMethodName = arrayMethodName;
+					event.operation = arrayMethodName;
 				}
 				// Some opting in to PropertyDescriptors
 				if ( listenersAskingEventsWithPropertyDescriptors ) {
-					if ( !arrayMethodName || eventIsArrayMethodDescriptor ) {
-						listenersAskingArrayMethodDescriptors && // Some opting in to ArrayMethodDescriptors
-						events_with_PropertyDescriptors_with_ArrayMethodDescriptors.push( event );
-					}
+					//if ( !arrayMethodName ) { }
+					listenersAskingArrayMethodDescriptors && // Some opting in to ArrayMethodDescriptors
+					events_with_PropertyDescriptors_with_ArrayMethodDescriptors.push( event );
 					if ( !eventIsArrayMethodDescriptor ) {
 						listenersAskingArrayMethodDescriptors !== listenersLength && // Some opting out of ArrayMethodDescriptors
 						events_with_PropertyDescriptors_without_ArrayMethodDescriptors.push( event );
@@ -109,10 +109,9 @@ export default class ListenerRegistry extends Registry {
 							Object.defineProperty( $event, 'oldValue', 'get' in details.oldValue ? { get: () => details.oldValue.get() } : { value: details.oldValue.value } )
 						}
 					}
-					if ( !arrayMethodName || eventIsArrayMethodDescriptor/*Although eedless as is typically mutually exclusive to eventsArePropertyDescriptors*/ ) {
-						listenersAskingArrayMethodDescriptors && // Some opting in to ArrayMethodDescriptors
-						events_without_PropertyDescriptors_with_ArrayMethodDescriptors.push( $event );
-					}
+					//if ( !arrayMethodName/*Although eedless as is typically mutually exclusive to eventsArePropertyDescriptors*/ ) { }
+					listenersAskingArrayMethodDescriptors && // Some opting in to ArrayMethodDescriptors
+					events_without_PropertyDescriptors_with_ArrayMethodDescriptors.push( $event );
 					if ( !eventIsArrayMethodDescriptor ) { // Although eedless as is typically already implied by eventsArePropertyDescriptors
 						listenersAskingArrayMethodDescriptors !== listenersLength && // Some opting out of ArrayMethodDescriptors
 						events_without_PropertyDescriptors_without_ArrayMethodDescriptors.push( $event );
@@ -124,14 +123,18 @@ export default class ListenerRegistry extends Registry {
 		for ( const listener of listeners ) {
 			if ( listener.params.withPropertyDescriptors ) {
 				if ( listener.params.withArrayMethodDescriptors ) {
+					events_with_PropertyDescriptors_with_ArrayMethodDescriptors.length &&
 					listener.fire( events_with_PropertyDescriptors_with_ArrayMethodDescriptors );
 				} else {
+					events_with_PropertyDescriptors_without_ArrayMethodDescriptors.length &&
 					listener.fire( events_with_PropertyDescriptors_without_ArrayMethodDescriptors );
 				}
 			} else {
 				if ( listener.params.withArrayMethodDescriptors ) {
+					events_without_PropertyDescriptors_with_ArrayMethodDescriptors.length &&
 					listener.fire( events_without_PropertyDescriptors_with_ArrayMethodDescriptors );
 				} else {
+					events_without_PropertyDescriptors_without_ArrayMethodDescriptors.length &&
 					listener.fire( events_without_PropertyDescriptors_without_ArrayMethodDescriptors );
 				}
 			}

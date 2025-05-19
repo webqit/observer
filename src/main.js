@@ -25,6 +25,25 @@ export function path( ...segments ) {
 }
 
 /**
+ * Creates a "Subtree" directive.
+ * 
+ * @return Subtree
+ */
+class Subtree extends Array {}
+export function subtree() {
+    return new Subtree;
+}
+
+/**
+ * Creates an "Infinity" directive.
+ * 
+ * @return Infinity
+ */
+export function any() {
+    return Infinity;
+}
+
+/**
  * Reduces a path array against handler.
  * 
  * @param Array|Object	    target
@@ -38,10 +57,12 @@ export function path( ...segments ) {
  * @return Any
  */
 export function reduce( target, path, receiver, final = x => x, params = {} ) {
-    if ( !path.length ) return;
-    return ( function eat( target, path, $params ) {
-        const segment = path[ $params.level ];
-        const isLastSegment = $params.level === path.length - 1;
+    const _isSubtree = path instanceof Subtree;
+    if ( !_isSubtree && !path?.length ) return;
+    return ( function eat( target, path, $params, $isSubtree ) {
+        const isSubtree = $isSubtree || path[ $params.level ] instanceof Subtree;
+        const segment = isSubtree ? Infinity : path[ $params.level ];
+        const isLastSegment = isSubtree ? false : $params.level === path.length - 1;
         if ( target instanceof Descriptor && target.operation !== 'get' ) {
             // Always probe event-generated trees
             $params = { ...$params, probe: 'always' };
@@ -52,15 +73,25 @@ export function reduce( target, path, receiver, final = x => x, params = {} ) {
         // ---------------
         return receiver( target, segment, ( result, ...args ) => {
             // -----------
-            const addTrail = desc => {
+            const addTrail = ( desc ) => {
                 if ( !( desc instanceof Descriptor ) ) return;
-                desc.path = [ desc.key ];
+                if ( 'key' in desc ) {
+                    desc.path = [ desc.key ];
+                }
                 if ( target instanceof Descriptor ) {
-                    desc.path = target.path.concat( desc.key );
+                    if ( 'key' in desc ) {
+                        desc.path = target.path.concat( desc.key );
+                    } else {
+                        desc.path = target.path.slice( 0 );
+                    }
                     Object.defineProperty( desc, 'context', { get: () => target, configurable: true } );
                 }
             };
-            const advance = result => {
+            const flags = args[ 0 ] || {};
+            const advance = ( result ) => {
+                if ( result instanceof Descriptor && 'argumentsList' in result ) {
+                    return;
+                }
                 const $value = resolveObj( result/* a Descriptor who's value could be proxied */, false );
                 return _await( $value/* could be a promise */, $value => {
                     if ( result instanceof Descriptor ) {
@@ -68,23 +99,32 @@ export function reduce( target, path, receiver, final = x => x, params = {} ) {
                     } else {
                         result = $value;
                     }
-                    const flags = args[ 0 ] || {};
-                    return eat( result, path, { ...$params, ...flags, level: $params.level + 1, } );
+                    return eat( result, path, { ...$params, ...flags, keyInParent: result.key, level: $params.level + 1, }, isSubtree );
                 } );
             };
             // -----------
             if ( isPropsList( segment ) && Array.isArray( result ) ) {
                 result.forEach( addTrail );
-                if ( isLastSegment ) return final( result, ...args );
-                return result.map( advance );
+                if ( isLastSegment ) {
+                    return final( result, ...args );
+                }
+                if ( isSubtree && result[ 0 ] instanceof Descriptor && ( result[ 0 ].operation !== 'get' || params.asGet ) ) {
+                    final( result, ...args );
+                }
+                for ( const entry of result ) {
+                    advance( entry );
+                }
+                return;
             }
             // -----------
             addTrail( result );
-            if ( isLastSegment ) return final( result, ...args );
+            if ( isLastSegment ) {
+                return final( result, ...args );
+            }
             return advance( result );
             // -----------
         }, $params );
-    } )( target, path.slice( 0 ), { ...params, level: 0 } );
+    } )( target, path.slice( 0 ), { ...params, level: 0 }, _isSubtree );
 }
 
 /**
@@ -105,11 +145,11 @@ export function observe( target, prop, receiver, params = {} ) {
         prop = Infinity;
 	}
 	if ( !_isFunction( receiver ) ) throw new Error( `Handler must be a function; "${ _getType( receiver ) }" given!` );
-    if ( prop instanceof Path ) return reduce( target, prop, observe, receiver, params );
+    if ( prop instanceof Path || prop instanceof Subtree ) return reduce( target, prop, observe, receiver, params );
     // ---------------
     params = { ...params, descripted: true };
     delete params.live;
-    if ( !_isTypeObject( target ) ) return params.probe && get( target, prop, receiver, params );
+    if ( !_isTypeObject( target ) ) return params.probe && get( target, prop, receiver, params ) || undefined;
     // ---------------
     const emit = bind( target, prop, receiver, params );
     if ( params.probe ) {
@@ -236,9 +276,10 @@ export function get( target, prop, receiver = x => x, params = {} ) {
     // ---------------
     let isLive;
     const originalTarget = resolveObj( target, !params.level );
-    if ( _isObject( receiver ) ) { [ params, receiver ] = [ receiver, x => x ]; }
-    else if ( params.live ) { isLive = true; }
-    if ( prop instanceof Path ) return reduce( originalTarget, prop, get, receiver, params );
+    if ( _isObject( receiver ) ) {
+        [ params, receiver ] = [ receiver, x => x ];
+    } else if ( params.live ) { isLive = true; }
+    if ( prop instanceof Path || prop instanceof Subtree ) return reduce( originalTarget, prop, get, receiver, { ...params, asGet: true } );
     // ---------------
     return resolveProps( originalTarget, prop, props => {
         const related = [ ...props ];
@@ -281,7 +322,7 @@ export function get( target, prop, receiver = x => x, params = {} ) {
         } )( [], props.slice( 0 ), results => {
             const result_s = isPropsList( prop/*original*/ ) ? results : results[ 0 ];
             if ( isLive && _isTypeObject( originalTarget ) ) {
-                const emit = bind( originalTarget, prop, receiver, params );
+                const emit = bind( originalTarget, prop, receiver, params, target.key );
                 return emit( result_s );
             }
             return receiver( result_s );
@@ -336,8 +377,8 @@ export function map( source, target, params = {} ) {
     return observe( source, mutations => {
         //batch( target, () => {
             mutations.filter( m => only.length ? only.includes( m.key ) : !except.includes( m.key ) ).forEach( m => {
-                if ( m.operation === 'deleteProperty' ) return deleteProperty( target, resolveKey( m.key ), params );
-                if ( m.operation === 'defineProperty' ) {
+                if ( m.type === 'delete' ) return deleteProperty( target, resolveKey( m.key ), params );
+                if ( m.type === 'def' ) {
                     if ( m.value.enumerable || params.onlyEnumerable === false ) {
                         defineProperty( target, resolveKey( m.key ), { ...m.value, configurable: true }, params );
                     }
@@ -381,7 +422,7 @@ export function set( target, prop, value, receiver = x => x, params = {}, def = 
             if ( arguments.length > 1 ) return _next( descriptor, status );
             const accessorizedProps = _( originalTarget, 'accessorizedProps', false );
             const accessorization = accessorizedProps && accessorizedProps.get( descriptor.key );
-            if ( descriptor.operation === 'defineProperty' ) {
+            if ( descriptor.type === 'def' ) {
                 if ( accessorization && !accessorization.restore() ) _next( false );
                 Object.defineProperty( originalTarget, descriptor.key, descriptor.value );
                 return _next( true );
@@ -616,13 +657,33 @@ function bind( target, prop, receiver, params = {} ) {
     const controller = new AbortController;
     env.setMaxListeners?.( 0, controller.signal );
     if ( params.signal ) { params.signal.addEventListener( 'abort', () => controller.abort() ); }
-    params = { ...params, signal: controller.signal };
-    
-    const listenerRegistry = ListenerRegistry.getInstance( target, true, params.namespace );
-    return function emit( descriptor_s, prevRegistration = null ) {
-        prevRegistration?.remove();
-        const registrationNext = listenerRegistry.addRegistration( prop, emit, params );
-        const flags = { signal: registrationNext.signal, };
+    const $params = { ...params, signal: controller.signal };
+    const listenerRegistry = ListenerRegistry.getInstance( target, true, $params.namespace );
+    const childRegistrations = new Map;
+    return function emit( descriptor_s = [], prevRegistration = null ) {
+        let flags, registrationNext, isExisting;
+        if ( isPropsList( prop ) ) {
+            if ( prevRegistration ) {
+                isExisting = true;
+                registrationNext = prevRegistration;
+                for ( const descriptor of descriptor_s ) {
+                    childRegistrations.get( descriptor.key )?.remove();
+                    childRegistrations.delete( descriptor.key );
+                }
+            } else {
+                registrationNext = listenerRegistry.addRegistration( prop, emit, $params );
+            }
+            flags = { signal: registrationNext.signal, childRegistrations };
+        } else {
+            prevRegistration?.remove();
+            registrationNext = listenerRegistry.addRegistration( prop, emit, $params );
+            flags = { signal: registrationNext.signal };
+        }
+        // ------------------
+        if ( $params.childRegistrations && $params.keyInParent ) {
+            $params.childRegistrations.set( $params.keyInParent, registrationNext );
+        }
+        // ------------------
         if ( arguments.length ) {
             const handlerReturnValue = receiver( descriptor_s, flags );
             if ( arguments.length > 1 ) return handlerReturnValue;
