@@ -4,7 +4,7 @@
  */
 import { _isTypeObject, _getType } from '@webqit/util/js/index.js';
 import { _from as _arrFrom, _intersect, _equals as _arrEquals } from '@webqit/util/arr/index.js';
-import { _ } from '../util.js';
+import { _wq } from '../util.js';
 
 /**
  * ---------------------------
@@ -63,14 +63,14 @@ export default class Registry {
 	static _getInstance( type, target, createIfNotExists = true, namespace = this.__namespace ) {
 		if ( !_isTypeObject( target ) ) throw new Error( `Subject must be of type object; "${ _getType( target ) }" given!` );
 		let ImplementationClass = this;
-		if ( namespace && _( 'namespaces' ).has( type + '-' + namespace ) ) {
-			ImplementationClass = _( 'namespaces' ).get( type + '-' + namespace );
+		if ( namespace && _wq( 'namespaces' ).has( type + '-' + namespace ) ) {
+			ImplementationClass = _wq( 'namespaces' ).get( type + '-' + namespace );
 			type += '-' + namespace
 		}
-		if ( !_( target, 'registry' ).has( type ) && createIfNotExists ) {
-			_( target, 'registry' ).set( type, new ImplementationClass( target ) );
+		if ( !_wq( target, 'registry' ).has( type ) && createIfNotExists ) {
+			_wq( target, 'registry' ).set( type, new ImplementationClass( target ) );
 		}
-		return _( target, 'registry' ).get( type );
+		return _wq( target, 'registry' ).get( type );
 	}
 
 	/**
@@ -83,11 +83,11 @@ export default class Registry {
 	 */
 	static _namespace( type, namespace, ImplementationClass = null ) {
 		type += '-' + namespace;
-		if ( arguments.length === 2 ) return _( 'namespaces' ).get( type );
+		if ( arguments.length === 2 ) return _wq( 'namespaces' ).get( type );
 		if ( !( ImplementationClass.prototype instanceof this ) ) {
 			throw new Error( `The implementation of the namespace ${ this.name }.${ namespace } must be a subclass of ${ this.name }.` );
 		}
-		_( 'namespaces' ).set( type, ImplementationClass );
+		_wq( 'namespaces' ).set( type, ImplementationClass );
 		ImplementationClass.__namespace = namespace;
 	}
 }

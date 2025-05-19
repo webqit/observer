@@ -6,7 +6,7 @@ import { _from as _arrFrom } from '@webqit/util/arr/index.js';
 import { _isClass, _isFunction, _isTypeObject, _getType } from '@webqit/util/js/index.js';
 import { set, deleteProperty, has, get, ownKeys, defineProperty, getOwnPropertyDescriptor } from "./main.js";
 import { batch, apply, construct, getPrototypeOf, setPrototypeOf, isExtensible, preventExtensions } from "./main.js";
-import { _ } from './util.js';
+import { _wq } from './util.js';
 
 /* ---------------ACCESSORIZE METHODS--------------- */
 
@@ -21,7 +21,7 @@ import { _ } from './util.js';
  */
 export function accessorize( target, props, params = {} ) {
     target = resolveTarget( target );
-    const accessorizedProps = _( target, 'accessorizedProps' );
+    const accessorizedProps = _wq( target, 'accessorizedProps' );
     // ---------
     function getDescriptorDeep( prop ) {
         let descriptor, proto = target;
@@ -100,7 +100,7 @@ export function accessorize( target, props, params = {} ) {
  */
 export function unaccessorize( target, props, params = {} ) {
     target = resolveTarget( target );
-    const accessorizedProps = _( target, 'accessorizedProps' );
+    const accessorizedProps = _wq( target, 'accessorizedProps' );
     function unaccessorizeProp( prop ) {
         if ( !accessorizedProps.has( prop + '' ) ) return true;
         return accessorizedProps.get( prop + '' ).restore();
@@ -131,7 +131,7 @@ export function proxy( target, params = {}, extendCallback = undefined ) {
     const originalTarget = resolveTarget( target );
     // Return same proxy instance?
     if ( typeof params.membrane === 'boolean' ) throw new Error( `The params.membrane parameter cannot be of type boolean.` );
-    if ( params.membrane && _( originalTarget, 'membraneRef' ).has( params.membrane ) ) { return _( originalTarget, 'membraneRef' ).get( params.membrane ); }
+    if ( params.membrane && _wq( originalTarget, 'membraneRef' ).has( params.membrane ) ) { return _wq( originalTarget, 'membraneRef' ).get( params.membrane ); }
     const traps = {
         apply: ( target, thisArgument, argumentsList ) => apply( target, thisArgument, argumentsList, undefined, params ),
         construct:  ( target, argumentsList, newTarget = null ) => construct( target, argumentsList, newTarget, params ),
@@ -159,8 +159,8 @@ export function proxy( target, params = {}, extendCallback = undefined ) {
     const $traps = extendCallback?.( traps ) || traps;
     // Create proxy
     const $proxy = new Proxy( originalTarget, $traps );
-    if ( params.membrane ) { _( originalTarget, 'membraneRef' ).set( params.membrane, $proxy ); }
-    _( $proxy ).set( $proxy, originalTarget );
+    if ( params.membrane ) { _wq( originalTarget, 'membraneRef' ).set( params.membrane, $proxy ); }
+    _wq( $proxy ).set( $proxy, originalTarget );
 	return $proxy;
 }
 
@@ -173,7 +173,7 @@ export function proxy( target, params = {}, extendCallback = undefined ) {
  */
 export function unproxy( target ) {
     // Proxy targets are mapped to their own instances internally
-    return _( target ).get( target ) || target;
+    return _wq( target ).get( target ) || target;
 }
 
 /* ---------------HELPERS--------------- */

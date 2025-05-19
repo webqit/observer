@@ -1,10 +1,6 @@
-
-/**
- * @imports
- */
 import { _isObject, _isTypeObject, _isFunction, _getType } from '@webqit/util/js/index.js';
 import { _from as _arrFrom } from '@webqit/util/arr/index.js';
-import { _, _await, env } from './util.js';
+import { _wq, _await, env } from './util.js';
 import ListenerRegistry from './core/ListenerRegistry.js';
 import TrapsRegistry from './core/TrapsRegistry.js';
 import Descriptor from './core/Descriptor.js';
@@ -75,15 +71,9 @@ export function reduce( target, path, receiver, final = x => x, params = {} ) {
             // -----------
             const addTrail = ( desc ) => {
                 if ( !( desc instanceof Descriptor ) ) return;
-                if ( 'key' in desc ) {
-                    desc.path = [ desc.key ];
-                }
+                desc.path = 'key' in desc ? [ desc.key ] : [];
                 if ( target instanceof Descriptor ) {
-                    if ( 'key' in desc ) {
-                        desc.path = target.path.concat( desc.key );
-                    } else {
-                        desc.path = target.path.slice( 0 );
-                    }
+                    desc.path = 'key' in desc ? target.path.concat( desc.key ) : target.path.slice( 0 );
                     Object.defineProperty( desc, 'context', { get: () => target, configurable: true } );
                 }
             };
@@ -139,21 +129,21 @@ export function reduce( target, path, receiver, final = x => x, params = {} ) {
  */
 export function observe( target, prop, receiver, params = {} ) {
     // ---------------
-    target = resolveObj( target, !params.level );
+    const originalTarget = resolveObj( target, !params.level );
 	if ( _isFunction( arguments[ 1 ] ) ) {
         [ , receiver, params = {} ] = arguments;
         prop = Infinity;
 	}
 	if ( !_isFunction( receiver ) ) throw new Error( `Handler must be a function; "${ _getType( receiver ) }" given!` );
-    if ( prop instanceof Path || prop instanceof Subtree ) return reduce( target, prop, observe, receiver, params );
+    if ( prop instanceof Path || prop instanceof Subtree ) return reduce( originalTarget, prop, observe, receiver, params );
     // ---------------
     params = { ...params, descripted: true };
     delete params.live;
-    if ( !_isTypeObject( target ) ) return params.probe && get( target, prop, receiver, params ) || undefined;
+    if ( !_isTypeObject( originalTarget ) ) return params.probe && get( originalTarget, prop, receiver, params ) || undefined;
     // ---------------
-    const emit = bind( target, prop, receiver, params );
+    const emit = bind( originalTarget, prop, receiver, params );
     if ( params.probe ) {
-        return get( target, prop, emit, params );
+        return get( originalTarget, prop, emit, params );
     }
     return emit();
 }
@@ -169,13 +159,13 @@ export function observe( target, prop, receiver, params = {} ) {
  */
 export function intercept( target, traps, params = {} ) {
     // ---------------
-    target = resolveObj( target );
+    const originalTarget = resolveObj( target );
     if ( !_isObject( traps ) ) {
         [ /*target*/, /*operation*/, /*handler*/, params = {} ] = arguments;
         traps = { [ arguments[ 1 ] ]: arguments[ 2 ] };
     }
     // ---------------
-    return TrapsRegistry.getInstance( target, true, params.namespace ).addRegistration( { traps, params } );
+    return TrapsRegistry.getInstance( originalTarget, true, params.namespace ).addRegistration( { traps, params } );
 }
 
 /* ---------------QUERY APIs--------------- */
@@ -294,7 +284,7 @@ export function get( target, prop, receiver = x => x, params = {} ) {
                 const _next = value => ( descriptor.value = value, next( [ ...results, params.live || params.descripted ? descriptor : value ]/** not using concat() as value may be an array */, _props, _done ) );
                 if ( arguments.length > 1 ) return _next( value );
                 if ( !_isTypeObject( originalTarget ) ) return _next( originalTarget?.[ descriptor.key ] );
-                const accessorizedProps = _( originalTarget, 'accessorizedProps', false );
+                const accessorizedProps = _wq( originalTarget, 'accessorizedProps', false );
                 const accessorization = accessorizedProps && accessorizedProps.get( descriptor.key );
                 if ( accessorization && accessorization.intact() ) {
                     return _next( accessorization.getValue( params.withPropertyDescriptors ) );
@@ -342,8 +332,8 @@ export function get( target, prop, receiver = x => x, params = {} ) {
  * @return Void
  */
 export function batch( target, callback, params = {} ) {
-    target = resolveObj( target );
-    return ListenerRegistry.getInstance( target, true, params.namespace ).batch( callback, params );
+    const originalTarget = resolveObj( target );
+    return ListenerRegistry.getInstance( originalTarget, true, params.namespace ).batch( callback, params );
 }
 
 /**
@@ -420,7 +410,7 @@ export function set( target, prop, value, receiver = x => x, params = {}, def = 
         function defaultSet( descriptor, status = undefined ) {
             const _next = status => ( descriptor.status = status, next( descriptors.concat( descriptor ), entries, _done ) );
             if ( arguments.length > 1 ) return _next( descriptor, status );
-            const accessorizedProps = _( originalTarget, 'accessorizedProps', false );
+            const accessorizedProps = _wq( originalTarget, 'accessorizedProps', false );
             const accessorization = accessorizedProps && accessorizedProps.get( descriptor.key );
             if ( descriptor.type === 'def' ) {
                 if ( accessorization && !accessorization.restore() ) _next( false );
@@ -453,8 +443,8 @@ export function set( target, prop, value, receiver = x => x, params = {}, def = 
         // ---------
         return has( originalTarget, prop, exists => {
             if ( !exists ) return exec( exists );
-            if ( prop === 'length' && Array.isArray( originalTarget ) && _( originalTarget ).has( '$length' ) ) {
-                return exec( true, _( originalTarget ).get( '$length' ) );
+            if ( prop === 'length' && Array.isArray( originalTarget ) && _wq( originalTarget ).has( '$length' ) ) {
+                return exec( true, _wq( originalTarget ).get( '$length' ) );
             }
             const $params = { ...params, withPropertyDescriptors: def };
             return get( originalTarget, prop, oldValue => exec( exists, oldValue ), $params );
@@ -511,7 +501,7 @@ export function defineProperties( target, descriptors, receiver = x => x, params
  */
 export function deleteProperty( target, prop, receiver = x => x, params = {} ) {
     // ---------------
-    target = resolveObj( target );
+    const originalTarget = resolveObj( target );
     if ( _isObject( receiver ) ) { [ params, receiver ] = [ receiver, x => x ]; }
     // ---------------
     const props = _arrFrom( prop, false ), related = [ ...props ];
@@ -522,14 +512,14 @@ export function deleteProperty( target, prop, receiver = x => x, params = {} ) {
         function defaultDel( descriptor, status = undefined ) {
             const _next = status => ( descriptor.status = status, next( descriptors.concat( descriptor ), props, _done ) );
             if ( arguments.length > 1 ) return _next( descriptor, status );
-            const accessorizedProps = _( target, 'accessorizedProps', false );
+            const accessorizedProps = _wq( originalTarget, 'accessorizedProps', false );
             const accessorization = accessorizedProps && accessorizedProps.get( descriptor.key );
             if ( accessorization && !accessorization.restore() ) _next( false );
-            return _next( Reflect.deleteProperty( target, descriptor.key ) );
+            return _next( Reflect.deleteProperty( originalTarget, descriptor.key ) );
         }
         // ---------
         function exec( oldValue ) {
-            const descriptor = new Descriptor( target, {
+            const descriptor = new Descriptor( originalTarget, {
                 type: 'delete',
                 key: prop,
                 oldValue,
@@ -537,16 +527,16 @@ export function deleteProperty( target, prop, receiver = x => x, params = {} ) {
                 operation: 'deleteProperty',
                 detail: params.detail,
             } );
-            const trapsRegistry = TrapsRegistry.getInstance( target, false, params.namespace );
+            const trapsRegistry = TrapsRegistry.getInstance( originalTarget, false, params.namespace );
             return trapsRegistry 
                 ? trapsRegistry.emit( descriptor, defaultDel ) 
                 : defaultDel( descriptor );
         }
         // ---------
-        return get( target, prop, exec, params );
+        return get( originalTarget, prop, exec, params );
         // ---------
     } )( [], props.slice( 0 ), descriptors => {
-        const listenerRegistry = ListenerRegistry.getInstance( target, false, params.namespace );
+        const listenerRegistry = ListenerRegistry.getInstance( originalTarget, false, params.namespace );
         if ( listenerRegistry ) listenerRegistry.emit( descriptors );
         return receiver(
             isPropsList( prop/*original*/ ) ? descriptors.map( opr => opr.status ) : descriptors[ 0 ].status
@@ -601,13 +591,13 @@ export function apply( target, thisArgument, argumentsList, receiver = x => x, p
             const listenerRegistry = ListenerRegistry.getInstance( originalThis, false, params.namespace );
             listenerRegistry?.emit( [ descriptor ], { eventIsArrayMethodDescriptor: true } );
         }
-        _( originalThis ).set( '$length', originalThis.length );
+        _wq( originalThis ).set( '$length', originalThis.length );
         returnValue = batch(
             originalThis,
             () => exec( target, 'apply', { thisArgument/*proxy wrappers allowed; in fact is why it works*/, argumentsList }, receiver, params ),
             params
         );
-        _( originalThis ).delete( '$length' );
+        _wq( originalThis ).delete( '$length' );
     } else {
         returnValue = exec( target, 'apply', { thisArgument: originalThis, argumentsList }, receiver, params );
     }
@@ -727,10 +717,14 @@ function isPropsList( prop ) {
 }
 
 // Resolves obj down to it's self
-function resolveObj( obj, assert = true ) {
+function resolveObj( obj, assert = true, probePropertyDescriptors = true ) {
 	if ( ( !obj || !_isTypeObject( obj ) ) && assert ) throw new Error( `Object must be of type object or array! "${ _getType( obj ) }" given.` );
     if ( obj instanceof Descriptor ) {
-        obj = obj.value;
+        if ( obj.type === 'def' && probePropertyDescriptors ) {
+            obj = typeof obj.value.get === 'function' ? obj.value.get() : obj.value.value;
+        } else {
+            obj = obj.value;
+        }
     }
 	return obj && unproxy( obj );
 }

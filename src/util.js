@@ -2,9 +2,9 @@
 /**
  * @imports
  */
-import { _internals } from '@webqit/util/js/index.js';
+import { _wq as __wq } from '@webqit/util/js/index.js';
 
-export const _ = ( ...args ) => _internals( 'observer-api', ...args );
+export const _wq = ( ...args ) => __wq( 'observer-api', ...args );
 
 export const _await = ( value, callback ) => value instanceof Promise ? value.then( callback ) : callback( value );
 
