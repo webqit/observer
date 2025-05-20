@@ -733,7 +733,7 @@ function resolveObj( obj, assert = true, probePropertyDescriptors = true ) {
 function resolveProps( obj, prop, receiver, params = {} ) {
     if ( prop === Infinity ) {
         if ( params.level && !_isTypeObject( obj ) ) return receiver( [] );
-        return receiver( Object.keys( obj ) );
+        return receiver( Object.entries( Object.getOwnPropertyDescriptors( obj ) ).filter( ( [ , p ] ) => p.writable !== false && !p.get && !p.set ).map( ( [ name ] ) => name ) );
     }
     return receiver( _arrFrom( prop, false ) );
 }

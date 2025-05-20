@@ -145,11 +145,11 @@ export function proxy( target, params = {}, extendCallback = undefined ) {
             const $params = { ...params, receiver };
             const returnValue = get( target, propertyKey, $params );
             // Auto-wrap array methods
-            if ( Array.isArray( target ) && typeof returnValue === 'function' ) {
+            if ( Array.isArray( target ) && typeof returnValue === 'function' && !/^class\s?|\{\s\[native\scode\]\s\}$/.test(Function.prototype.toString.call( returnValue ) ) ) {
                 return proxy( returnValue, { ...params, arrayMethodName: propertyKey, membrane: receiver/* the instance obj that will be the thisArgument at apply(). Much like function.bind() */ }, extendCallback );
             }
             // Auto-wrap others if so specified
-            if ( params.chainable && _isTypeObject( returnValue ) ) {
+            if ( params.chainable && _isTypeObject( returnValue ) && propertyKey !== 'prototype' && !( typeof returnValue === 'function' && /^class\s?|\{\s\[native\scode\]\s\}$/.test(Function.prototype.toString.call( target ) ) ) ) {
                 return proxy( returnValue, params, extendCallback );
             }
             return returnValue;
