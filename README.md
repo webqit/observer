@@ -96,7 +96,7 @@ This limitation in the language has long created a **blindspot** — and a **wea
 
 By enabling observability at the object/array level, the Observer API effectively solves reactivity for a mutable world. **The Result** is *mutation-based reactivity* as a first-class concept in JavaScript. Consequently:
 
-+ you are able to weild *the sheer power of mutability* in programming to your advantage
++ you are able to weild *the full power of mutability* in programming to your advantage
 + you are able to make sense of a mutable world — and integrate with it — rather than stand at odds with it
 
 ## Quick Start
@@ -157,7 +157,8 @@ Observer.set(items, 0, 'grape');
 Observer.set(items, 2, 'orange');
 
 // Reactive method calls
-Observer.apply(items.push, items, ['new item']); // Observer.proxy(state.items).push('new item')
+Observer.apply(items.push, items, ['new item']);
+Observer.proxy(state.items).push('new item')
 ```
 
 ### Intercepting Operations
@@ -324,7 +325,7 @@ parentController.abort();
 #### Parity Table
 
 | | Observer API | Object.observe() (Deprecated) |
-|-------------|--------------|-------------------------------|
+|:-------------|:--------------|:-------------------------------|
 | **Signature** | `.observe(target, callback, options?)` | `.observe(target, callback, acceptList?)` |
 | **Return Value** | `AbortController` (lifecycle management) | `undefined` (no lifecycle management) |
 | **Additional Features** | AbortSignal integration, path watching, batch/atomic operations, synchronous event model, etc. | Basic object observation, asynchronous event model (deprecated) |
@@ -424,7 +425,7 @@ Observer.intercept(obj, 'get', (operation, previous, next) => {
 #### Parity Table
 
 | | Observer API | Proxy Traps |
-|-------------|--------------|-------------|
+|:-------------|:--------------|:-------------|
 | **Signature** | `.intercept(target, operation, handler, options?)`<br>`.intercept(target, { [operation]: handler[, ...]}, options?)` | `new Proxy(target, { [operation]: handler[, ...] })` |
 | **Return Value** | `undefined` (registration) | `Proxy` (wrapped object) |
 | **Additional Features** | Traps pipeline, composable interceptors | Single trap per operation, no composability |
@@ -475,7 +476,7 @@ Observer.set(obj, Observer.path('user', 'profile', 'name'), 'Alice');
 #### Parity Table
 
 | | Observer API | Reflect API |
-|-------------|--------------|-------------|
+|:-------------|:--------------|:-------------|
 | **Signature** | `.set(target, key, value, options?)` | `.set(target, key, value)` |
 | **Return Value** | `boolean` (success) | `boolean` (success) |
 | **Additional Features** | Triggers observers, interceptable | Standard property setting |
@@ -509,7 +510,7 @@ Observer.get(obj, 'fullName'); // "John Doe" (computed on-the-fly)
 #### Parity Table
 
 | | Observer API | Reflect API |
-|-------------|--------------|-------------|
+|:-------------|:--------------|:-------------|
 | **Signature** | `.get(target, key, options?)` | `.get(target, key)` |
 | **Return Value** | `any` (property value) | `any` (property value) |
 | **Additional Features** | Interceptable for computed values | Standard property access |
@@ -543,7 +544,7 @@ Observer.has(obj, 'password'); // false (hidden from checks)
 #### Parity Table
 
 | | Observer API | Reflect API |
-|-------------|--------------|-------------|
+|:-------------|:--------------|:-------------|
 | **Signature** | `.has(target, key, options?)` | `.has(target, key)` |
 | **Return Value** | `boolean` (exists) | `boolean` (exists) |
 | **Additional Features** | Interceptable for property hiding | Standard property existence check |
@@ -574,7 +575,7 @@ Observer.ownKeys(obj); // ['name', 'email'] (password filtered out)
 #### Parity Table
 
 | | Observer API | Reflect API | Object API |
-|-------------|--------------|-------------|-------------|
+|:-------------|:--------------|:-------------|:-------------|
 | **Signature** | `.ownKeys(target, options?)` | `.ownKeys(target)` | `.keys(obj)` |
 | **Return Value** | `string[]` (keys) | `string[]` (keys) | `string[]` (keys) |
 | **Additional Features** | Interceptable for key filtering | Standard key enumeration | Standard key enumeration |
@@ -592,7 +593,7 @@ Observer.deleteProperty(arr, 0);
 #### Parity Table
 
 | | Observer API | Reflect API |
-|-------------|--------------|-------------|
+|:-------------|:--------------|:-------------|
 | **Signature** | `.deleteProperty(target, key, options?)` | `.deleteProperty(target, key)` |
 | **Return Value** | `boolean` (success) | `boolean` (success) |
 | **Additional Features** | Triggers observers, interceptable | Standard property deletion |
@@ -608,7 +609,7 @@ Observer.deleteProperties(obj, ['oldProp1', 'oldProp2', 'tempProp']);
 #### Parity Table
 
 | | Observer API | No Direct Equivalent |
-|-------------|--------------|---------------------|
+|:-------------|:--------------|:---------------------|
 | **Signature** | `.deleteProperties(target, keys, options?)` | No batch delete in standard APIs |
 | **Return Value** | `boolean[]` (success array) | N/A |
 | **Additional Features** | Triggers observers, interceptable | N/A |
@@ -628,7 +629,7 @@ Observer.defineProperty(obj, 'computed', {
 #### Parity Table
 
 | | Observer API | Reflect API | Object API |
-|-------------|--------------|-------------|-------------|
+|:-------------|:--------------|:-------------|:-------------|
 | **Signature** | `.defineProperty(target, key, descriptor, options?)` | `.defineProperty(target, key, descriptor)` | `.defineProperty(obj, key, descriptor)` |
 | **Return Value** | `boolean` (success) | `boolean` (success) | `object` (modified object) |
 | **Additional Features** | Triggers observers, interceptable | Standard property definition | Standard property definition |
@@ -648,7 +649,7 @@ Observer.defineProperties(obj, {
 #### Parity Table
 
 | | Observer API | Object API |
-|-------------|--------------|-------------|
+|:-------------|:--------------|:-------------|
 | **Signature** | `.defineProperties(target, descriptors, options?)` | `.defineProperties(obj, descriptors)` |
 | **Return Value** | `boolean` (success) | `object` (modified object) |
 | **Additional Features** | Triggers observers, interceptable | Standard property definition |
@@ -676,7 +677,7 @@ obj.email = 'alice@example.com';
 #### Parity Table
 
 | | Observer API | No Direct Equivalent |
-|-------------|--------------|---------------------|
+|:-------------|:--------------|:---------------------|
 | **Signature** | `.accessorize(target, properties?, options?)` | No direct equivalent in standard APIs |
 | **Return Value** | `undefined` (modification) | N/A |
 | **Additional Features** | Makes properties reactive for direct assignment | N/A |
@@ -696,7 +697,7 @@ Observer.unaccessorize(obj);
 #### Parity Table
 
 | | Observer API | No Direct Equivalent |
-|-------------|--------------|---------------------|
+|:-------------|:--------------|:---------------------|
 | **Signature** | `.unaccessorize(target, properties?, options?)` | No direct equivalent in standard APIs |
 | **Return Value** | `undefined` (modification) | N/A |
 | **Additional Features** | Restores accessorized properties to normal state | N/A |
@@ -866,7 +867,7 @@ const $obj = Observer.proxy(obj, {}, (traps) => {
 #### Parity Table
 
 | | Observer API | Proxy API |
-|-------------|--------------|-----------|
+|:-------------|:--------------|:-----------|
 | **Signature** | `.proxy(target, options?)` | `new Proxy(target, handlers)` |
 | **Return Value** | `Proxy` (reactive proxy) | `Proxy` (standard proxy) |
 | **Additional Features** | Built-in reactivity, membrane, chainable | Manual trap implementation required |
@@ -883,7 +884,7 @@ const original = Observer.unproxy($obj); // Returns original obj
 #### Parity Table
 
 | | Observer API | No Direct Equivalent |
-|-------------|--------------|---------------------|
+|:-------------|:--------------|:---------------------|
 | **Signature** | `.unproxy(target)` | No direct equivalent in standard APIs |
 | **Return Value** | `object` (original object) | N/A |
 | **Additional Features** | Extracts original object from Observer proxy | N/A |
