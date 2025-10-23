@@ -11,7 +11,7 @@
 
 ---
 
-Observe and intercept operations on arbitrary JavaScript objects and arrays using a utility-first, general-purpose reactivity API! This API re-explores the unique design of the [Object.observe()](https://web.dev/es7-observe/) API and unifies that with other JavaScript metaprogramming APIs like the `Reflect` API and Proxy "traps"!
+Observe and intercept operations on arbitrary JavaScript objects and arrays using a utility-first, general-purpose reactivity API! This API re-explores the unique design of the [Object.observe()](https://web.dev/es7-observe/) API and unifies that with the rest of JavaScript's metaprogramming APIs like Proxy "traps" and the `Reflect` API!
 
 The Observer API comes as one little API for all things _object observability_. (Only `~5.8KiB min|zip`)
 
@@ -32,7 +32,7 @@ Observer.deleteProperty(state, 'oldProp');
 > [!TIP]
 > Reactivity is anchored on the programmtic APIs — `.set()`, `.deleteProperty()`, etc. — but reactivity is also possible over literal JavaScript operations like `obj.prop = value`, `delete obj.prop` — by means of the `accessorize()` and `proxy()` methods covered just ahead.
 >
-> For full-fledged Imperative Reactive Programming, you may to see the [Quantum JS](https://github.com/webqit/quantum-js) project.
+> For full-fledged Imperative Reactive Programming, you may want to see the [Quantum JS](https://github.com/webqit/quantum-js) project.
 
 ---
 
@@ -41,6 +41,8 @@ Observer.deleteProperty(state, 'oldProp');
 This documentation is for Observer@2.x. For the previous version, see [Observer@1.x](https://github.com/webqit/observer/tree/v1.7.6).
 
 </details>
+
+## Table of Contents
 
 - [Why Observer](#why-observer)
 - [Quick Start](#quick-start)
@@ -95,7 +97,7 @@ By enabling observability at the object/array level, the Observer API effectivel
 + you are able to weild *the sheer power of mutability* in programming to your advantage — and unappologetically
 + you are able to make sense of a mutable world — and integrate with it — rather than stand at odds with it.
 
-The Observer API collapses layers of complexity that reactive frameworks have built around immutability, bringing you back to the simplicity and power of direct mutation—but this time, with full observability.
+The Observer API collapses layers of complexity that reactive frameworks have built around immutability, bringing you back to the simplicity and power of direct mutation—and this time, with full observability.
 
 **The Result** is *mutation-based reactivity* as a first-class concept in JavaScript.
 
