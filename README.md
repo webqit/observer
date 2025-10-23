@@ -11,7 +11,7 @@
 
 ---
 
-Observe and intercept operations on arbitrary JavaScript objects and arrays using a utility-first, general-purpose reactivity API! This API re-explores the unique design of the [Object.observe()](https://web.dev/es7-observe/) API and unifies that with the rest of JavaScript's metaprogramming APIs like Proxy "traps" and the `Reflect` API!
+Observe and intercept operations on arbitrary JavaScript objects and arrays using a utility-first, general-purpose reactivity API! This API re-explores the unique design of the [Object.observe()](https://web.dev/es7-observe/) API and unifies that with the rest of JavaScript's metaprogramming APIs: `Proxies`, `Reflect`, `Object`!
 
 The Observer API comes as one little API for all things _object observability_. (Only `~5.8KiB min|zip`)
 
@@ -30,7 +30,7 @@ Observer.deleteProperty(state, 'oldProp');
 ```
 
 > [!TIP]
-> Reactivity is anchored on its programmtic APIs like `.set()`, `.deleteProperty()`, but reactivity is also possible over literal JavaScript operations like `obj.prop = value`, `delete obj.prop` — by means of the `accessorize()` and `proxy()` methods covered just ahead.
+> Reactivity is anchored on its programmtic APIs like `.set()`, `.deleteProperty()`, but you also get reactivity over literal JavaScript operations like `obj.prop = value`, `delete obj.prop` — by means of the `accessorize()` and `proxy()` methods covered just ahead.
 >
 > For full-fledged Imperative Reactive Programming, you may want to see the [Quantum JS](https://github.com/webqit/quantum-js) project.
 
@@ -138,7 +138,6 @@ const controller = Observer.observe(user, (mutations) => {
   });
 });
 
-// Make changes using programmatic APIs
 Observer.set(user, 'name', 'Jane');
 Observer.set(user, 'age', 26);
 
