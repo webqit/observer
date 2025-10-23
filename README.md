@@ -1,9 +1,13 @@
-# Observer
+<div align="center">
+
+# The Observer API
 
 [![npm version][npm-version-src]][npm-version-href]
 [![npm downloads][npm-downloads-src]][npm-downloads-href]
 [![bundle][bundle-src]][bundle-href]
 [![License][license-src]][license-href]
+
+</div>
 
 Observe and intercept operations on arbitrary JavaScript objects and arrays using a utility-first, general-purpose reactivity API! This API re-explores the unique design of the [Object.observe()](https://web.dev/es7-observe/) API and unifies that with related APIs like Reflect and Proxy "traps"!
 
@@ -172,16 +176,16 @@ Observer.set(user, 'email', 'JOHN@EXAMPLE.COM'); // Becomes 'john@example.com'
 ## Key Features
 
 ### **Core Reactivity**
-- **🔄 Real-time Observation**: Watch object and array changes as they happen
-- **⚡ Synchronous Updates**: Changes are delivered immediately, not batched
-- **🎯 Granular Control**: Watch specific properties, paths, or entire objects
-- **🌳 Deep Path Watching**: Observe nested properties with wildcards and subtrees
+- **🔄 Real-time Observability**: Watch object and array changes as they happen
+- **⚡ Synchronous Updates**: Changes are delivered synchronously, not batched
+- **🎯 Granular Control**: Watch specific properties, paths; even wildcards
+- **🌳 Deep Path Watching**: Observe nested properties or entire object tree
 
 ### **Advanced Capabilities**
 - **🛡️ Operation Interception**: Transform, validate, or block operations before execution
-- **📦 Atomic Batching**: Group multiple changes into single events
-- **🔄 Object Mirroring**: Create reactive synchronization between objects
 - **🔗 Traps Pipeline**: Compose multiple interceptors for complex behavior
+- **📦 Atomic Batching**: Batch multiple changes into single atomic operation
+- **🔄 Object Mirroring**: Create reactive synchronization between objects
 
 ### **Developer Experience**
 - **🔧 Utility-First API**: Clean, functional design with consistent patterns
@@ -191,19 +195,19 @@ Observer.set(user, 'email', 'JOHN@EXAMPLE.COM'); // Becomes 'john@example.com'
 
 ## Ecosystem Integrations
 
-The Observer API is enabling a shared protocol of mutation-based reactivity across the ecosystem:
+The Observer API is enabling a shared protocol for *mutation-based* reactivity across the ecosystem:
 
 ### **🚀 [Quantum Runtime](https://github.com/webqit/quantum-js)**
 Uses Observer API under the hood to operate as a **full-fledged reactive runtime**. Quantum enables Imperative Reactive Programming by leveraging Observer's reactivity foundation to make ordinary JavaScript code reactive.
 
 ### **🌐 [OOHTML](https://github.com/webqit/oohtml)**
-Uses Observer API to underpin **reactive HTML templating**. OOHTML leverages Observer's reactivity layer to create dynamic, data-driven templates with seamless integration between data and presentation.
+Uses Observer API to underpin **dynamic, reactive UIs**. OOHTML enables live data binding between UI and app state, automatically updating the DOM when your data changes.
 
 ### **⚡ [Webflo](https://github.com/webqit/webflo)**
-Uses Observer API to underpin **Live Objects** as a first-class concept. Webflo leverages Observer's reactivity foundation to enable real-time data synchronization across client and server.
+Uses Observer API to underpin **Live Objects** as a first-class concept. Live Objects in Webflo lets you send dynamic state from your server to the UI with reactivity over the wire.
 
 ### **🔗 [LinkedQL](https://github.com/linked-db/linked-ql)**
-Uses Observer API to underpin **Live Objects** as a first-class concept. LinkedQL leverages Observer's reactivity foundation to provide reactive database operations with real-time data synchronization.
+Uses Observer API to underpin **Live Objects** as a first-class concept. Live Objects in LinkedQL lets you have query results as self-updating result sets.
 
 ## API Reference
     
