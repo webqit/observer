@@ -30,7 +30,7 @@ Observer.deleteProperty(state, 'oldProp');
 ```
 
 > [!TIP]
-> Reactivity is anchored on the programmtic APIs — `.set()`, `.deleteProperty()`, etc. — but reactivity is also possible over literal JavaScript operations like `obj.prop = value`, `delete obj.prop` — by means of the `accessorize()` and `proxy()` methods covered just ahead.
+> Reactivity is anchored on its programmtic APIs like `.set()`, `.deleteProperty()`, but reactivity is also possible over literal JavaScript operations like `obj.prop = value`, `delete obj.prop` — by means of the `accessorize()` and `proxy()` methods covered just ahead.
 >
 > For full-fledged Imperative Reactive Programming, you may want to see the [Quantum JS](https://github.com/webqit/quantum-js) project.
 
