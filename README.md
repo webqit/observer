@@ -7,11 +7,11 @@
 [![bundle][bundle-src]][bundle-href]
 [![License][license-src]][license-href]
 
-</div>
-
 Observe and intercept operations on arbitrary JavaScript objects and arrays using a utility-first, general-purpose reactivity API! This API re-explores the unique design of the [Object.observe()](https://web.dev/es7-observe/) API and unifies that with related APIs like Reflect and Proxy "traps"!
 
 The Observer API comes as one little API for all things _object observability_. (Only `~5.8KiB min|zip`)
+
+</div>
 
 ```js
 const state = {};
