@@ -7,32 +7,34 @@
 [![bundle][bundle-src]][bundle-href]
 [![License][license-src]][license-href]
 
-Observe and intercept operations on arbitrary JavaScript objects and arrays using a utility-first, general-purpose reactivity API! This API re-explores the unique design of the [Object.observe()](https://web.dev/es7-observe/) API and unifies that with related APIs like Reflect and Proxy "traps"!
+</div>
+
+---
+
+Observe and intercept operations on arbitrary JavaScript objects and arrays using a utility-first, general-purpose reactivity API! This API re-explores the unique design of the [Object.observe()](https://web.dev/es7-observe/) API and unifies that with other JavaScript metaprogramming APIs like the `Reflect` API and Proxy "traps"!
 
 The Observer API comes as one little API for all things _object observability_. (Only `~5.8KiB min|zip`)
-
-</div>
 
 ```js
 const state = {};
 
-// Make mutations observable
+// Observe all property changes
 Observer.observe(state, (mutations) => {
   mutations.forEach(mutation => {
     console.log(`${mutation.type}: ${mutation.key} = ${mutation.value}`);
-    // React to any mutation: set, delete, defineProperty, etc.
   });
 });
 
-// Now these mutations are observable and reactive
 Observer.set(state, 'count', 5);
 Observer.deleteProperty(state, 'oldProp');
 ```
 
 > [!TIP]
-> While reactivity is anchored on the programmtic APIs — `.set()`, `.deleteProperty()`, etc. — reactivity is also possible over literal JavaScript operations like `obj.prop = value`, `delete obj.prop` — by means of the `accessorize()` and `proxy()` methods covered just ahead.
+> Reactivity is anchored on the programmtic APIs — `.set()`, `.deleteProperty()`, etc. — but reactivity is also possible over literal JavaScript operations like `obj.prop = value`, `delete obj.prop` — by means of the `accessorize()` and `proxy()` methods covered just ahead.
 >
 > For full-fledged Imperative Reactive Programming, you may to see the [Quantum JS](https://github.com/webqit/quantum-js) project.
+
+---
 
 <details><summary>Looking for Observer@1.x?</summary>
 
@@ -90,16 +92,16 @@ This limitation in the language has long created a **blindspot** — and a **wea
 
 By enabling observability at the object/array level, the Observer API effectively solves reactivity for a mutable world. Consequently:
 
-+ you are able to weild *the sheer power of mutability* in programming unappologetically
-+ you are able to make sense of a mutable world — and integrate with it — rather than see it as somethng to fight.
++ you are able to weild *the sheer power of mutability* in programming to your advantage — and unappologetically
++ you are able to make sense of a mutable world — and integrate with it — rather than stand at odds with it.
 
-The Observer API collapses layers of complexity that reactive frameworks have built around immutability, bringing you back to the simplicity and power of direct mutation—but now with full observability.
+The Observer API collapses layers of complexity that reactive frameworks have built around immutability, bringing you back to the simplicity and power of direct mutation—but this time, with full observability.
 
-**The Result:** Mutation-based reactivity as a first-class concept in JavaScript. Observer enables frameworks to embrace mutability instead of avoiding it — with [Quantum JS](https://github.com/webqit/quantum-js) taking this foundation to create imperative reactive programming.
+**The Result** is *mutation-based reactivity* as a first-class concept in JavaScript.
 
 ## Quick Start
 
-Observer provides a simple API for watching object and array changes.
+Install from NPM or include from a CDN.
 
 ### Installation
 
@@ -234,12 +236,13 @@ Uses Observer API to underpin **Live Objects** as a first-class concept. Live Ob
 
 ### `Observer.observe(target, callback, options?)`
 
-Watch for changes on an object or array.
-Returns an AbortController for lifecycle management.
+Observe changes on an object or array.
+Returns an `AbortController` instance for lifecycle management.
 
 **Basic Usage:**
 ```js
 const obj = {};
+
 const controller = Observer.observe(obj, (mutations) => {
   mutations.forEach(mutation => {
     console.log(`${mutation.type}: ${mutation.key} = ${mutation.value}`);
