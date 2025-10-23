@@ -82,26 +82,22 @@ This limitation in the language has long created a **blindspot** — and a **wea
   state = { ...state, count: 8 };
   ```
 
-```js
+  ```js
   state = { ...state, items: [...state.items, 'new item 1'] };
   state = { ...state, items: [...state.items, 'new item 2'] };
   state = { ...state, items: [...state.items, 'new item 3'] };
   ```
 
-  > Because this is generally hard to follow, frameworks typically enforce immutability via strong design constraints. Outside of a framework, you get standalone *immutability* libraries (like Immer, or Immutable.js back in the day) that as well try to simulate an immutable world, where data is never changed, only replaced.
+  > Because this is generally hard to follow, frameworks typically enforce immutability using strong design constraints. Outside of a framework, you get standalone *immutability* libraries (like Immer, or Immutable.js back in the day) that as well try to simulate an immutable world, where data is never changed, only replaced.
 
 + mutation gets a bad rap
 
 **Using the Observer API:**
 
-By enabling observability at the object/array level, the Observer API effectively solves reactivity for a mutable world. Consequently:
+By enabling observability at the object/array level, the Observer API effectively solves reactivity for a mutable world. **The Result** is *mutation-based reactivity* as a first-class concept in JavaScript. Consequently:
 
-+ you are able to weild *the sheer power of mutability* in programming to your advantage — and unappologetically
-+ you are able to make sense of a mutable world — and integrate with it — rather than stand at odds with it.
-
-The Observer API collapses layers of complexity that reactive frameworks have built around immutability, bringing you back to the simplicity and power of direct mutation—and this time, with full observability.
-
-**The Result** is *mutation-based reactivity* as a first-class concept in JavaScript.
++ you are able to weild *the sheer power of mutability* in programming to your advantage
++ you are able to make sense of a mutable world — and integrate with it — rather than stand at odds with it
 
 ## Quick Start
 
