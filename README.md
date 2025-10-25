@@ -15,26 +15,26 @@ Observe and intercept operations on arbitrary JavaScript objects and arrays usin
 
 This API re-explores the unique design of the retired [Object.observe()](https://web.dev/es7-observe/) API and unifies that with the rest of JavaScript's metaprogramming APIs: `Proxies`, `Reflect`, `Object`!
 
-The Observer API comes as one little API for all things _object observability_. (Only `~5.8KiB min|zip`)
+Observer comes as one little API for all things _object observability_. (Only `~5.8KiB min|zip`)
 
 ```js
-const state = {};
+const obj = {};
 
 // Observe all property changes
-Observer.observe(state, (mutations) => {
+Observer.observe(obj, (mutations) => {
   mutations.forEach(mutation => {
     console.log(`${mutation.type}: ${mutation.key} = ${mutation.value}`);
   });
 });
 
-Observer.set(state, 'count', 5);
-Observer.deleteProperty(state, 'oldProp');
+Observer.set(obj, 'count', 5);
+Observer.deleteProperty(obj, 'oldProp');
 ```
 
 > [!TIP]
-> Reactivity is anchored on its programmtic APIs like `.set()`, `.deleteProperty()`, but you also get reactivity over literal JavaScript operations like `obj.prop = value`, `delete obj.prop` — by means of the `accessorize()` and `proxy()` methods covered just ahead.
+> Reactivity is anchored on its programmtic APIs like `.set()`, `.deleteProperty()`, but you also get reactivity over literal JavaScript operations — `obj.prop = value`, `delete obj.prop`, etc. — by means of the `accessorize()` and `proxy()` methods covered just ahead.
 >
-> For full-fledged Imperative Reactive Programming, you may want to see the [Quantum JS](https://github.com/webqit/quantum-js) project.
+> For full-fledged Imperative Reactive Programming, you want to see the [Quantum JS](https://github.com/webqit/quantum-js) project.
 
 ---
 
@@ -88,16 +88,18 @@ This limitation in the language has long created a **blindspot** — and a **wea
   state = { ...state, items: [...state.items, 'new item 3'] };
   ```
 
-  > Because this is generally hard to follow, frameworks typically enforce immutability using strong design constraints. Outside of a framework, you get standalone *immutability* libraries (like Immer, or Immutable.js back in the day) that as well try to simulate an immutable world, where data is never changed, only replaced.
+  > Because this is generally hard to follow, frameworks typically enforce immutability by means of strong design constraints. 
+  >
+  > Outside of a framework, you get standalone *immutability* libraries (like Immer, or Immutable.js back in the day) that as well try to simulate an immutable world, where data is never changed, only replaced.
 
 + mutation gets a bad rap
 
 **Using the Observer API:**
 
-By enabling observability at the object/array level, the Observer API effectively solves reactivity for a mutable world. **The Result** is *mutation-based reactivity* as a first-class concept in JavaScript. Consequently:
+By enabling observability at the object/array level, the Observer API effectively solves reactivity for a **mutable** world. The Result is *mutation-based* reactivity as a first-class concept in JavaScript. Consequently:
 
-+ you are able to weild *the full power of mutability* in programming to your advantage
-+ you are able to make sense of a mutable world — and integrate with it — rather than stand at odds with it
++ you are able to weild *the full power* of mutability in programming to your advantage
++ you are able to make sense of a mutable world — and integrate with it — rather than struggle with it
 
 ## Quick Start
 
