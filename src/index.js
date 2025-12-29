@@ -9,5 +9,6 @@ export const Observer = { ...main, ...actors };
 
 export { default as ListenerRegistry } from './core/ListenerRegistry.js';
 export { default as TrapsRegistry } from './core/TrapsRegistry.js';
+export { default as Descriptor } from './core/Descriptor.js';
 
 export default Observer;
