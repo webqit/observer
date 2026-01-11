@@ -15,7 +15,15 @@ import { unproxy } from './actors.js';
  *
  * @return Path
  */
-class Path extends Array {}
+class Path extends Array {
+    get [Symbol.toStringTag]() {
+        return 'Path';
+    }
+    static [Symbol.hasInstance](instance) {
+        return Array.isArray( instance )
+            && instance[ Symbol.toStringTag ] === 'Path';
+    }
+}
 export function path( ...segments ) {
     return new Path( ...segments );
 }
@@ -25,7 +33,15 @@ export function path( ...segments ) {
  * 
  * @return Subtree
  */
-class Subtree extends Array {}
+class Subtree extends Array {
+    get [Symbol.toStringTag]() {
+        return 'Subtree';
+    }
+    static [Symbol.hasInstance](instance) {
+        return Array.isArray( instance )
+            && instance[ Symbol.toStringTag ] === 'Subtree';
+    }
+}
 export function subtree() {
     return new Subtree;
 }
