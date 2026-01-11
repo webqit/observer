@@ -27,6 +27,6 @@ export default class Descriptor {
 
 	static [Symbol.hasInstance](instance) {
 		return instance?.[Symbol.toStringTag] === 'Descriptor'
-			&& 'operation' in instance;
+			&& instance.operation
 	}
 }
