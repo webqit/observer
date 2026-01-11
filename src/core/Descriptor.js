@@ -6,7 +6,7 @@
  */
 
 export default class Descriptor {
-	
+
 	/**
 	 * Initializes the instance.
 	 *
@@ -15,9 +15,18 @@ export default class Descriptor {
 	 *
 	 * @return void
 	 */
-	constructor( target, dfn ) {
+	constructor(target, dfn) {
 		this.target = target;
-		if ( !( dfn.operation ) ) throw new Error( 'Descriptor operation must be given in definition!' );
-		Object.assign( this, dfn );
+		if (!(dfn.operation)) throw new Error('Descriptor operation must be given in definition!');
+		Object.assign(this, dfn);
+	}
+
+	get [Symbol.toStringTag]() {
+		return 'Descriptor';
+	}
+
+	static [Symbol.hasInstance](instance) {
+		return instance?.[Symbol.toStringTag] === 'Descriptor'
+			&& 'operation' in instance;
 	}
 }
