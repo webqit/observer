@@ -32,7 +32,7 @@
     "version:next": "npm version prerelease --preid=next"
   },
   "dependencies": {
-    "@webqit/util": "^0.8.16"
+    "@webqit/util": "^0.8.19"
   },
   "devDependencies": {
     "chai": "^4.3.4",
@@ -45,23 +45,5 @@
   "maintainers": [
     "Oxford Harrison <oxharris.dev@gmail.com>"
   ],
-  "contributors": [],
-  "funding": {
-    "type": "patreon",
-    "url": "https://patreon.com/ox_harris"
-  },
-  "badges": {
-    "list": [
-      "npmversion",
-      "npmdownloads",
-      "patreon"
-    ],
-    "config": {
-      "patreonUsername": "ox_harris",
-      "githubUsername": "webqit",
-      "githubRepository": "observer",
-      "githubSlug": "webqit/observer",
-      "npmPackageName": "@webqit/observer"
-    }
-  }
+  "contributors": []
 }
