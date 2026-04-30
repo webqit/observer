@@ -11,7 +11,6 @@
     "array.observe",
     "events"
   ],
-  "homepage": "https://webqit.io/tooling/observer",
   "version": "3.8.20",
   "license": "MIT",
   "repository": {
