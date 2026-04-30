@@ -67,10 +67,12 @@ export default class Registry {
 			ImplementationClass = _wq( globalThis, 'observerAPI', 'namespaces' ).get( type + '-' + namespace );
 			type += '-' + namespace
 		}
-		if ( !_wq( target, 'registry' ).has( type ) && createIfNotExists ) {
-			_wq( target, 'registry' ).set( type, new ImplementationClass( target ) );
+		let registry = _wq( target, 'registry' ).get( type );
+		if ( !registry && createIfNotExists ) {
+			registry = new ImplementationClass( target );
+			_wq( target, 'registry' ).set( type, registry );
 		}
-		return _wq( target, 'registry' ).get( type );
+		return registry;
 	}
 
 	/**
